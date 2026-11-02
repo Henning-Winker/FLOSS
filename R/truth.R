@@ -27,7 +27,7 @@ status_table <- function(x, year = NULL, iters = NULL, summary = FALSE) {
   s <- stats::aggregate(cbind(B_Bmsy, F_Fmsy, C_MSY) ~ species + year, d,
                         stats::median)
   s$status <- kobe_status(s$B_Bmsy, s$F_Fmsy)
-  s$p_healthy <- tapply(d$status == "Healthy", d$species, mean)[s$species]
+  s$p_healthy <- as.numeric(tapply(d$status == "Healthy", d$species, mean)[s$species])
   s
 }
 
