@@ -1,9 +1,9 @@
-# FLOSS <img src="https://img.shields.io/badge/status-v0.1%20prototype-orange" align="right"/>
+# FLOSS <img src="https://img.shields.io/badge/status-v0.2%20prototype-orange" align="right"/>
 
 **FL Operating model & Sampling Simulator**
 
 FLOSS builds multi-fleet, multi-species age-structured operating models and
-(from v0.2) the data such fisheries produce: catch and effort by fleet, CPUE,
+the data such fisheries produce: catch and effort by fleet, CPUE,
 survey indices, length frequencies and biological samples (length, age,
 weight, maturity) with realistic sampling error. It is made for **training**
 (trainees analyse data from a fishery whose truth is known) and for
@@ -46,36 +46,48 @@ remotes::install_github("Henning-Winker/FLOSS")
 ```r
 library(FLOSS)
 
-fy <- load_fishery("reef_3fleets")          # traps, gillnet, linefish 1969-2025
-species_library()                           # example + user species
-
+# 1-3: fishery, species and operating models (4 reef species, 3 fleets)
+fy  <- load_fishery("reef_3fleets")
 oms <- build_oms(species_library()$id, fy, nsim = 100)
-oms$lutjanus_bohar
-plot_om(oms)                                # B/Bmsy, F/Fmsy, C/MSY by species
-plot_fleets(oms$lutjanus_bohar)             # apical F by fleet
-catch_fleet(oms$lutjanus_bohar)             # true catch by fleet
+plot_om(oms)
 
-# a new species, saved to your library
-sp <- load_species("lutjanus_bohar")
-sp <- species("Lutjanus gibbus", common_name = "Humpback red snapper",
-              lh = modifyList(sp$lh, list(linf = 45, k = 0.3, tmax = 18)),
-              msy = 400, sel = sp$sel, relq = c(traps = 0.4, gillnet = 0.6,
-                                                linefish = 0.8))
-save_species(sp)
+# 4-5: sampling settings and data (CPUE/length/bio: last 5, 10, 15 years)
+oem <- reef_oem()
+dat <- sample_data(oms, oem, iters = 1:10)
+plot_availability(dat, "Lutjanus bohar")
+plot_obs(dat, "Lutjanus bohar", what = "index", truth = TRUE)
+plot_lfd(dat, "Lutjanus bohar")
+plot_bio(dat, "Lutjanus bohar", what = "alk")
+plot_caa(caa_obs(dat, "Lutjanus bohar", "linefish"))
 
-# effort creep of 2% per year in the linefish fleet
-fy2 <- reef_fishery(creep = c(traps = 0, gillnet = 0, linefish = 0.02))
-plot_effort(fy2, efficiency = TRUE)
+# 6: save one dataset per iteration + answer key
+export_data(dat, "reef_course", format = c("csv", "xlsx"), zip = TRUE)
 ```
+
+The full walk-through is the vignette *FLOSS user guide*
+(`vignette("floss-02-user-guide", package = "FLOSS")`).
+
+### Main functions
+
+| Step | Functions |
+|---|---|
+| Fishery | `fishery()`, `effort_trend()`, `reef_fishery()`, `load_fishery()`, `plot_effort()` |
+| Species | `species()`, `selectivity()`, `species_library()`, `load_species()`, `save_species()` |
+| Operating model | `build_om()`, `build_oms()`, `catch_fleet()`, `plot_om()`, `plot_fleets()` |
+| Sampling | `oem_settings()`, `survey_settings()`, `reef_oem()`, `sample_data()` (CPUE with AR1 residuals, FLRef two-stage length samples, biological samples with random or length-stratified ageing) |
+| Observations | `plot_availability()`, `plot_obs()`, `plot_lfd()`, `plot_bio()`, `alk_obs()`, `caa_obs()`, `plot_caa()` – observations only, nothing fitted |
+| Truth (trainers) | `status_table()`, `plot_truth()`, `plot_kobe()`, `export_truth()` |
+| Save | `export_data()`, `read_dataset()`, `simulate_fishery()` (all in one call) |
 
 ## Roadmap
 
 | Version | Content |
 |---|---|
 | **0.1** | Specs (fishery, species) with YAML library; OM engine reproducing the multi-gear reef example; shared effort and effort creep |
-| 0.2 | Sampling (OEM): catch, effort, CPUE, survey, LFD (via `FLRef::sample_lfd_gears()`), biological samples; export tables + answer key |
-| 0.3 | Shiny app: Fishery - Species - OM - Sampling - Export, trainer/trainee mode |
-| 0.4 | Project save/load, more survey designs, seasonal effort |
+| **0.2** | Sampling: catch, effort, CPUE (AR1 residuals), survey, two-stage length samples (FLRef `lfd.sim()`), biological samples (random or length-stratified ageing); observed ALK and catch-at-age; export with answer key; user guide |
+| 0.3 | Shiny app: Fishery - Species - OM - Sampling - Export, with a "hide truth" switch for live teaching |
+| 0.4 | Trainee data viewer for exported datasets |
+| 0.5 | Project save/load, more survey designs, seasonal effort |
 | later | sex-structured and spatial stocks, link to `mse` via `sampling.lfd.oem()` |
 
 ## License
