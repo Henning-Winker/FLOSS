@@ -1,0 +1,38 @@
+floss: species
+id: lutjanus_bohar
+species: Lutjanus bohar
+common_name: Two-spot red snapper
+productivity: Low-intermediate
+version: '0.1'
+lh:
+  linf: 71.4261
+  k: 0.2122
+  t0: -1.0
+  a: 0.01
+  b: 3.04
+  lm: 34.509
+  tm: 3.0662
+  tmax: 16
+  M: 0.3246666501
+  s: 0.6804
+  sigR: 0.4368
+  rho: 0.5970216685
+msy: 600.0
+sel:
+  traps:
+    type: dnormal
+    Lpeak: 27.0
+    sd_left: 10.0
+    sd_right: 13.5
+  gillnet:
+    type: normal
+    Lpeak: 37.0
+    sd: 11.1
+  linefish:
+    type: logistic
+    L50: 40.0
+    L95: 55.0
+relq:
+  traps: 0.1
+  gillnet: 0.5
+  linefish: 1.0

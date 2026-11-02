@@ -1,0 +1,38 @@
+floss: species
+id: siganus_sutor
+species: Siganus sutor
+common_name: Whitespotted rabbitfish
+productivity: High
+version: '0.1'
+lh:
+  linf: 37.1516
+  k: 0.7124
+  t0: -1.0
+  a: 0.01
+  b: 3.04
+  lm: 25.7714
+  tm: 2.2209
+  tmax: 9
+  M: 0.9751742272
+  s: 0.599
+  sigR: 0.7354
+  rho: 0.3207057389
+msy: 750.0
+sel:
+  traps:
+    type: dnormal
+    Lpeak: 20.0
+    sd_left: 5.0
+    sd_right: 15.0
+  gillnet:
+    type: normal
+    Lpeak: 32.0
+    sd: 8.0
+  linefish:
+    type: logistic
+    L50: 28.0
+    L95: 32.0
+relq:
+  traps: 1.0
+  gillnet: 0.3
+  linefish: 0.05

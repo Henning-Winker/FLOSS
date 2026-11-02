@@ -1,0 +1,51 @@
+floss: fishery
+name: reef_3fleets
+version: '0.1'
+fleets:
+- traps
+- gillnet
+- linefish
+years:
+- 1969
+- 2025
+trends:
+  traps:
+    type: fudc
+    e0: 0.05
+    fhi: 1.0
+    flo: 0.8
+    fref: 1.0
+    breaks:
+    - 0.4
+    - 0.6
+  gillnet:
+    type: fudc
+    e0: 0.05
+    fhi: 0.5
+    flo: 1.5
+    fref: 1.0
+    breaks:
+    - 0.5
+    - 0.8
+  linefish:
+    type: fudc
+    e0: 0.05
+    fhi: 2.5
+    flo: 0.9
+    fref: 1.0
+    breaks:
+    - 0.6
+    - 0.8
+sigmaE:
+  traps: 0.15
+  gillnet: 0.15
+  linefish: 0.15
+creep:
+  traps: 0.0
+  gillnet: 0.0
+  linefish: 0.0
+creep_start:
+  traps: 1969
+  gillnet: 1969
+  linefish: 1969
+seed: 123

@@ -1,0 +1,38 @@
+floss: species
+id: lethrinus_mahsena
+species: Lethrinus mahsena
+common_name: Mahsena emperor
+productivity: Intermediate
+version: '0.1'
+lh:
+  linf: 60.1108
+  k: 0.1925
+  t0: -1.0
+  a: 0.01
+  b: 3.04
+  lm: 32.01
+  tm: 4.8477
+  tmax: 23
+  M: 0.3200858313
+  s: 0.647
+  sigR: 0.4655
+  rho: 0.6790989648
+msy: 1000.0
+sel:
+  traps:
+    type: dnormal
+    Lpeak: 27.0
+    sd_left: 8.0
+    sd_right: 19.6
+  gillnet:
+    type: normal
+    Lpeak: 35.0
+    sd: 10.5
+  linefish:
+    type: logistic
+    L50: 35.0
+    L95: 50.0
+relq:
+  traps: 0.3
+  gillnet: 0.7
+  linefish: 1.0

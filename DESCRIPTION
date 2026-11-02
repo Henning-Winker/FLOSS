@@ -1,0 +1,42 @@
+Package: FLOSS
+Type: Package
+Title: FL Operating Model and Sampling Simulator
+Version: 0.1.0
+Authors@R: c(
+    person("Henning", "Winker", email = "henning.winker@gmail.com",
+           role = c("aut", "cre")))
+Description: Builds multi-fleet, multi-species age-structured operating models
+    from life-history parameters, fleet selectivity, relative catchability and
+    a target MSY, driven by shared fleet effort (with optional effort creep),
+    and generates the data such fisheries produce (catch, effort, CPUE, survey
+    indices, length frequencies and biological samples). Designed for training
+    and for trainers who need realistic example datasets with a known truth.
+    Built on FLR ('FLCore', 'FLBRP', 'FLasher', 'FLife') and 'FLRef'.
+License: GPL (>= 3)
+Encoding: UTF-8
+Depends:
+    R (>= 4.1),
+    FLCore
+Imports:
+    methods,
+    stats,
+    utils,
+    FLBRP,
+    FLasher,
+    FLife,
+    FLRef,
+    ggplot2,
+    yaml
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    shiny,
+    bslib
+Additional_repositories: https://flr.r-universe.dev
+URL: https://github.com/Henning-Winker/FLOSS
+BugReports: https://github.com/Henning-Winker/FLOSS/issues
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Config/testthat/edition: 3
+VignetteBuilder: knitr

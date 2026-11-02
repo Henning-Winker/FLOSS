@@ -1,0 +1,39 @@
+floss: species
+id: carcharhinus_melanopterus
+species: Carcharhinus melanopterus
+common_name: Blacktip reef shark
+productivity: Very low
+version: '0.1'
+lh:
+  linf: 213.3814
+  k: 0.1452
+  t0: -1.0
+  a: 0.01
+  b: 3.04
+  lm: 134.2693
+  tm: 8.4563
+  tmax: 16
+  M: 0.171514289
+  s: 0.3234
+  sigR: 0.3147
+  rho: 0.6580897887
+msy: 75.0
+sel:
+  traps:
+    type: dnormal
+    Lpeak: 50.0
+    sd_left: 15.0
+    sd_right: 50.0
+  gillnet:
+    type: dnormal
+    Lpeak: 70.0
+    sd_left: 20.0
+    sd_right: 80.0
+  linefish:
+    type: logistic
+    L50: 70.0
+    L95: 110.0
+relq:
+  traps: 0.02
+  gillnet: 1.4
+  linefish: 0.4
