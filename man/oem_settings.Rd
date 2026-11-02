@@ -13,6 +13,7 @@ oem_settings(
   cpue_cv = 0.2,
   cpue_rho = 0.3,
   cpue_creep = TRUE,
+  cpue_beta = 1,
   lfd_ess_age = 30,
   lfd_ess_len = 300,
   lfd_bin = NULL,
@@ -24,6 +25,9 @@ oem_settings(
   age_cv = 0.1,
   wt_cv = 0.1,
   mat_L95 = 1.15,
+  catch_bias_from = NULL,
+  cpue_q_step = NULL,
+  bio_age_bias = 0,
   survey = survey_settings(),
   years = NULL
 )
@@ -40,7 +44,11 @@ samples, per fleet.}
 
 \item{cpue_cv, cpue_rho}{CPUE CV and residual autocorrelation.}
 
-\item{cpue_creep}{does CPUE carry effort creep (hyperstability)?}
+\item{cpue_creep}{does CPUE carry effort creep (rising catchability)?}
+
+\item{cpue_beta}{proportionality exponent, \eqn{I = qB^\beta}: 1 =
+proportional, < 1 hyperstable (e.g. range contraction), > 1
+hyperdepletion.}
 
 \item{lfd_ess_age, lfd_ess_len}{stage-1 (clusters) and stage-2 (fish
 measured) sample sizes.}
@@ -60,6 +68,17 @@ fish aged per length bin, source and year, as \code{\link[FLRef:alk.sample]{FLRe
 \item{age_cv, wt_cv}{ageing-error CV and weight CV.}
 
 \item{mat_L95}{length at 95\% maturity relative to \code{lm} (L50).}
+
+\item{catch_bias_from}{year from which \code{catch_bias} applies, per fleet
+(default: all years); an artefact such as under-reporting that starts
+with a new quota.}
+
+\item{cpue_q_step}{artefact: named list by fleet of \code{c(year, mult)}, the
+fleet's catchability changes by \code{mult} from \code{year} (e.g. new
+electronics), or \code{NULL}.}
+
+\item{bio_age_bias}{artefact: proportional ageing bias, e.g. -0.1 = fish
+are aged 10\% too young (typical of old fish read from whole otoliths).}
 
 \item{survey}{\code{\link[=survey_settings]{survey_settings()}} or \code{NULL} for no survey.}
 

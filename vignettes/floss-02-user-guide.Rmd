@@ -9,10 +9,17 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{css, echo = FALSE}
+.info, .flag, .predict { padding: 8px 14px; margin: 14px 0; border-radius: 3px; }
+.info { background: #eef4fb; border-left: 4px solid #2a5db0; }
+.flag { background: #fbefed; border-left: 4px solid #b0402a; }
+.predict { background: #fff6e0; border-left: 4px solid #e0a020; }
+```
+
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
                       warning = FALSE, fig.width = 7.5, fig.height = 4.5,
-                      fig.align = "center", out.width = "100%")
+                      fig.align = "center", dpi = 72, fig.retina = 1, dev = "png", out.width = "100%")
 ```
 
 This guide runs the whole FLOSS workflow for the multi-gear reef example:
@@ -25,6 +32,13 @@ course.
 ```
 1 Fishery -> 2 Species -> 3 Operating models -> 4 Sampling -> 5 Data -> 6 Observations -> 7 Truth -> 8 Save
 ```
+
+::: {.info}
+**Where to read more.** `vignette("floss-00-how-it-works")` describes the
+model, the sampling and what to expect in the data;
+`vignette("floss-03-teaching")` has the teaching cards (predict the
+response, spot the warning flags). This guide is the step-by-step workflow.
+:::
 
 ```{r}
 library(FLOSS)
@@ -46,6 +60,13 @@ fy
 ```{r, fig.height = 6}
 plot_effort(fy, nsim = 50)
 ```
+
+::: {.info}
+**Shared effort.** Fishing mortality of species *s* by fleet *f* is
+`relq[s, f] × Fmsy[s] × efficiency[f, y] × effort[f, y]`. Effort noise is
+common to all species of a fleet; effort creep raises efficiency but is not
+visible in the effort index.
+:::
 
 Your own fishery is defined with `fishery()` and `effort_trend()`; for
 example, two fleets with 1% annual effort creep in the second:
@@ -124,6 +145,13 @@ last 25 years.
 oem <- reef_oem()
 oem
 ```
+
+::: {.info}
+**Why sampling settings matter.** The same stock looks different through
+different sampling: few clusters make length samples erratic, autocorrelated
+CPUE errors make trends look more certain than they are, and the years
+sampled decide whether a change in the stock is visible at all.
+:::
 
 Three choices matter most:
 
@@ -234,6 +262,16 @@ round(attr(caa, "unassigned"), 3)
 plot_caa(caa)
 ```
 
+::: {.flag}
+**Before trusting a single indicator**, check that cohorts move through the
+length data at the growth rate and that the indices broadly agree.
+`plot_indicators()` puts all series on one page.
+:::
+
+```{r, fig.height = 6}
+plot_indicators(dat, "Lutjanus bohar")
+```
+
 # 7 True status (trainers)
 
 The answer key summarised: B/Bmsy, F/Fmsy and catch/MSY in the last year and
@@ -288,7 +326,22 @@ plot_bio(d1, "Siganus sutor", what = "age_length")
 `settings.yaml` holds the fishery, species and sampling settings and the seed,
 so the datasets can be re-created exactly.
 
-# 9 Everything in one call
+# 9 Treatments: one change, same random numbers
+
+A treatment changes one thing in the stock from a given year (effort,
+recruitment, selectivity, creep, M). `run_treatment()` runs it against the
+baseline with the same random numbers; see `vignette("floss-03-teaching")`
+for the teaching cards.
+
+```{r, fig.height = 5.5}
+tr <- run_treatment("lutjanus_bohar", fy,
+                    treatment("halve linefish effort from 2010",
+                              effort = list(fleet = "linefish", from = 2010, mult = 0.5)),
+                    nsim = 10)
+plot_treatment(tr)
+```
+
+# 10 Everything in one call
 
 `simulate_fishery()` builds the operating models and samples the data in one
 step:
@@ -299,7 +352,7 @@ sim <- simulate_fishery(ids, fishery = load_fishery(), oem = reef_oem(),
 export_data(sim$data, "reef_course", format = c("csv", "xlsx"), zip = TRUE)
 ```
 
-# 10 A teaching scenario: effort creep
+# 11 A teaching scenario: effort creep
 
 With 3% annual efficiency increase in the linefish fleet, nominal effort is
 unchanged but fishing mortality rises. Linefish CPUE, which carries the

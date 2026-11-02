@@ -53,7 +53,8 @@ reef_oem <- function(...) {
 #' ```
 #' <dir>/README.txt, settings.yaml
 #' <dir>/iter_01/catch.csv effort.csv cpue.csv survey.csv lfd.csv bio.csv [lhpars.csv]
-#' <dir>/answer_key/truth.csv status.csv refpts.csv catch_true.csv bio_true_age.csv
+#' <dir>/answer_key/README_answer_key.txt truth.csv status.csv refpts.csv
+#'   catch_true.csv bio_true_age.csv planted_artefacts.csv
 #' ```
 #'
 #' @param data a `floss_data`.
@@ -104,6 +105,21 @@ export_data <- function(data, dir, give = c("data_lh", "data"),
     dir.create(ak, showWarnings = FALSE)
     utils::write.csv(truth_long(data), file.path(ak, "truth.csv"), row.names = FALSE)
     utils::write.csv(status_table(data), file.path(ak, "status.csv"), row.names = FALSE)
+    arte <- data$settings$artefacts
+    utils::write.csv(arte, file.path(ak, "planted_artefacts.csv"), row.names = FALSE)
+    writeLines(c("ANSWER KEY - do not give to trainees",
+                 "",
+                 "truth.csv              true SSB, recruitment, Fbar, catch, B/Bmsy, F/Fmsy by year",
+                 "status.csv             true status in the last year (Kobe)",
+                 "refpts.csv             reference points",
+                 "catch_true.csv         true catch by fleet",
+                 "bio_true_age.csv       true age of every sampled fish",
+                 "planted_artefacts.csv  data problems and treatments planted on purpose",
+                 "",
+                 "Planted artefacts:",
+                 if (nrow(arte)) paste0("  ", arte$artefact, " (", arte$where, "): ", arte$detail)
+                 else "  none"),
+               file.path(ak, "README_answer_key.txt"))
     utils::write.csv(data$refpts, file.path(ak, "refpts.csv"), row.names = FALSE)
     utils::write.csv(data$bio[, c("species", "iter", "year", "source",
                                   "fish_id", "age_true")],

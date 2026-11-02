@@ -13,7 +13,8 @@ survey_settings(
   lfd = TRUE,
   ess_age = 50,
   ess_len = 500,
-  bio_n = 0
+  bio_n = 0,
+  q_step = NULL
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ residuals.}
 
 \item{bio_n}{fish per year for biological samples from the survey (0 =
 none).}
+
+\item{q_step}{artefact: \code{c(year, mult)}, the survey catchability changes
+by \code{mult} from \code{year} (e.g. a new vessel or gear), or \code{NULL}.}
 }
 \value{
 a list of class \code{floss_survey}.

@@ -1,0 +1,18 @@
+---
+title: "How FLOSS works"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{How FLOSS works}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This guide describes the model, the treatments, the sampling and what to
+expect in the data. The same text will be the **Guide** tab of the app. For
+worked examples see `vignette("floss-02-user-guide")` and
+`vignette("floss-03-teaching")`.
+
+```{r, child = "../inst/guide/how-it-works.md"}
+```

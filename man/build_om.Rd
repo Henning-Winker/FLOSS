@@ -11,7 +11,8 @@ build_om(
   effort = NULL,
   sigmaQ = 0,
   ar1 = FALSE,
-  seed = fishery$seed
+  seed = fishery$seed,
+  treatment = NULL
 )
 }
 \arguments{
@@ -31,6 +32,10 @@ default it is regenerated from the fishery seed, which gives the same).}
 
 \item{seed}{base seed for recruitment (and \code{sigmaQ}) deviations; combined
 with the species id so species differ but are reproducible.}
+
+\item{treatment}{optional \code{\link[=treatment]{treatment()}} (changes to effort, recruitment,
+selectivity, creep or M); random numbers are unchanged, so a treated and
+an untreated operating model differ only by the treatment.}
 }
 \value{
 an object of class \code{floss_om}: a list with \code{stock} (\code{FLStockR}),

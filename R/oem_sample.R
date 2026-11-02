@@ -49,6 +49,8 @@ sample_data <- function(om, oem, iters = 1:10, seed = 123) {
     refpts = bind("refpts"),
     settings = list(fishery = fy, species = lapply(oms, `[[`, "species"),
                     oem = oem, iters = iters, seed = seed,
+                    treatment = oms[[1]]$treatment,
+                    artefacts = planted_artefacts(oem, fy, oms[[1]]$treatment),
                     nsim = nsim, floss_version =
                       as.character(utils::packageVersion("FLOSS")))),
     class = "floss_data")
@@ -73,7 +75,10 @@ sample_catch <- function(om, oem, iters = 1:10) {
   do.call(rbind, lapply(names(cf), function(f) {
     tru <- iter(cf[[f]], iters)
     sd <- cv2sd(oem$catch$cv[[f]])
-    obs <- tru * (1 - oem$catch$bias[[f]])
+    bias <- rep(oem$catch$bias[[f]], dims(tru)$year)
+    if (!is.null(oem$catch$bias_from))           # bias only from a given year
+      bias[an(dimnames(tru)$year) < oem$catch$bias_from[[f]]] <- 0
+    obs <- tru * (1 - bias)
     obs[] <- c(obs) * stats::rlnorm(length(obs), -sd^2 / 2, sd)
     long_df(obs, tru, om$species$species, f, "catch_t", "catch_true")
   }))
@@ -102,8 +107,18 @@ sample_cpue <- function(om, oem, iters = 1:10) {
   do.call(rbind, lapply(om$fishery$fleets, function(f) {
     yrs <- year_window(stk, oem$years[[f]])
     vb <- vuln_biomass(stk, c(om$sel[[f]]$sel_a), 0.5)[, yrs]
-    signal <- if (isTRUE(oem$cpue$creep))
-      vb * iter(om$efficiency[[f]], iters)[, yrs] else vb
+    for (p in fleet_periods(om, f)[-1]) {          # selectivity changes
+      yy <- intersect(yrs, ac(p$years))
+      if (length(yy)) vb[, yy] <- vuln_biomass(stk, sel_a_for(om, p$sel), 0.5)[, yy]
+    }
+    beta <- oem$cpue$beta[[f]] %||% 1
+    signal <- vb^beta
+    if (isTRUE(oem$cpue$creep)) signal <- signal * iter(om$efficiency[[f]], iters)[, yrs]
+    qs <- oem$cpue$q_step[[f]]
+    if (!is.null(qs)) {                          # artefact: catchability step
+      yy <- yrs[an(yrs) >= qs[1]]
+      signal[, yy] <- signal[, yy] * qs[2]
+    }
     obs <- ar1_obs(signal, oem$cpue$cv[[f]], oem$cpue$rho[[f]])
     # index_true = true vulnerable biomass (no creep), for the answer key
     rel_index_df(obs, vb, om$species$species, f)
@@ -120,7 +135,12 @@ sample_survey <- function(om, oem, iters = 1:10) {
   g <- floss_gears(om, oem)$survey
   n <- FLRef::survey_n_gear(stk, g, years = yrs, timing = sv$timing)
   b <- quantSums(n * stock.wt(stk)[, yrs])
-  obs <- ar1_obs(b, sv$cv, sv$rho)
+  signal <- b
+  if (!is.null(sv$q_step)) {                     # artefact: catchability step
+    yy <- yrs[an(yrs) >= sv$q_step[1]]
+    signal[, yy] <- signal[, yy] * sv$q_step[2]
+  }
+  obs <- ar1_obs(signal, sv$cv, sv$rho)
   rel_index_df(obs, b, om$species$species, "survey")
 }
 
@@ -133,8 +153,14 @@ sample_lfd <- function(om, oem, iters = 1:10) {
   cn <- catch_fleet(om, "n")
   out <- lapply(om$fishery$fleets, function(f) {
     yrs <- year_window(stk, oem$years[[f]])
-    x <- iter(cn[[f]], iters)[, yrs]
-    lfd_df(FLRef::lfd.sim(x, gears[[f]], scale = FALSE), om$species$species, f)
+    do.call(rbind, lapply(fleet_periods(om, f), function(p) {
+      yy <- intersect(yrs, ac(p$years))
+      if (!length(yy)) return(NULL)
+      g <- if (identical(p$sel, om$species$sel[[f]])) gears[[f]] else
+        gear_for(om, oem, f, p$sel)
+      x <- iter(cn[[f]], iters)[, yy]
+      lfd_df(FLRef::lfd.sim(x, g, scale = FALSE), om$species$species, f)
+    }))
   })
   sv <- oem$survey
   if (!is.null(sv) && isTRUE(sv$lfd)) {
@@ -171,12 +197,21 @@ sample_bio <- function(om, oem, iters = 1:10) {
       nfish <- bio$n[[s]]
     }
     if (nfish <= 0) return(NULL)
+    key_for <- function(y) {
+      if (s == "survey") return(gears$survey$condALK)
+      for (p in fleet_periods(om, s)[-1])
+        if (an(y) %in% p$years) return(gear_for(om, oem, s, p$sel)$condALK)
+      gears[[s]]$condALK
+    }
     K <- gears[[s]]$condALK
     lens <- as.numeric(colnames(K))
     bw <- gears[[s]]$grid$bin
     ages <- as.numeric(rownames(K))
+    keys <- lapply(yrs, key_for)
+    names(keys) <- yrs
     do.call(rbind, lapply(seq_along(iters), function(j) {
       do.call(rbind, lapply(yrs, function(y) {
+        K <- keys[[y]]
         p <- c(x[, y, , , , j])
         if (sum(p) <= 0) return(NULL)
         a <- sample(ages, nfish, replace = TRUE, prob = p)
@@ -186,7 +221,9 @@ sample_bio <- function(om, oem, iters = 1:10) {
         }, 0)
         w <- sp$lh$a * l^sp$lh$b * stats::rlnorm(nfish, -sdw^2 / 2, sdw)
         pm <- 1 / (1 + exp(-log(19) * (l - L50) / (L95 - L50)))
-        age_obs <- pmax(0, round(a + stats::rnorm(nfish, 0, bio$age_cv * pmax(a, 1))))
+        # observed age: true age x (1 + ageing bias) + reading error
+        age_obs <- pmax(0, round(a * (1 + (bio$age_bias %||% 0)) +
+                                   stats::rnorm(nfish, 0, bio$age_cv * pmax(a, 1))))
         if (identical(bio$age_scheme, "stratified")) {
           # bins on the reported (mm-rounded) length, as an observer would
           bin_id <- floor(round(l * 10) / (bw * 10))
@@ -272,6 +309,20 @@ floss_gears <- function(om, oem) {
 }
 
 cv2sd <- function(cv) sqrt(log(1 + cv^2))
+
+# gear for one fleet with a different selectivity (e.g. after a gear switch)
+gear_for <- function(om, oem, fleet, sel) {
+  om2 <- om
+  om2$species$sel[[fleet]] <- sel
+  floss_gears(om2, oem)[[fleet]]
+}
+
+# selectivity-at-age (ages 0:tmax) of a selectivity spec for the OM species
+sel_a_for <- function(om, sel) {
+  c(FLRef::sel_la(species_lhpar(om$species), amin = 0, amax = om$species$lh$tmax,
+                  type = sel$type, L50 = sel$L50, L95 = sel$L95, Lpeak = sel$Lpeak,
+                  sd = sel$sd, sd_left = sel$sd_left, sd_right = sel$sd_right)$sel_a)
+}
 
 year_window <- function(stk, yrs) {
   have <- an(dimnames(stk)$year)

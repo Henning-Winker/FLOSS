@@ -4,7 +4,7 @@
 \alias{plot_lfd}
 \title{Plot length samples as bubbles (year x length)}
 \usage{
-plot_lfd(data, species = NULL, iter = 1, source = NULL)
+plot_lfd(data, species = NULL, iter = 1, source = NULL, cohorts = FALSE)
 }
 \arguments{
 \item{data}{a \code{floss_data} (or \code{\link[=read_dataset]{read_dataset()}} list).}
@@ -15,10 +15,15 @@ plot_lfd(data, species = NULL, iter = 1, source = NULL)
 shown in rows (length samples).}
 
 \item{source}{fleets / survey to show (facets); default all.}
+
+\item{cohorts}{add cohort growth lines (needs life-history parameters).}
 }
 \value{
 a \code{ggplot}.
 }
 \description{
-Plot length samples as bubbles (year x length)
+With \code{cohorts = TRUE}, von Bertalanffy growth lines follow each year class
+through the samples (mid-year length of the cohort born in each year):
+real modes move along these lines; patterns that jump or vanish are
+sampling noise or selectivity, not dynamics.
 }

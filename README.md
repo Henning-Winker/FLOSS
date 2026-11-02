@@ -1,4 +1,4 @@
-# FLOSS <img src="https://img.shields.io/badge/status-v0.2%20prototype-orange" align="right"/>
+# FLOSS <img src="https://img.shields.io/badge/status-v0.3%20prototype-orange" align="right"/>
 
 **FL Operating model & Sampling Simulator**
 
@@ -64,8 +64,26 @@ plot_caa(caa_obs(dat, "Lutjanus bohar", "linefish"))
 export_data(dat, "reef_course", format = c("csv", "xlsx"), zip = TRUE)
 ```
 
-The full walk-through is the vignette *FLOSS user guide*
-(`vignette("floss-02-user-guide", package = "FLOSS")`).
+Vignettes:
+
+* `vignette("floss-00-how-it-works")`: the model, sampling, what to expect in size data, warning flags
+* `vignette("floss-01-reef-om")`: the reef operating model
+* `vignette("floss-02-user-guide")`: step-by-step workflow, four species, three fleets, saved datasets
+* `vignette("floss-03-teaching")`: teaching cards (predict the response, spot the warning flags)
+
+### Teaching: treatments with common random numbers
+
+```r
+sp <- one_gear_species(load_species("lutjanus_bohar"))   # handline; effort = F/Fmsy
+rt <- run_treatment(sp, one_gear_fishery(1),
+        list(pulse   = treatment("strong 2012 year class",
+                         recruitment = list(type = "pulse", years = 2012, mult = 8)),
+             decline = treatment("recruitment -10%/yr",
+                         recruitment = list(type = "trend", from = 2005, rate = -0.1))),
+        nsim = 10, oem = oem_settings(one_gear_fishery(1), tail = 30), iters = 1:5)
+plot_treatment(rt)
+plot_length_indicators(length_indicators(rt, "Lutjanus bohar"))
+```
 
 ### Main functions
 
@@ -76,6 +94,10 @@ The full walk-through is the vignette *FLOSS user guide*
 | Operating model | `build_om()`, `build_oms()`, `catch_fleet()`, `plot_om()`, `plot_fleets()` |
 | Sampling | `oem_settings()`, `survey_settings()`, `reef_oem()`, `sample_data()` (CPUE with AR1 residuals, FLRef two-stage length samples, biological samples with random or length-stratified ageing) |
 | Observations | `plot_availability()`, `plot_obs()`, `plot_lfd()`, `plot_bio()`, `alk_obs()`, `caa_obs()`, `plot_caa()` – observations only, nothing fitted |
+| Treatments | `treatment()`, `run_treatment()`, `plot_treatment()`, `one_gear_fishery()`, `one_gear_species()` – baseline and treatment share all random numbers |
+| Dynamics | `plot_eq()` (equilibrium curves with the realised path), `plot_srr()`, `plot_eq_selectivity()` (growth overfishing), `plot_ssb_vb()` (spawners vs what each gear sees) |
+| Size data and flags | `length_indicators()`, `plot_length_indicators()`, `plot_lfd(cohorts = TRUE)`, `plot_indicators()` (dashboard), planted artefacts (`cpue_q_step`, `catch_bias_from`, `bio_age_bias`, survey `q_step`) with `planted_artefacts()` |
+| Basic fits (optional) | `fit_growth()`, `fit_lw()`, `fit_maturity()`, `catch_curve()`, `catch_curve_length()`, `M_empirical()`, `cpue_check()`, `plot_fit()` |
 | Truth (trainers) | `status_table()`, `plot_truth()`, `plot_kobe()`, `export_truth()` |
 | Save | `export_data()`, `read_dataset()`, `simulate_fishery()` (all in one call) |
 
@@ -85,10 +107,15 @@ The full walk-through is the vignette *FLOSS user guide*
 |---|---|
 | **0.1** | Specs (fishery, species) with YAML library; OM engine reproducing the multi-gear reef example; shared effort and effort creep |
 | **0.2** | Sampling: catch, effort, CPUE (AR1 residuals), survey, two-stage length samples (FLRef `lfd.sim()`), biological samples (random or length-stratified ageing); observed ALK and catch-at-age; export with answer key; user guide |
-| 0.3 | Shiny app: Fishery - Species - OM - Sampling - Export, with a "hide truth" switch for live teaching |
-| 0.4 | Trainee data viewer for exported datasets |
-| 0.5 | Project save/load, more survey designs, seasonal effort |
+| **0.3** | Treatments with common random numbers; dynamics plots; length indicators, cohort lines, indicator dashboard; plantable artefacts with hidden answer key; optional basic fits; guide and teaching vignette |
+| 0.4 | Shiny app: Fishery - Species - OM - Sampling - Export - Truth, guide tab and info tooltips (`floss_tip()`), "hide truth" switch; exporters for FLicc and JABBA3 |
+| 0.5 | Trainee data viewer for exported datasets |
+| 0.6 | Project save/load, more survey designs, seasonal effort |
 | later | sex-structured and spatial stocks, link to `mse` via `sampling.lfd.oem()` |
+
+## Acknowledgement
+
+The progression of the teaching material (simple population dynamics, then data, then models) is inspired by Haddon, M. (2021) *Using R for Modelling and Quantitative Methods in Fisheries*, Chapman & Hall/CRC.
 
 ## License
 

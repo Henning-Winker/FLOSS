@@ -38,6 +38,7 @@ settings needed to re-create them, and, separately, the answer key:
 \details{
 \if{html}{\out{<div class="sourceCode">}}\preformatted{<dir>/README.txt, settings.yaml
 <dir>/iter_01/catch.csv effort.csv cpue.csv survey.csv lfd.csv bio.csv [lhpars.csv]
-<dir>/answer_key/truth.csv status.csv refpts.csv catch_true.csv bio_true_age.csv
+<dir>/answer_key/README_answer_key.txt truth.csv status.csv refpts.csv
+  catch_true.csv bio_true_age.csv planted_artefacts.csv
 }\if{html}{\out{</div>}}
 }

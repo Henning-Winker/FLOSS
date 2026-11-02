@@ -87,6 +87,9 @@ calibrate_msy <- function(sp, sels = NULL) {
 #' @param ar1 use the species' `rho` for AR1 recruitment deviations.
 #' @param seed base seed for recruitment (and `sigmaQ`) deviations; combined
 #'   with the species id so species differ but are reproducible.
+#' @param treatment optional [treatment()] (changes to effort, recruitment,
+#'   selectivity, creep or M); random numbers are unchanged, so a treated and
+#'   an untreated operating model differ only by the treatment.
 #' @return an object of class `floss_om`: a list with `stock` (`FLStockR`),
 #'   `sr` (`FLSR`), `brp` (calibrated equilibrium), `sel` (fleet
 #'   selectivities), `fapic` and `f_fleet` (`FLQuants` of apical F and
@@ -94,7 +97,7 @@ calibrate_msy <- function(sp, sels = NULL) {
 #'   `settings`.
 #' @export
 build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
-                     ar1 = FALSE, seed = fishery$seed) {
+                     ar1 = FALSE, seed = fishery$seed, treatment = NULL) {
   sp <- validate_species(sp, fishery)
   yrs <- fishery_years(fishery)
   ny <- length(yrs)
@@ -102,6 +105,7 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
   if (dims(effort$effort[[1]])$iter != nsim)
     stop("'effort' has ", dims(effort$effort[[1]])$iter, " iterations, nsim = ",
          nsim)
+  effort <- apply_effort_treatment(effort, treatment, yrs)
 
   lhpar <- species_lhpar(sp)
   sels <- species_sel(sp, lhpar)[fishery$fleets]
@@ -116,6 +120,10 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
   sr <- as(as(eql, "predictModel"), "FLSR")
   stk <- propagate(stk, nsim)
   ages <- dimnames(stk)$age
+  if (!is.null(treatment$M)) {
+    yy <- ac(yrs[yrs >= treatment$M$from])
+    m(stk)[, yy] <- m(stk)[, yy] * treatment$M$mult
+  }
 
   sp_seed <- seed_for(seed, sp$id)
   res <- with_seed(sp_seed, {
@@ -131,6 +139,7 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
     rho <- if (ar1) sp$lh$rho else 0
     devs <- rlnormar1(n = nsim, meanlog = 0, sdlog = sp$lh$sigR,
                              rho = rho, years = yrs[-1], bias.correct = TRUE)
+    devs <- devs * rec_multiplier(treatment, yrs[-1])
     list(fapic = fapic, devs = devs)
   })
   fapic <- FLQuants(stats::setNames(res$fapic, fishery$fleets))
@@ -138,7 +147,15 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
   # fleet F-at-age = apical F x selectivity-at-age
   f_fleet <- FLQuants(lapply(fishery$fleets, function(f) {
     s_a <- c(sels[[f]]$sel_a)
-    flq(rep(c(fapic[[f]]), each = length(ages)) * s_a, age = ages,
+    sa_y <- matrix(s_a, length(ages), length(yrs))
+    for (sc in Filter(function(z) identical(z$fleet, f), treatment$selectivity)) {
+      new <- FLRef::sel_la(lhpar, amin = 0, amax = sp$lh$tmax, type = sc$sel$type,
+                           L50 = sc$sel$L50, L95 = sc$sel$L95, Lpeak = sc$sel$Lpeak,
+                           sd = sc$sel$sd, sd_left = sc$sel$sd_left,
+                           sd_right = sc$sel$sd_right)
+      sa_y[, yrs >= sc$from] <- c(new$sel_a)
+    }
+    flq(rep(c(fapic[[f]]), each = length(ages)) * c(sa_y), age = ages,
         years = yrs, nsim = nsim, units = "f")
   }))
   names(f_fleet) <- fishery$fleets
@@ -180,7 +197,7 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
     fapic = fapic, f_fleet = f_fleet,
     effort = FLQuants(lapply(effort$effort, function(x) x[, keep])),
     efficiency = FLQuants(lapply(effort$efficiency, function(x) x[, keep])),
-    species = sp, fishery = fishery,
+    species = sp, fishery = fishery, treatment = treatment,
     settings = list(nsim = nsim, sigmaQ = sigmaQ, ar1 = ar1, seed = seed,
                     species_seed = sp_seed, fishery_hash = spec_hash(fishery),
                     floss_version = as.character(utils::packageVersion("FLOSS")),

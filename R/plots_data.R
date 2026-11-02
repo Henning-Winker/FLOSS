@@ -92,16 +92,23 @@ plot_obs <- function(data, species = NULL, iter = 1, what = c("index", "catch"),
 
 #' Plot length samples as bubbles (year x length)
 #'
+#' With `cohorts = TRUE`, von Bertalanffy growth lines follow each year class
+#' through the samples (mid-year length of the cohort born in each year):
+#' real modes move along these lines; patterns that jump or vanish are
+#' sampling noise or selectivity, not dynamics.
+#'
 #' @inheritParams plot_availability
 #' @param source fleets / survey to show (facets); default all.
+#' @param cohorts add cohort growth lines (needs life-history parameters).
 #' @return a `ggplot`.
 #' @export
-plot_lfd <- function(data, species = NULL, iter = 1, source = NULL) {
+plot_lfd <- function(data, species = NULL, iter = 1, source = NULL,
+                     cohorts = FALSE) {
   species <- species %||% unique(data$lfd$species)[1]
   d <- pick(data$lfd, species, iter, source)
   d$p <- d$n / stats::ave(d$n, d$year, d$source, d$iter, FUN = sum)
   d$source <- factor(d$source, levels = intersect(names(src_colours(data)), d$source))
-  ggplot2::ggplot(d, ggplot2::aes(.data$len_mm / 10, .data$year)) +
+  g <- ggplot2::ggplot(d, ggplot2::aes(.data$len_mm / 10, .data$year)) +
     ggplot2::geom_point(ggplot2::aes(size = .data$p, colour = .data$source),
                         alpha = 0.55) +
     ggplot2::scale_size_area(max_size = 5, guide = "none") +
@@ -113,6 +120,23 @@ plot_lfd <- function(data, species = NULL, iter = 1, source = NULL) {
     ggplot2::labs(x = "Length (cm)", y = "Year", title = species,
                   subtitle = "Bubble area = proportion of the year's sample") +
     ggplot2::theme_bw()
+  lh <- if (cohorts) true_lh(data, species)
+  if (!is.null(lh)) {
+    yrs <- seq(min(d$year), max(d$year))
+    lmax <- max(d$len_mm) / 10
+    co <- do.call(rbind, lapply(seq(min(yrs) - lh$tmax, max(yrs)), function(b) {
+      age <- yrs - b
+      L <- lh$linf * (1 - exp(-lh$k * (age + 0.5 - lh$t0)))
+      keep <- age >= 0 & L <= lmax
+      if (sum(keep) < 2) return(NULL)
+      data.frame(cohort = b, year = yrs[keep], L = L[keep])
+    }))
+    g <- g + ggplot2::geom_path(data = co, ggplot2::aes(.data$L, .data$year,
+                                                       group = .data$cohort),
+                                colour = "grey45", linewidth = 0.25, alpha = 0.7,
+                                inherit.aes = FALSE)
+  }
+  g
 }
 
 #' Plot biological samples (observations only)
