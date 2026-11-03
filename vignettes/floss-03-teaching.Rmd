@@ -4,7 +4,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{FLOSS teaching scenarios}
+  %\VignetteIndexEntry{FLOSS teaching scenarios: predict the response, spot the warning flags}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -2,7 +2,7 @@
 title: "FLOSS 1: a multi-fleet reef operating model from saved specs"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{FLOSS 1: multi-fleet reef operating model}
+  %\VignetteIndexEntry{FLOSS 1: a multi-fleet reef operating model from saved specs}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
