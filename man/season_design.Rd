@@ -4,7 +4,15 @@
 \alias{season_design}
 \title{Seasonal sampling design}
 \usage{
-season_design(n = 4, share = NULL, shift = NULL, kappa = Inf, labels = NULL)
+season_design(
+  n = 4,
+  share = NULL,
+  shift = NULL,
+  kappa = Inf,
+  n_mult = NULL,
+  p_missing = 0,
+  labels = NULL
+)
 }
 \arguments{
 \item{n}{number of seasons (1 = one annual sample at mid-year, as in
@@ -12,11 +20,18 @@ FLOSS <= 0.4).}
 
 \item{share}{sample share by season (rescaled to sum to 1); default equal.}
 
-\item{shift}{optional list of \code{from} (year) and \code{share}: the shares from
-that year on. Several shifts as a list of such lists.}
+\item{shift}{optional list of \code{from} (year), \code{share} and optionally
+\code{over} (years): the shares change from \code{from} on, linearly over \code{over}
+years (default 0, a step). Several shifts as a list of such lists.}
 
 \item{kappa}{Dirichlet concentration for random year-to-year shares; \code{Inf}
 (default) = no random variation.}
+
+\item{n_mult}{optional list of \code{from}, \code{mult} and optionally \code{over}: the
+annual sample size (clusters, fish measured, biological samples) is
+multiplied by \code{mult} from \code{from} on (ramped over \code{over} years).}
+
+\item{p_missing}{probability that a year is not sampled at all.}
 
 \item{labels}{season names; default \code{"S1"}, \code{"S2"}, ...}
 }
@@ -41,10 +56,22 @@ small departures, 5 = large ones), as when samples are taken whenever
 an observer happens to be available.
 }
 
+Sampling intensity over the years:
+\itemize{
+\item \strong{intensity change}: the annual sample size is multiplied by \code{n_mult}
+from a year on (\code{list(from = 2020, mult = 0.3)}: a funding cut), with an
+optional ramp over \code{over} years;
+\item \strong{missing years}: each year is not sampled at all with probability
+\code{p_missing}.
+}
+
 Within a season, the age composition of the catch is the Baranov catch
-between the start and end of the season (fishing and natural mortality
-constant through the year), and lengths are those at the middle of the
-season (von Bertalanffy growth with age + season mid-point).
+between the start and end of the season (fishing effort and natural
+mortality constant through the year), and lengths are those at the
+middle of the season (von Bertalanffy growth with age + season
+mid-point). Because effort is constant within the year, the catch of each
+season is known from the dynamics, and equal season weights
+(\code{\link[=lfd_annual]{lfd_annual()}}) are the correct way to pool unevenly spread samples.
 }
 \examples{
 season_design()                                   # balanced, 4 seasons

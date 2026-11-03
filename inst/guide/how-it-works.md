@@ -106,7 +106,8 @@ sample carries less information than its number of fish suggests. The
 effective sample size lies between the number of clusters and the number
 of fish measured, depending on growth and selectivity.
 
-**Seasonal sampling.** By default the length and biological samples of a
+**Seasonal sampling.** The stock is annual, with fishing effort spread
+evenly through the year; only the sampling is seasonal. By default the length and biological samples of a
 year are spread evenly over four seasons (`season_design()`). Within a
 season the catch-at-age is the catch taken between the start and end of
 the season, and lengths are those at the middle of the season, so fish in
@@ -119,6 +120,9 @@ late-season samples are larger. Imbalanced designs:
 | Shift | sampling moves to seasons 3 and 4 from 2018 | a step in mean length in 2018 that looks like a change in mortality |
 | Opportunistic | shares vary at random from year to year | extra year-to-year noise in mean length |
 | Missing season | share 0 in the monsoon | no information on that part of the year |
+| Gradual shift | the shift spread over several years | a slow drift in mean length, easily read as a trend in the stock |
+| Fewer samples | sample size x 0.3 from 2020 (funding cut) | noisier length data, more erratic indicators |
+| Missing years | each year unsampled with some probability | gaps; cohorts harder to follow |
 
 `lfd_annual(weight = "equal")` and `length_indicators(season_weight =
 "equal")` give every sampled season the same weight, which corrects an

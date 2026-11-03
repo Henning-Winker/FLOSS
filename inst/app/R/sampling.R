@@ -72,7 +72,13 @@ sampling_ui <- function() {
           conditionalPanel("input.se_type == 'random'",
             sliderInput("se_kappa", lab("How regular (higher = closer to the shares above)", "season_kappa"),
                         min = 1, max = 100, value = 5, step = 1)),
-          p(class = "note", "Shares are relative: they are rescaled to sum to 1. The survey keeps its own timing (Survey tab)."),
+          p(class = "note", "Shares are relative: they are rescaled to sum to 1. The survey keeps its own timing (Survey tab). The stock itself is annual with effort spread evenly through the year: seasons only set when fish are measured, which spreads their lengths around the growth curve."),
+          tags$hr(),
+          tags$strong("Sampling intensity over the years (same fleets)"),
+          fluidRow(
+            column(4, checkboxInput("se_nm_on", "Sample size changes from a given year", FALSE)),
+            column(4, sliderInput("se_pmiss", "Chance that a year is not sampled", min = 0, max = 0.6, value = 0, step = 0.05))),
+          conditionalPanel("input.se_nm_on", uiOutput("se_nm_ui")),
           div(class = "flagbox", tags$strong("Warning flag: "),
               "mean length that steps up or down in the year the sampling season changed, or that tracks the share of samples from one season, is a sampling effect, not a change in growth or mortality.")),
         box(width = 12, title = "Samples and mean length by season",
@@ -225,11 +231,21 @@ sampling_server <- function(input, output, session, rv, r) {
   output$se_shift_ui <- renderUI({
     n <- as.integer(input$se_n %||% 4)
     y <- r$fishery()$years
-    tagList(sliderInput("se_shift_year", "Shift from year", min = y[1] + 2, max = y[2], value = y[2] - 7, step = 1, sep = ""),
+    tagList(fluidRow(
+              column(8, sliderInput("se_shift_year", "Shift from year", min = y[1] + 2, max = y[2], value = y[2] - 7, step = 1, sep = "")),
+              column(4, sliderInput("se_shift_over", "Gradually, over (years; 0 = at once)", min = 0, max = 10, value = 0, step = 1))),
             tags$strong("Shares by season, from that year"),
             share_sliders("se_share2_", n, rev(c(0.6, 0.2, 0.1, 0.1, rep(0.1, 8))[seq_len(n)])))
   })
   keep("se_shift_ui")
+  output$se_nm_ui <- renderUI({
+    y <- r$fishery()$years
+    fluidRow(
+      column(5, sliderInput("se_nm_year", "From year", min = y[1] + 2, max = y[2], value = y[2] - 5, step = 1, sep = "")),
+      column(4, sliderInput("se_nm_mult", "Sample size multiplier", min = 0.05, max = 3, value = 0.3, step = 0.05)),
+      column(3, sliderInput("se_nm_over", "Over (years)", min = 0, max = 10, value = 0, step = 1)))
+  })
+  keep("se_nm_ui")
 
   output$sm_seasons <- renderPlot({
     d <- dat()

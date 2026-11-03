@@ -250,12 +250,17 @@ app_seasons <- function(input, fl) {
     if (sum(v) <= 0) stop("season shares must not all be 0")
     v
   }
+  nm <- if (isTRUE(input$se_nm_on))
+    list(from = input$se_nm_year, mult = input$se_nm_mult %||% 1, over = input$se_nm_over %||% 0)
+  pm <- input$se_pmiss %||% 0
+  mk <- function(...) season_design(n, ..., n_mult = nm, p_missing = pm)
   des <- switch(type,
-    balanced = season_design(n),
-    fixed = season_design(n, share = sh("se_share_")),
-    shift = season_design(n, share = sh("se_share_"),
-                          shift = list(from = input$se_shift_year, share = sh("se_share2_"))),
-    random = season_design(n, share = sh("se_share_"), kappa = input$se_kappa %||% 5))
+    balanced = mk(),
+    fixed = mk(share = sh("se_share_")),
+    shift = mk(share = sh("se_share_"),
+               shift = list(from = input$se_shift_year, share = sh("se_share2_"),
+                            over = input$se_shift_over %||% 0)),
+    random = mk(share = sh("se_share_"), kappa = input$se_kappa %||% 5))
   use <- input$se_fleets %||% fl
   out <- lapply(stats::setNames(fl, fl), function(f) if (f %in% use) des else season_design(n))
   out

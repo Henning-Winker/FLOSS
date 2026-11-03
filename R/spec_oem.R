@@ -208,6 +208,11 @@ planted_artefacts <- function(oem, fishery = NULL, treatment = NULL) {
           if (length(sd$shift)) paste0("; from ", vapply(sd$shift, function(z) paste0(z$from, ": ",
             paste(sprintf("%.2f", z$share), collapse = "/")), ""), collapse = ""),
           if (is.finite(sd$kappa)) paste0("; random year-to-year, kappa ", sd$kappa)))
+    if (!is.null(sd$n_mult) && sd$n_mult$mult != 1)
+      add("change in sampling intensity", f, sprintf("sample size x %.2f from %d%s", sd$n_mult$mult,
+          sd$n_mult$from, if (sd$n_mult$over > 0) paste0(" over ", sd$n_mult$over, " years") else ""))
+    if (sd$p_missing > 0)
+      add("missing sampling years", f, sprintf("each year unsampled with probability %.2f", sd$p_missing))
     if (oem$lfd$ess_age[[f]] < 15)
       add("very small length samples", f, sprintf("%d clusters", oem$lfd$ess_age[[f]]))
   }

@@ -133,6 +133,7 @@ plot_length_indicators(length_indicators(rt, "Lutjanus bohar"))
 | **0.3** | Treatments with common random numbers; dynamics plots; length indicators, cohort lines, indicator dashboard; plantable artefacts with hidden answer key; optional basic fits; guide and teaching vignette |
 | **0.4** | Shiny app `run_app()` in the FLicc layout: Guide, Fishery, Species, OM, Treatments (predict, reveal), Sampling, Export, True status; info tooltips (`floss_tip()`), Hide truth switch |
 | **0.4.1** | Seasonal sampling by default (`season_design()`: balanced, fixed imbalance, shift, opportunistic, per fleet), `lfd_annual()`, `plot_seasons()`, Seasons tab in the app; r4ss/JABBA palette `floss.r4col()` in all plots |
+| **0.4.2** | Gradual sampling shifts, change in sampling intensity (e.g. funding cut), randomly missing sampling years |
 | 0.4.x | Exporters for FLicc and JABBA3 |
 | 0.5 | Trainee data viewer for exported datasets |
 | 0.6 | Project save/load, more survey designs, seasonal effort |

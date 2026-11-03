@@ -195,12 +195,13 @@ seasonal_lfd <- function(x, z_all, g, des, yy, iters, species, source,
   rows <- list()
   for (j in seq_along(iters)) {
     sh <- season_shares(des, yy)
+    nm <- season_n_mult(des, yy)
     for (y in yy) {
       ca <- c(x[, y, , , , j])
-      if (sum(ca) <= 0) next
+      if (sum(ca) <= 0 || nm[[y]] <= 0) next
       fr <- if (S == 1) matrix(1, length(ca), 1) else season_catch_frac(c(z_all[, y, , , , j]), S)
-      ea <- split_n(ess_age, sh[y, ])
-      el <- split_n(ess_len, sh[y, ])
+      ea <- split_n(scale_n(ess_age, nm[[y]]), sh[y, ])
+      el <- split_n(scale_n(ess_len, nm[[y]]), sh[y, ])
       for (s in seq_len(S)) {
         if (el[s] <= 0) next
         pa <- ca * fr[, s]
@@ -267,12 +268,13 @@ sample_bio <- function(om, oem, iters = 1:10) {
     ages <- as.numeric(rownames(K0))
     do.call(rbind, lapply(seq_along(iters), function(j) {
       sh <- season_shares(des, yrs)
+      nm <- season_n_mult(des, yrs)
       do.call(rbind, lapply(yrs, function(y) {
         p <- c(x[, y, , , , j])
-        if (sum(p) <= 0) return(NULL)
+        if (sum(p) <= 0 || nm[[y]] <= 0) return(NULL)
         keys <- keys_for(y)
         fr <- if (S == 1) matrix(1, length(p), 1) else season_catch_frac(c(z_all[, y, , , , j]), S)
-        ns <- split_n(nfish, sh[y, ])
+        ns <- split_n(scale_n(nfish, nm[[y]]), sh[y, ])
         a <- integer(0); l <- numeric(0); sea <- integer(0)
         for (q in seq_len(S)) {
           if (ns[q] <= 0 || sum(p * fr[, q]) <= 0) next
