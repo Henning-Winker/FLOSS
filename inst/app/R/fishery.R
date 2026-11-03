@@ -7,13 +7,22 @@ fishery_ui <- function() {
       box(width = 12, title = "Fishery",
         fluidRow(
           column(4, selectInput("fish_preset", lab("Fleets", "fleets"),
-            choices = stats::setNames(names(fishery_presets),
-                                      vapply(fishery_presets, `[[`, "", "label")))),
+            choices = c(stats::setNames(names(fishery_presets),
+                                        vapply(fishery_presets, `[[`, "", "label")),
+                        "New fishery: add your own gears" = "custom"))),
           column(4, sliderInput("fish_years", "Years (first year = unfished)", min = 1940, max = 2030,
                                 value = c(1969, 2025), step = 1, sep = "")),
           column(2, numericInput("fish_seed", "Seed", value = 123, min = 1, step = 1)),
           column(2, numericInput("fish_sigmaE", lab("Effort noise", "sigmaE"), value = 0.15,
                                  min = 0, max = 1, step = 0.05))),
+        conditionalPanel("input.fish_preset == 'custom'",
+          div(class = "infobox", tags$strong("New fishery. "),
+              "Start with no gears: type a gear name and press Add gear, then set its effort below. Add as many gears as you need. Each species gets a default selectivity for a new gear (S-shaped at the length at maturity), which you set in Species, Selectivity and Exploitation."),
+          fluidRow(
+            column(4, textInput("gear_name", "Gear name", placeholder = "e.g. handline, trawl, beach seine")),
+            column(2, br(), actionButton("gear_add", "Add gear", class = "btn-primary")),
+            column(4, uiOutput("gear_rm_ui")),
+            column(2, br(), uiOutput("gear_rm_btn")))),
         uiOutput("fish_err"),
         p(class = "note", "The same seed gives the same effort, recruitment and samples every time. All species share one effort history: when a fleet fishes more in a year, it fishes more on every species it catches.")),
       box(width = 12, title = span("Effort trend by fleet", tip("effort_trend")),
@@ -38,6 +47,23 @@ fishery_server <- function(input, output, session, rv, r) {
 
   output$guide_tips <- renderTable(guide_tips_table())
 
+  # ---- new fishery: add and remove gears ----
+  observeEvent(input$gear_add, {
+    nm <- trimws(input$gear_name %||% "")
+    if (!nzchar(nm)) { showNotification("Type a gear name first.", type = "warning"); return() }
+    if (tolower(nm) %in% c("survey", "all fleets") || fid(nm) %in% fid(rv$gears)) {
+      showNotification(paste0("'", nm, "' is already used. Choose another name."), type = "warning"); return()
+    }
+    rv$gears <- c(rv$gears, nm)
+    updateTextInput(session, "gear_name", value = "")
+  })
+  output$gear_rm_ui <- renderUI({
+    if (!length(rv$gears)) return(NULL)
+    selectInput("gear_rm", "Remove a gear", choices = rv$gears)
+  })
+  output$gear_rm_btn <- renderUI(if (length(rv$gears)) actionButton("gear_rm_go", "Remove"))
+  observeEvent(input$gear_rm_go, rv$gears <- setdiff(rv$gears, input$gear_rm))
+
   output$fish_err <- renderUI({
     f <- r$fishery()
     if (inherits(f, "floss_error")) div(class = "warnbox", tags$strong("Check the fishery. "), f$msg)
@@ -45,32 +71,37 @@ fishery_server <- function(input, output, session, rv, r) {
 
   # one row per fleet; values start at the preset
   output$fleet_rows <- renderUI({
-    p <- preset(input)
+    p <- preset(input, rv)
     yrs <- input$fish_years
+    if (!length(p$fleets)) return(div(class = "infobox", "No gears yet: add a gear above."))
     lapply(seq_along(p$fleets), function(i) {
       d <- p$trends[[i]]
+      k <- fid(p$fleets[i])
       by <- round(yrs[1] + d$breaks * diff(yrs))
+      by <- pmin(pmax(keepv(input, paste0("fl_brk_", k), by), yrs[1] + 1), yrs[2] - 1)
       div(class = "fleet-row", fluidRow(
         column(2, div(class = "fleet-name", p$fleets[i])),
-        column(2, numericInput(paste0("fl_e0_", i), "Start level", value = d$e0, min = 0, step = 0.01)),
-        column(2, sliderInput(paste0("fl_fhi_", i), "Peak", min = 0, max = 4, value = d$fhi, step = 0.05)),
-        column(2, sliderInput(paste0("fl_flo_", i), "Later level", min = 0, max = 4, value = d$flo, step = 0.05)),
-        column(4, sliderInput(paste0("fl_brk_", i), "Change years (peak, later level)",
+        column(2, numericInput(paste0("fl_e0_", k), "Start level", value = keepv(input, paste0("fl_e0_", k), d$e0), min = 0, step = 0.01)),
+        column(2, sliderInput(paste0("fl_fhi_", k), "Peak", min = 0, max = 4, value = keepv(input, paste0("fl_fhi_", k), d$fhi), step = 0.05)),
+        column(2, sliderInput(paste0("fl_flo_", k), "Later level", min = 0, max = 4, value = keepv(input, paste0("fl_flo_", k), d$flo), step = 0.05)),
+        column(4, sliderInput(paste0("fl_brk_", k), "Change years (peak, later level)",
                               min = yrs[1] + 1, max = yrs[2] - 1, value = by, step = 1, sep = ""))))
     })
   })
   outputOptions(output, "fleet_rows", suspendWhenHidden = FALSE)
 
   output$creep_rows <- renderUI({
-    p <- preset(input)
+    p <- preset(input, rv)
     yrs <- input$fish_years
+    if (!length(p$fleets)) return(div(class = "infobox", "No gears yet: add a gear in Fleets and effort."))
     lapply(seq_along(p$fleets), function(i) {
+      k <- fid(p$fleets[i])
       div(class = "fleet-row", fluidRow(
         column(2, div(class = "fleet-name", p$fleets[i])),
-        column(5, sliderInput(paste0("fl_creep_", i), "Creep (% per year)", min = 0, max = 5,
-                              value = 0, step = 0.25)),
-        column(5, sliderInput(paste0("fl_cstart_", i), "Creep starts in", min = yrs[1], max = yrs[2],
-                              value = yrs[1], step = 1, sep = ""))))
+        column(5, sliderInput(paste0("fl_creep_", k), "Creep (% per year)", min = 0, max = 5,
+                              value = keepv(input, paste0("fl_creep_", k), 0), step = 0.25)),
+        column(5, sliderInput(paste0("fl_cstart_", k), "Creep starts in", min = yrs[1], max = yrs[2],
+                              value = keepv(input, paste0("fl_cstart_", k), yrs[1]), step = 1, sep = ""))))
     })
   })
   outputOptions(output, "creep_rows", suspendWhenHidden = FALSE)

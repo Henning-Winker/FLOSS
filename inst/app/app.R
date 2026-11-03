@@ -20,7 +20,8 @@ server <- function(input, output, session) {
   # operating models, the sampled data and the treatment runs
   rv <- reactiveValues(sp = initial_species(), oms = NULL, om_snap = NULL,
                        data = NULL, data_snap = NULL, treat = NULL,
-                       prediction = NULL, revealed = FALSE, applied = 0)
+                       prediction = NULL, revealed = FALSE, applied = 0,
+                       gears = character(0))
 
   # r holds the reactive objects (fishery, species, sampling settings, ...)
   # used by several steps

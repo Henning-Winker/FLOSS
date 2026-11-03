@@ -151,13 +151,14 @@ sampling_server <- function(input, output, session, rv, r) {
 
   # per-fleet rows: fields is a list of list(id, label, value(i), min, max, step, slider?)
   fleet_rows <- function(fields) {
-    p <- preset(input)
+    p <- preset(input, rv)
     lapply(seq_along(p$fleets), function(i) div(class = "fleet-row", fluidRow(
       column(2, div(class = "fleet-name", p$fleets[i])),
       lapply(fields, function(f) column(f$w %||% 3,
-        if (isTRUE(f$slider)) sliderInput(paste0(f$id, "_", i), f$label, min = f$min, max = f$max,
-                                          value = f$value(i, p), step = f$step)
-        else numericInput(paste0(f$id, "_", i), f$label, value = f$value(i, p), min = f$min,
+        if (isTRUE(f$slider)) sliderInput(paste0(f$id, "_", fid(p$fleets[i])), f$label, min = f$min, max = f$max,
+                                          value = keepv(input, paste0(f$id, "_", fid(p$fleets[i])), f$value(i, p)), step = f$step)
+        else numericInput(paste0(f$id, "_", fid(p$fleets[i])), f$label,
+                          value = keepv(input, paste0(f$id, "_", fid(p$fleets[i])), f$value(i, p)), min = f$min,
                           max = f$max, step = f$step))))))
   }
   keep <- function(id) outputOptions(output, id, suspendWhenHidden = FALSE)
@@ -165,11 +166,12 @@ sampling_server <- function(input, output, session, rv, r) {
   output$sm_year_rows <- renderUI({
     req(r$fishery_ok())
     yrs <- r$fishery()$years
-    p <- preset(input)
+    p <- preset(input, rv)
     lapply(seq_along(p$fleets), function(i) div(class = "fleet-row", fluidRow(
       column(2, div(class = "fleet-name", p$fleets[i])),
-      column(8, sliderInput(paste0("sm_years_", i), "Years sampled (catch is reported for all years)",
-                            min = yrs[1] + 2, max = yrs[2], value = c(yrs[2] - p$tail[[i]] + 1, yrs[2]),
+      column(8, sliderInput(paste0("sm_years_", fid(p$fleets[i])), "Years sampled (catch is reported for all years)",
+                            min = yrs[1] + 2, max = yrs[2],
+                            value = keepv(input, paste0("sm_years_", fid(p$fleets[i])), c(yrs[2] - p$tail[[i]] + 1, yrs[2])),
                             step = 1, sep = "")))))
   })
   keep("sm_year_rows")

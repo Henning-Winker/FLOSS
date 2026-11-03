@@ -35,6 +35,12 @@ fishing mortality but is **not visible** in the nominal effort index.
 
     F[s, f, y] = relq[s, f] x Fmsy[s] x efficiency[f, y] x E[f, y]
 
+In the app, choose **New fishery** to start with no gears, add gears by
+name and set each gear's effort; species get a default selectivity for a
+new gear (S-shaped at the length at maturity) to be set in the Species step.
+In R, `fishery()` takes any fleet names and `species()` a selectivity and
+catchability for each.
+
 `relq` is the relative catchability of species `s` by fleet `f`, set in the
 species. With one fleet and `one_gear_species()`, effort equals F/Fmsy.
 

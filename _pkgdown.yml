@@ -33,9 +33,10 @@ articles:
   - floss-01-reef-om
 
 reference:
-- title: App
+- title: App and guides
   contents:
   - run_app
+  - floss_guide
   - floss_tip
 - title: Fishery
   contents:

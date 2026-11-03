@@ -1,4 +1,4 @@
-# FLOSS <img src="https://img.shields.io/badge/status-v0.5.0%20prototype-orange" align="right"/>
+# FLOSS <img src="https://img.shields.io/badge/status-v0.5.1%20prototype-orange" align="right"/>
 
 **FL Operating model & Sampling Simulator**
 
@@ -53,7 +53,7 @@ operating model** and **Sample data** buttons, and a status pill at the top.
 | Step | Sub-tabs |
 |---|---|
 | Guide | Start here, How it works, Sampling and size data, Warning flags, Truth and export, Settings explained |
-| 1 Fishery | Fleets and effort, Effort creep, Effort realisation |
+| 1 Fishery | Fleets and effort (reef, one gear, or a **new fishery**: add gears one by one), Effort creep, Effort realisation |
 | 2 Species | Library (choose, add, save), Life history, Selectivity, Exploitation |
 | 3 Operating model | Settings, Stock trends, Fleets, Equilibrium, Spawners vs vulnerable, Stock and recruitment |
 | 4 Treatments | Build, Predict, Reveal (prediction vs what happened, true response, length data) |
@@ -71,6 +71,20 @@ install.packages(c("FLCore", "ggplotFL", "FLBRP", "FLasher", "FLife", "FLRef"),
 remotes::install_github("Henning-Winker/FLOSS", build_vignettes = TRUE)
 install.packages(c("shiny", "shinydashboard", "commonmark"))   # for the app
 ```
+
+## Guides
+
+```r
+vignette("floss-02-user-guide", "FLOSS")          # if installed with build_vignettes = TRUE
+FLOSS::floss_guide("user-guide")                  # copy the guide (.Rmd and .R) to your folder
+FLOSS::floss_guide("all", dir = "guides", render = TRUE)   # copy and render all guides
+```
+
+The guide sources live in `inst/guide/` (always installed); the vignettes in
+`vignettes/` include them. Fully commented R-script versions, as in JABBA3:
+[`inst/guide/FLOSS_user_guide.R`](inst/guide/FLOSS_user_guide.R) and
+[`inst/guide/FLOSS_teaching.R`](inst/guide/FLOSS_teaching.R)
+(`file.edit(system.file("guide", "FLOSS_user_guide.R", package = "FLOSS"))`).
 
 ## Quick start
 
@@ -145,6 +159,7 @@ plot_length_indicators(length_indicators(rt, "Lutjanus bohar"))
 | **0.4** | Shiny app `run_app()` in the FLicc layout: Guide, Fishery, Species, OM, Treatments (predict, reveal), Sampling, Export, True status; info tooltips (`floss_tip()`), Hide truth switch |
 | **0.4.1** | Seasonal sampling by default (`season_design()`: balanced, fixed imbalance, shift, opportunistic, per fleet), `lfd_annual()`, `plot_seasons()`, Seasons tab in the app |
 | **0.4.2** | Gradual sampling shifts, change in sampling intensity (e.g. funding cut), randomly missing sampling years |
+| **0.5.1** | New fishery in the app (add gears by name); guides in `inst/guide` with `floss_guide()` and fully commented R scripts (as in JABBA3) |
 | **0.5.0** | Effort in fishing days; naive aggregation for teaching (catch, effort and nominal CPUE by fleet, all fleets, all species; length samples pooled or raised to the catch; biological samples by fleet, all fleets or season); FLR export for JABBA3 and FLicc |
 | 0.5 | Trainee data viewer for exported datasets |
 | 0.6 | Project save/load, more survey designs, seasonal effort |

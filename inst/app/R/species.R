@@ -83,14 +83,14 @@ species_server <- function(input, output, session, rv, r) {
     sel <- base$sel
     relq <- base$relq
     for (i in seq_along(fl)) {
-      ty <- input[[paste0("sel_type_", i)]]
+      ty <- input[[paste0("sel_type_", fid(fl[i]))]]
       if (is.null(ty)) next
-      g <- function(n) input[[paste0("sel_", n, "_", i)]]
+      g <- function(n) input[[paste0("sel_", n, "_", fid(fl[i]))]]
       sel[[fl[i]]] <- switch(ty,
         logistic = selectivity("logistic", L50 = g("L50"), L95 = max(g("L95"), g("L50") + 0.5)),
         normal   = selectivity("normal", Lpeak = g("Lpeak"), sd = g("sd")),
         dnormal  = selectivity("dnormal", Lpeak = g("Lpeak_d"), sd_left = g("sdl"), sd_right = g("sdr")))
-      relq[[fl[i]]] <- input[[paste0("rq_", i)]] %||% relq[[fl[i]]] %||% 0.5
+      relq[[fl[i]]] <- input[[paste0("rq_", fid(fl[i]))]] %||% relq[[fl[i]]] %||% 0.5
     }
     species(base$species, base$common_name, lh = lh, msy = input$lh_msy %||% base$msy,
             sel = sel, relq = unlist(relq[names(sel)]), productivity = base$productivity, id = base$id)
@@ -247,12 +247,12 @@ species_server <- function(input, output, session, rv, r) {
       z <- s$sel[[fl[i]]]
       v <- function(n, def) round(z[[n]] %||% def, 1)
       lm <- s$lh$lm
-      id <- function(n) paste0("sel_", n, "_", i)
+      id <- function(n) paste0("sel_", n, "_", fid(fl[i]))
       sl <- function(n, label, def) sliderInput(id(n), label, min = 0, max = Lmax, value = v(n, def), step = 0.5)
-      cond <- function(t) paste0("input.sel_type_", i, " == '", t, "'")
+      cond <- function(t) paste0("input.sel_type_", fid(fl[i]), " == '", t, "'")
       div(class = "fleet-row", fluidRow(
         column(2, div(class = "fleet-name", fl[i])),
-        column(3, selectInput(paste0("sel_type_", i), "Shape", choices = sel_types, selected = z$type)),
+        column(3, selectInput(paste0("sel_type_", fid(fl[i])), "Shape", choices = sel_types, selected = z$type)),
         column(7,
           conditionalPanel(cond("logistic"), fluidRow(
             column(6, sl("L50", "L50: 50% retained (cm)", lm)),
@@ -306,7 +306,7 @@ species_server <- function(input, output, session, rv, r) {
     if (r$one_gear()) return(NULL)
     lapply(seq_along(fl), function(i) fluidRow(
       column(2, div(class = "fleet-name", fl[i])),
-      column(5, sliderInput(paste0("rq_", i), lab("Relative catchability", "relq"), min = 0, max = 2,
+      column(5, sliderInput(paste0("rq_", fid(fl[i])), lab("Relative catchability", "relq"), min = 0, max = 2,
                             value = round(s$relq[[fl[i]]], 2), step = 0.05))))
   })
   outputOptions(output, "rq_rows", suspendWhenHidden = FALSE)

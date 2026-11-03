@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,7 +106,7 @@ effort.</p>
 <span><span class="co">#&gt;         1969</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_effort.html">plot_effort</a></span><span class="op">(</span><span class="va">fy</span>, nsim <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></code></pre></div>
-<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;"></p>
+<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-5-1.png" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="species">2 Species<a class="anchor" aria-label="anchor" href="#species"></a>
@@ -130,7 +130,7 @@ effort.</p>
 <p>Selectivity by fleet, from <code><a href="https://rdrr.io/pkg/FLRef/man/sel_la.html" class="external-link">FLRef::sel_la()</a></code>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">FLRef</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/FLRef/man/plot_sel_la.html" class="external-link">plot_sel_la</a></span><span class="op">(</span><span class="fu"><a href="../reference/species_sel.html">species_sel</a></span><span class="op">(</span><span class="va">sp</span><span class="op">)</span>, age_by <span class="op">=</span> <span class="fl">2</span>, len_by <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-5-1.png" style="display: block; margin: auto;"></p>
+<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="operating-models">3 Operating models<a class="anchor" aria-label="anchor" href="#operating-models"></a>
@@ -158,13 +158,13 @@ under the realised mix of fleets is close to it:</p>
 <span><span class="co">#&gt; siganus_sutor                750        750 744.14588</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_om.html">plot_om</a></span><span class="op">(</span><span class="va">oms</span><span class="op">)</span></span></code></pre></div>
-<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-8-1.png" style="display: block; margin: auto;"></p>
+<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-10-1.png" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_fleets.html">plot_fleets</a></span><span class="op">(</span><span class="va">oms</span><span class="op">$</span><span class="va">lutjanus_bohar</span><span class="op">)</span></span></code></pre></div>
-<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;"></p>
+<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-11-1.png" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_fleets.html">plot_fleets</a></span><span class="op">(</span><span class="va">oms</span><span class="op">$</span><span class="va">lutjanus_bohar</span>, <span class="st">"catch"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-9-2.png" style="display: block; margin: auto;"></p>
+<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-11-2.png" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="effort-creep">4 Effort creep<a class="anchor" aria-label="anchor" href="#effort-creep"></a>
@@ -174,7 +174,7 @@ effort is unchanged but fishing mortality, and depletion, increase:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fy_creep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reef_fishery.html">reef_fishery</a></span><span class="op">(</span>creep <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>traps <span class="op">=</span> <span class="fl">0</span>, gillnet <span class="op">=</span> <span class="fl">0</span>, linefish <span class="op">=</span> <span class="fl">0.02</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_effort.html">plot_effort</a></span><span class="op">(</span><span class="va">fy_creep</span>, nsim <span class="op">=</span> <span class="fl">50</span>, efficiency <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-10-1.png" style="display: block; margin: auto;"></p>
+<p><img src="floss-01-reef-om_files/figure-html/unnamed-chunk-12-1.png" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">om_creep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/build_om.html">build_om</a></span><span class="op">(</span><span class="va">sp</span>, <span class="va">fy_creep</span>, nsim <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">om_creep</span></span>

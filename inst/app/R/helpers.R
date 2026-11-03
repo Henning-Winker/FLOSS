@@ -48,7 +48,31 @@ fishery_presets <- list(
     bio_n = c(handline = 200))
 )
 
-preset <- function(input) fishery_presets[[input$fish_preset %||% "reef"]]
+# A new fishery: the gears the user added, with default settings for each
+custom_preset <- function(gears) {
+  n <- length(gears)
+  rep_named <- function(v) stats::setNames(rep(v, n), gears)
+  list(label = "New fishery: add your own gears", fleets = gears,
+       trends = stats::setNames(rep(list(list(e0 = 0.05, fhi = 1, flo = 0.8, breaks = c(0.4, 0.6))), n), gears),
+       tail = rep_named(10), rho = rep_named(0.3), ess_age = rep_named(30), ess_len = rep_named(300),
+       bio_n = rep_named(100), days = rep_named(1000))
+}
+
+preset <- function(input, rv = NULL) {
+  if (identical(input$fish_preset, "custom")) return(custom_preset(rv$gears %||% character(0)))
+  fishery_presets[[input$fish_preset %||% "reef"]]
+}
+
+# Input id suffix for a gear: inputs are keyed by gear name, not position, so
+# adding or removing a gear keeps the settings of the others
+fid <- function(x) gsub("[^A-Za-z0-9]", "_", x)
+
+# Current value of an input if it exists, else the default (keeps settings
+# when rows are drawn again)
+keepv <- function(input, id, default) {
+  v <- isolate(input[[id]])
+  if (is.null(v) || (length(default) == 2 && length(v) != 2)) default else v
+}
 
 # ---- species -----------------------------------------------------------------------
 
@@ -103,27 +127,28 @@ make_reactives <- function(input, rv) {
 
   r$one_gear <- reactive(identical(input$fish_preset, "one"))
 
-  r$fleets <- reactive(preset(input)$fleets)
+  r$fleets <- reactive(preset(input, rv)$fleets)
 
   # The fishery, built from the Fishery inputs (preset values until edited)
   r$fishery <- reactive({
-    p <- preset(input)
+    p <- preset(input, rv)
     fl <- p$fleets
+    if (!length(fl)) return(structure(list(msg = "Add at least one gear (New fishery)."), class = "floss_error"))
     yrs <- input$fish_years %||% c(1969, 2025)
     y0 <- yrs[1]; y1 <- yrs[2]
     trends <- lapply(seq_along(fl), function(i) {
       d <- p$trends[[fl[i]]]
-      brk <- input[[paste0("fl_brk_", i)]]
+      brk <- input[[paste0("fl_brk_", fid(fl[i]))]]
       brk <- if (length(brk) == 2) (brk - y0) / (y1 - y0) else d$breaks
       brk <- pmin(pmax(brk, 0.01), 0.99)
       if (brk[2] <= brk[1]) brk[2] <- min(0.99, brk[1] + 0.01)
-      effort_trend(e0 = input[[paste0("fl_e0_", i)]] %||% d$e0,
-                   fhi = input[[paste0("fl_fhi_", i)]] %||% d$fhi,
-                   flo = input[[paste0("fl_flo_", i)]] %||% d$flo, breaks = brk)
+      effort_trend(e0 = input[[paste0("fl_e0_", fid(fl[i]))]] %||% d$e0,
+                   fhi = input[[paste0("fl_fhi_", fid(fl[i]))]] %||% d$fhi,
+                   flo = input[[paste0("fl_flo_", fid(fl[i]))]] %||% d$flo, breaks = brk)
     })
     names(trends) <- fl
-    creep <- vapply(seq_along(fl), function(i) (input[[paste0("fl_creep_", i)]] %||% 0) / 100, 0)
-    cstart <- vapply(seq_along(fl), function(i) as.integer(input[[paste0("fl_cstart_", i)]] %||% y0), 0L)
+    creep <- vapply(seq_along(fl), function(i) (input[[paste0("fl_creep_", fid(fl[i]))]] %||% 0) / 100, 0)
+    cstart <- vapply(seq_along(fl), function(i) as.integer(input[[paste0("fl_cstart_", fid(fl[i]))]] %||% y0), 0L)
     tryCatch(
       fishery(fleets = fl, years = seq(y0, y1), trends = trends,
               sigmaE = input$fish_sigmaE %||% 0.15, creep = creep,
@@ -169,17 +194,17 @@ make_reactives <- function(input, rv) {
   # Sampling settings, built from the Sampling inputs
   r$oem <- reactive({
     req(r$fishery_ok())
-    p <- preset(input)
+    p <- preset(input, rv)
     fl <- p$fleets
     f <- r$fishery()
     pf <- function(id, def, scale = 1) {
       v <- vapply(seq_along(fl), function(i)
-        as.numeric(input[[paste0(id, "_", i)]] %||% def[[min(i, length(def))]]) * scale, 0)
+        as.numeric(input[[paste0(id, "_", fid(fl[i]))]] %||% def[[min(i, length(def))]]) * scale, 0)
       stats::setNames(v, fl)
     }
     last <- f$years[2]
     years <- lapply(seq_along(fl), function(i)
-      as.integer(input[[paste0("sm_years_", i)]] %||% c(last - p$tail[[i]] + 1, last)))
+      as.integer(input[[paste0("sm_years_", fid(fl[i]))]] %||% c(last - p$tail[[i]] + 1, last)))
     names(years) <- fl
     sv <- NULL
     if (isTRUE(input$sv_on %||% TRUE)) {

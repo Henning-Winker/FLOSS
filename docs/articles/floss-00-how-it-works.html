@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -132,6 +132,12 @@ catches. Effort creep raises the efficiency of a fleet by a constant
 percentage per year; it increases fishing mortality but is <strong>not
 visible</strong> in the nominal effort index.</p>
 <pre><code>F[s, f, y] = relq[s, f] x Fmsy[s] x efficiency[f, y] x E[f, y]</code></pre>
+<p>In the app, choose <strong>New fishery</strong> to start with no
+gears, add gears by name and set each gear’s effort; species get a
+default selectivity for a new gear (S-shaped at the length at maturity)
+to be set in the Species step. In R, <code><a href="../reference/fishery.html">fishery()</a></code> takes any
+fleet names and <code><a href="../reference/species.html">species()</a></code> a selectivity and catchability
+for each.</p>
 <p><code>relq</code> is the relative catchability of species
 <code>s</code> by fleet <code>f</code>, set in the species. With one
 fleet and <code><a href="../reference/one_gear_species.html">one_gear_species()</a></code>, effort equals F/Fmsy.</p>
