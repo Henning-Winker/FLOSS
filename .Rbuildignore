@@ -6,3 +6,6 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^guide_html$
+^floss-.*\.(Rmd|html)$
+^floss-.*_files$

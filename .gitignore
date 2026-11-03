@@ -8,3 +8,7 @@ vignettes/*.html
 vignettes/*_files
 *.tar.gz
 FLOSS.Rcheck/
+/guide_html/
+/floss-*.Rmd
+/floss-*.html
+/floss-*_files/
