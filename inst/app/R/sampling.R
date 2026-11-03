@@ -4,6 +4,7 @@
 
 sampling_ui <- function() {
   tagList(
+    page_species_ui("sm_sp_ui"),
     uiOutput("sm_empty"),
     tabsetPanel(
       id = "sm_tabs",

@@ -74,6 +74,14 @@ keepv <- function(input, id, default) {
   if (is.null(v) || (length(default) == 2 && length(v) != 2)) default else v
 }
 
+# The species shown first: the two-spot red snapper when it is in the model
+default_species <- function(ids) if ("lutjanus_bohar" %in% ids) "lutjanus_bohar" else ids[1]
+
+# Species dropdown for a page, kept in step with the "Showing" selector
+page_species_ui <- function(id) {
+  div(style = "max-width:360px; margin-bottom:4px;", uiOutput(id))
+}
+
 # ---- species -----------------------------------------------------------------------
 
 # The species library (four examples plus the user's saved species)
@@ -174,7 +182,7 @@ make_reactives <- function(input, rv) {
   r$shown <- reactive({
     ids <- names(r$species_used())
     req(length(ids))
-    if (!is.null(input$shown) && input$shown %in% ids) input$shown else ids[1]
+    if (!is.null(input$shown) && input$shown %in% ids) input$shown else default_species(ids)
   })
 
   r$om <- reactive({

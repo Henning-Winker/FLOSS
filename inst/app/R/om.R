@@ -3,6 +3,7 @@
 
 om_ui <- function() {
   tagList(
+    page_species_ui("om_sp_ui"),
     uiOutput("om_empty"),
     tabsetPanel(
       id = "om_tabs",

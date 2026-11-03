@@ -13,7 +13,8 @@ species_ui <- function() {
   tagList(
     fluidRow(
       column(4, selectInput("sp_edit", "Species to view and edit",
-                            choices = stats::setNames(lib$id, lib$species))),
+                            choices = stats::setNames(lib$id, lib$species),
+                            selected = default_species(lib$id))),
       column(8, div(style = "margin-top:25px; display:flex; gap:10px; align-items:center;",
         actionButton("sp_apply", "Apply changes", class = "btn-primary"),
         actionButton("sp_save", "Save to my library"),

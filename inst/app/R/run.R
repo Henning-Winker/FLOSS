@@ -39,7 +39,27 @@ run_server <- function(input, output, session, rv, r) {
     div(style = "display:flex; align-items:center; gap:8px;",
         tags$strong("Showing:"),
         div(style = "width:230px; margin-bottom:-15px;",
-            selectInput("shown", NULL, choices = ch, selected = isolate(input$shown))))
+            selectInput("shown", NULL, choices = ch,
+                        selected = isolate(input$shown) %||% default_species(names(sps)))))
+  })
+
+  # species dropdowns on the Operating model and Sampling pages: same choice
+  # as "Showing" at the top; changing one changes all
+  for (pid in c("om_sp", "sm_sp")) local({
+    id <- pid
+    output[[paste0(id, "_ui")]] <- renderUI({
+      sps <- tryCatch(r$species_used(), error = function(e) list())
+      req(length(sps) > 0)
+      ch <- stats::setNames(names(sps), vapply(sps, `[[`, "", "species"))
+      selectInput(id, "Species", choices = ch, selected = isolate(r$shown()))
+    })
+    observeEvent(input[[id]], {
+      if (!identical(input[[id]], input$shown)) updateSelectInput(session, "shown", selected = input[[id]])
+    }, ignoreInit = TRUE)
+  })
+  observeEvent(input$shown, {
+    for (id in c("om_sp", "sm_sp"))
+      if (!identical(input[[id]], input$shown)) updateSelectInput(session, id, selected = input$shown)
   })
 
   output$iter_selector <- renderUI({
