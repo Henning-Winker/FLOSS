@@ -19,7 +19,7 @@ app_sidebar <- function() {
       tags$p(style = "font-size:12px; color:#8aa4af;", "* required. All other steps are optional."),
       tags$hr(style = "border-color:#4b646f; margin: 8px 0;"),
       div(class = "truth-switch",
-          checkboxInput("hide_truth", "Hide truth", value = TRUE),
+          checkboxInput("hide_truth", "Hide truth", value = FALSE),
           tags$p(style = "font-size:12px; color:#8aa4af; margin-top:-8px;",
                  "When ticked, true stock status and the answer key are hidden (for trainees). Untick to show the True status step.")),
       tags$hr(style = "border-color:#4b646f; margin: 8px 0;"),

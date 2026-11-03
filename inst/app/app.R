@@ -21,7 +21,9 @@ server <- function(input, output, session) {
   rv <- reactiveValues(sp = initial_species(), oms = NULL, om_snap = NULL,
                        data = NULL, data_snap = NULL, treat = NULL,
                        prediction = NULL, revealed = FALSE, applied = 0,
-                       gears = character(0))
+                       gears = character(0),
+                       # survey selectivity, lengths as shares of Linf (shown in cm)
+                       sv = list(L50 = 0.2, L95 = 0.3, Lpeak = 0.3, sd = 0.1, sd_left = 0.08, sd_right = 0.2))
 
   # r holds the reactive objects (fishery, species, sampling settings, ...)
   # used by several steps

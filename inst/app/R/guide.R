@@ -34,7 +34,7 @@ guide_ui <- function() {
         div(class = "flagbox", tags$strong("Warning flags. "),
           "Some patterns in data cannot come from real stock dynamics: an index that keeps rising while catches fall with steady effort, mean length jumping in one year, fish older than the plus group. FLOSS can plant such problems on purpose (Sampling step), and the answer key lists them."),
         div(class = "formatbox", tags$strong("Hide truth. "),
-          "Ticked by default. Trainees see data only; trainers untick it to show the True status step, the true lines on the data plots and the answer key in the export.")),
+          "Unticked by default, so the truth is shown: the True status step, the true lines on the data plots and the answer key in the export. Tick it before showing the app to trainees, so they see the data only.")),
       box(width = 12, title = "Scope",
         p("FLOSS covers dynamics and data. Fitting assessment models to the data follows afterwards, e.g. length-based methods in FLicc and production models in JABBA, using the exported datasets and the answer key to judge the results."),
         p(class = "note", "Structure inspired by Haddon, M. (2021) Using R for Modelling and Quantitative Methods in Fisheries. CRC Press."))),

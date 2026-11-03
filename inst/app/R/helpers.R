@@ -215,12 +215,12 @@ make_reactives <- function(input, rv) {
       as.integer(input[[paste0("sm_years_", fid(fl[i]))]] %||% c(last - p$tail[[i]] + 1, last)))
     names(years) <- fl
     sv <- NULL
-    if (isTRUE(input$sv_on %||% TRUE)) {
+    if (isTRUE(input$sv_on)) {
       sv <- survey_settings(
         years = as.integer(input$sv_years %||% c(last - 24, last)),
         timing = input$sv_timing %||% 0, cv = input$sv_cv %||% 0.25,
         rho = input$sv_rho %||% 0,
-        sel = list(type = "logistic", L50 = input$sv_l50 %||% 0.2, L95 = input$sv_l95 %||% 0.35),
+        sel = survey_sel_input(input, rv),
         lfd = TRUE, ess_age = input$sv_ess_age %||% 50, ess_len = input$sv_ess_len %||% 500,
         q_step = if (isTRUE(input$sv_qstep_on)) c(input$sv_qstep_year, input$sv_qstep_mult))
     }
@@ -298,6 +298,16 @@ app_seasons <- function(input, fl) {
   use <- input$se_fleets %||% fl
   out <- lapply(stats::setNames(fl, fl), function(f) if (f %in% use) des else season_design(n))
   out
+}
+
+# Survey selectivity (lengths as shares of Linf, as survey_settings() takes
+# them); the sliders show them in cm for the species shown
+survey_sel_input <- function(input, rv) {
+  v <- rv$sv
+  switch(input$sv_type %||% "logistic",
+    logistic = list(type = "logistic", L50 = v$L50, L95 = max(v$L95, v$L50 + 0.01)),
+    normal = list(type = "normal", Lpeak = v$Lpeak, sd = v$sd),
+    dnormal = list(type = "dnormal", Lpeak = v$Lpeak, sd_left = v$sd_left, sd_right = v$sd_right))
 }
 
 # Short text for one species' data, e.g. in previews

@@ -9,7 +9,7 @@ survey_settings(
   timing = 0,
   cv = 0.25,
   rho = 0,
-  sel = list(type = "logistic", L50 = 0.2, L95 = 0.35),
+  sel = list(type = "logistic", L50 = 0.2, L95 = 0.3),
   lfd = TRUE,
   ess_age = 50,
   ess_len = 500,

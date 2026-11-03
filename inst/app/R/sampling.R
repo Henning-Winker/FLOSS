@@ -51,9 +51,19 @@ sampling_ui <- function() {
           div(class = "flagbox", tags$strong("Teaching: "), "nominal CPUE summed over fleets changes when the fleet mix changes, even if the stock does not; summed over species, it can hide the decline of one species behind the others."))),
       tabPanel("Survey",
         box(width = 12, title = "Fishery-independent survey",
-          checkboxInput("sv_on", "Include a survey", TRUE),
+          checkboxInput("sv_on", tags$strong("Add survey"), FALSE),
+          p(class = "note", "No survey by default. Tick to add a fishery-independent survey index, with its own length and biological samples."),
           conditionalPanel("input.sv_on", uiOutput("sv_ui"))),
-        box(width = 12, title = "Survey index", plotOutput("sm_survey", height = 340))),
+        conditionalPanel("input.sv_on",
+        box(width = 12, title = span("Survey selectivity", tip("survey_sel")),
+          p(class = "note", "Lengths in cm for the species shown at the top. There is one survey for all species: the other species get the same selectivity relative to their Linf (default L50 = 0.2 Linf, L95 = 0.3 Linf). S-shaped with a low L50 sees almost all fish from recruits upward; a dome sees one size range only (e.g. a juvenile or nursery-ground survey)."),
+          fluidRow(
+            column(3, selectInput("sv_type", "Shape", choices = c("S-shaped (logistic)" = "logistic",
+              "Symmetric dome (normal)" = "normal", "Dome, two spreads (double normal)" = "dnormal"))),
+            column(9, uiOutput("sv_sel_ui"))),
+          plotOutput("sv_sel_plot", height = 300),
+          p(class = "note", "For the species shown: survey selectivity (black), the fleets (colours) and maturity (dashed). No need to sample first.")),
+        box(width = 12, title = "Survey index", plotOutput("sm_survey", height = 340)))),
       tabPanel("Length frequencies",
         box(width = 12, title = "Length sampling (two stages)",
           p(class = "note", "Stage 1: clusters (trips or hauls) are sampled from the catch; fish in one cluster are alike. Stage 2: fish are measured from those clusters. Few clusters give noisy, lumpy length distributions even when many fish are measured."),
@@ -216,8 +226,6 @@ sampling_server <- function(input, output, session, rv, r) {
         column(3, numericInput("sv_cv", "CV", value = 0.25, min = 0, step = 0.05)),
         column(3, sliderInput("sv_timing", "Timing (fraction of year)", min = 0, max = 0.9, value = 0, step = 0.1))),
       fluidRow(
-        column(3, sliderInput("sv_l50", lab("L50 (share of Linf)", "survey_sel"), min = 0.02, max = 0.9, value = 0.2, step = 0.01)),
-        column(3, sliderInput("sv_l95", "L95 (share of Linf)", min = 0.05, max = 1, value = 0.35, step = 0.01)),
         column(3, numericInput("sv_ess_age", lab("Length samples: clusters", "ess_age"), value = 50, min = 1)),
         column(3, numericInput("sv_ess_len", lab("Fish measured", "ess_len"), value = 500, min = 1))),
       fluidRow(
@@ -225,10 +233,70 @@ sampling_server <- function(input, output, session, rv, r) {
         column(3, br(), checkboxInput("sv_qstep_on", lab("Catchability step", "q_step"), FALSE)),
         column(6, conditionalPanel("input.sv_qstep_on", fluidRow(
           column(6, numericInput("sv_qstep_year", "From year", value = y[2] - 8, min = y[1], max = y[2])),
-          column(6, numericInput("sv_qstep_mult", "Multiplier", value = 0.6, min = 0.1, step = 0.1)))))),
-      p(class = "note", "Survey selectivity is set relative to Linf, so one survey gear works for species of different size. A low L50 gives a recruit survey that sees young fish."))
+          column(6, numericInput("sv_qstep_mult", "Multiplier", value = 0.6, min = 0.1, step = 0.1)))))))
   })
   outputOptions(output, "sv_ui", suspendWhenHidden = FALSE)
+
+  # survey selectivity sliders in cm for the species shown; stored as shares
+  # of Linf so that the one survey applies to every species
+  sv_linf <- reactive(r$species_used()[[r$shown()]]$lh$linf)
+  output$sv_sel_ui <- renderUI({
+    linf <- sv_linf()
+    v <- isolate(rv$sv)
+    cm <- function(n) round(v[[n]] * linf, 1)
+    mx <- ceiling(1.2 * linf)
+    sl <- function(id, label, n, max = mx) sliderInput(id, label, min = 0.5, max = max, value = cm(n), step = 0.5)
+    tagList(
+      conditionalPanel("input.sv_type == 'logistic'", fluidRow(
+        column(6, sl("sv_l50", "L50: 50% selected (cm)", "L50")),
+        column(6, sl("sv_l95", "L95: 95% selected (cm)", "L95")))),
+      conditionalPanel("input.sv_type == 'normal'", fluidRow(
+        column(6, sl("sv_peak", "Best-selected length (cm)", "Lpeak")),
+        column(6, sl("sv_sd", "Spread (cm)", "sd", ceiling(0.5 * linf))))),
+      conditionalPanel("input.sv_type == 'dnormal'", fluidRow(
+        column(4, sl("sv_peak_d", "Best-selected length (cm)", "Lpeak")),
+        column(4, sl("sv_sdl", "Spread, small side (cm)", "sd_left", ceiling(0.5 * linf))),
+        column(4, sl("sv_sdr", "Spread, large side (cm)", "sd_right", mx)))),
+      p(class = "note", sprintf("Linf of %s: %.1f cm.", r$species_used()[[r$shown()]]$species, linf)))
+  })
+  outputOptions(output, "sv_sel_ui", suspendWhenHidden = FALSE)
+  for (pr in list(c("sv_l50", "L50"), c("sv_l95", "L95"), c("sv_peak", "Lpeak"), c("sv_sd", "sd"),
+                  c("sv_peak_d", "Lpeak"), c("sv_sdl", "sd_left"), c("sv_sdr", "sd_right"))) local({
+    id <- pr[1]; par <- pr[2]
+    observeEvent(input[[id]], {
+      linf <- sv_linf()
+      new <- input[[id]] / linf
+      # ignore the rounding when the sliders are redrawn for another species
+      if (abs(new - rv$sv[[par]]) * linf > 0.26) rv$sv[[par]] <- new
+      # keep L50 below L95: moving one past the other pushes the other along
+      if (par == "L50" && rv$sv$L95 <= rv$sv$L50) {
+        rv$sv$L95 <- rv$sv$L50 + 0.05
+        updateSliderInput(session, "sv_l95", value = round(rv$sv$L95 * linf, 1))
+      }
+      if (par == "L95" && rv$sv$L50 >= rv$sv$L95) {
+        rv$sv$L50 <- max(0.01, rv$sv$L95 - 0.05)
+        updateSliderInput(session, "sv_l50", value = round(rv$sv$L50 * linf, 1))
+      }
+    }, ignoreInit = TRUE)
+  })
+
+  output$sv_sel_plot <- renderPlot({
+    s <- r$species_used()[[r$shown()]]
+    sv <- survey_sel_input(input, rv)
+    rel <- intersect(names(sv), c("L50", "L95", "Lpeak", "sd", "sd_left", "sd_right"))
+    sv[rel] <- lapply(sv[rel], function(v) v * s$lh$linf)
+    L <- seq(0, s$lh$linf * 1.2, length.out = 300)
+    d <- do.call(rbind, lapply(names(s$sel), function(f) data.frame(L = L, sel = sel_len(s$sel[[f]], L), src = f)))
+    d <- rbind(d, data.frame(L = L, sel = sel_len(sv, L), src = "survey"))
+    d$src <- factor(d$src, levels = c(names(s$sel), "survey"))
+    m <- data.frame(L = L, mat = 1 / (1 + exp(-log(19) * (L - s$lh$lm) / (0.15 * s$lh$lm))))
+    cols <- app_cols(names(s$sel)); cols[["survey"]] <- "black"
+    ggplot(d, aes(L, sel, colour = src, linewidth = src == "survey")) + geom_line() +
+      geom_line(data = m, aes(L, mat), inherit.aes = FALSE, linetype = 2, colour = "grey40") +
+      scale_colour_manual(values = cols[levels(d$src)]) + scale_linewidth_manual(values = c(0.7, 1.4), guide = "none") +
+      labs(x = "Length (cm)", y = "Selectivity / proportion mature", colour = NULL, title = s$species) +
+      theme_bw(base_size = 14) + theme(legend.position = "bottom")
+  })
 
   output$lf_rows <- renderUI(fleet_rows(list(
     list(id = "lf_ess_age", label = lab("Clusters per year", "ess_age"), value = function(i, p) p$ess_age[[i]],
