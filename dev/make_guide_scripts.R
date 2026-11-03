@@ -17,6 +17,11 @@ guides <- list(
        title = "FLOSS teaching scenarios as an R script",
        about = c("Teaching cards: predict how the stock responds to a treatment, then check the true dynamics and",
                  "the data, and learn which patterns are warning flags rather than real dynamics."),
+       needs = "FLOSS and its FLR dependencies."),
+  list(src = "inst/guide/cpue-aggregation.Rmd", out = "inst/guide/FLOSS_cpue_aggregation.R",
+       title = "FLOSS training example as an R script: summed effort and nominal CPUE",
+       about = c("Blacktip reef shark in the three-fleet reef fishery: why nominal CPUE from effort summed over",
+                 "fleets hides the decline, catchability per fishing day, effective effort and a standardised index."),
        needs = "FLOSS and its FLR dependencies."))
 
 for (g in guides) {
