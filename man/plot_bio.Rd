@@ -9,7 +9,8 @@ plot_bio(
   species = NULL,
   iter = 1,
   what = c("age_length", "length_weight", "maturity", "alk", "length"),
-  source = NULL
+  source = NULL,
+  by = c("fleet", "aggregate", "season")
 )
 }
 \arguments{
@@ -23,6 +24,12 @@ shown in rows (length samples).}
 \item{what}{one of the options above.}
 
 \item{source}{sources to include; default all.}
+
+\item{by}{how the fish are grouped: \code{"fleet"} (colour by fleet or survey),
+\code{"aggregate"} (all fleets together, as a naive analyst would pool
+them) or \code{"season"} (colour by sampling season, one panel per source:
+fish grow through the year, so length at age rises from season to
+season).}
 }
 \value{
 a \code{ggplot}.

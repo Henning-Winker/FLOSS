@@ -84,14 +84,16 @@ sample_catch <- function(om, oem, iters = 1:10) {
   }))
 }
 
-#' @describeIn sample_data observed nominal effort by fleet (relative).
+#' @describeIn sample_data observed nominal effort by fleet, in fishing days
+#'   (relative effort x `effort_days` of the fleet).
 #' @export
 sample_effort <- function(om, oem, iters = 1:10) {
   do.call(rbind, lapply(names(om$effort), function(f) {
-    tru <- iter(om$effort[[f]], iters)
+    days <- oem$effort$days[[f]] %||% 1000
+    tru <- iter(om$effort[[f]], iters) * days
     sd <- cv2sd(oem$effort$cv[[f]])
     obs <- tru
-    obs[] <- c(tru) * stats::rlnorm(length(tru), -sd^2 / 2, sd)
+    obs[] <- round(c(tru) * stats::rlnorm(length(tru), -sd^2 / 2, sd))
     df <- long_df(obs, tru, NA, f, "effort", "effort_true")
     df$species <- NULL
     df

@@ -1,4 +1,4 @@
-# FLOSS <img src="https://img.shields.io/badge/status-v0.4.3%20prototype-orange" align="right"/>
+# FLOSS <img src="https://img.shields.io/badge/status-v0.5.0%20prototype-orange" align="right"/>
 
 **FL Operating model & Sampling Simulator**
 
@@ -124,6 +124,8 @@ plot_length_indicators(length_indicators(rt, "Lutjanus bohar"))
 | Species | `species()`, `selectivity()`, `species_library()`, `load_species()`, `save_species()` |
 | Operating model | `build_om()`, `build_oms()`, `catch_fleet()`, `plot_om()`, `plot_fleets()` |
 | Sampling | `oem_settings()`, `survey_settings()`, `season_design()`, `reef_oem()`, `sample_data()`, `lfd_annual()`, `plot_seasons()` (CPUE with AR1 residuals, FLRef two-stage length samples, biological samples with random or length-stratified ageing) |
+| Aggregation (teaching) | `catch_table()`, `effort_table()`, `nominal_cpue()`, `plot_aggregate()`, `lfd_aggregate()`, `plot_bio(by =)` |
+| FLR export | `as_flr()`, `export_data(format = "rds")`: FLQuants, FLIndices and FLPar for JABBA3 and FLicc |
 | Colours | FLOSS muted palette by default; `floss.r4col()` (r4ss palette, as in JABBA) if preferred |
 | Observations | `plot_availability()`, `plot_obs()`, `plot_lfd()`, `plot_bio()`, `alk_obs()`, `caa_obs()`, `plot_caa()` – observations only, nothing fitted |
 | Treatments | `treatment()`, `run_treatment()`, `plot_treatment()`, `one_gear_fishery()`, `one_gear_species()` – baseline and treatment share all random numbers |
@@ -143,7 +145,7 @@ plot_length_indicators(length_indicators(rt, "Lutjanus bohar"))
 | **0.4** | Shiny app `run_app()` in the FLicc layout: Guide, Fishery, Species, OM, Treatments (predict, reveal), Sampling, Export, True status; info tooltips (`floss_tip()`), Hide truth switch |
 | **0.4.1** | Seasonal sampling by default (`season_design()`: balanced, fixed imbalance, shift, opportunistic, per fleet), `lfd_annual()`, `plot_seasons()`, Seasons tab in the app |
 | **0.4.2** | Gradual sampling shifts, change in sampling intensity (e.g. funding cut), randomly missing sampling years |
-| 0.4.x | Exporters for FLicc and JABBA3 |
+| **0.5.0** | Effort in fishing days; naive aggregation for teaching (catch, effort and nominal CPUE by fleet, all fleets, all species; length samples pooled or raised to the catch; biological samples by fleet, all fleets or season); FLR export for JABBA3 and FLicc |
 | 0.5 | Trainee data viewer for exported datasets |
 | 0.6 | Project save/load, more survey designs, seasonal effort |
 | later | sex-structured and spatial stocks, link to `mse` via `sampling.lfd.oem()` |

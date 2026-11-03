@@ -43,7 +43,8 @@ floss_cols <- function(n) {
 
 # Fleet colours (fleets in fishery order, then the survey), shared by all plots
 fleet_colours <- function(fleets) {
-  c(stats::setNames(floss_cols(length(fleets)), fleets), survey = "#102330")
+  c(stats::setNames(floss_cols(length(fleets)), fleets), survey = "#102330",
+    `all fleets` = "#3A3A3A")
 }
 
 # Iteration colours, used when gears are already separated by panels

@@ -13,7 +13,7 @@ iterations, and returns them with the truth (answer key)."><!-- mathjax --><scri
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -115,7 +115,8 @@ so changing e.g. the biological-sample settings does not change the CPUE.</p>
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
     
 <ul><li><p><code>sample_catch()</code>: observed catch by fleet (t).</p></li>
-<li><p><code>sample_effort()</code>: observed nominal effort by fleet (relative).</p></li>
+<li><p><code>sample_effort()</code>: observed nominal effort by fleet, in fishing days
+(relative effort x <code>effort_days</code> of the fleet).</p></li>
 <li><p><code>sample_cpue()</code>: CPUE by fleet with AR1 lognormal residuals,
 scaled to mean 1 over the sampled years; <code>index_true</code> is the true
 vulnerable biomass (without effort creep).</p></li>

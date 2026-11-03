@@ -37,6 +37,9 @@
     <loc>https://henning-winker.github.io/FLOSS/reference/alk_obs.html</loc>
   </url>
   <url>
+    <loc>https://henning-winker.github.io/FLOSS/reference/as_flr.html</loc>
+  </url>
+  <url>
     <loc>https://henning-winker.github.io/FLOSS/reference/build_om.html</loc>
   </url>
   <url>
@@ -56,6 +59,9 @@
   </url>
   <url>
     <loc>https://henning-winker.github.io/FLOSS/reference/catch_fleet.html</loc>
+  </url>
+  <url>
+    <loc>https://henning-winker.github.io/FLOSS/reference/catch_table.html</loc>
   </url>
   <url>
     <loc>https://henning-winker.github.io/FLOSS/reference/cpue_check.html</loc>
@@ -100,6 +106,9 @@
     <loc>https://henning-winker.github.io/FLOSS/reference/length_indicators.html</loc>
   </url>
   <url>
+    <loc>https://henning-winker.github.io/FLOSS/reference/lfd_aggregate.html</loc>
+  </url>
+  <url>
     <loc>https://henning-winker.github.io/FLOSS/reference/lfd_annual.html</loc>
   </url>
   <url>
@@ -116,6 +125,9 @@
   </url>
   <url>
     <loc>https://henning-winker.github.io/FLOSS/reference/planted_artefacts.html</loc>
+  </url>
+  <url>
+    <loc>https://henning-winker.github.io/FLOSS/reference/plot_aggregate.html</loc>
   </url>
   <url>
     <loc>https://henning-winker.github.io/FLOSS/reference/plot_availability.html</loc>

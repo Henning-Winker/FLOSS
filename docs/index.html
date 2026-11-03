@@ -38,7 +38,7 @@
     
     <a class="navbar-brand me-2" href="index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,7 +82,7 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="floss-">FLOSS <img src="https://img.shields.io/badge/status-v0.4.3%20prototype-orange" align="right"><a class="anchor" aria-label="anchor" href="#floss-"></a>
+<div class="page-header"><h1 id="floss-">FLOSS <img src="https://img.shields.io/badge/status-v0.5.0%20prototype-orange" align="right"><a class="anchor" aria-label="anchor" href="#floss-"></a>
 </h1></div>
 <p><strong>FL Operating model &amp; Sampling Simulator</strong></p>
 <p><strong>Guide and documentation: <a href="https://henning-winker.github.io/FLOSS/" class="uri">https://henning-winker.github.io/FLOSS/</a></strong> (<a href="https://henning-winker.github.io/FLOSS/articles/floss-00-how-it-works.html">How it works</a> · <a href="https://henning-winker.github.io/FLOSS/articles/floss-02-user-guide.html">User guide</a> · <a href="https://henning-winker.github.io/FLOSS/articles/floss-03-teaching.html">Teaching scenarios</a> · <a href="https://henning-winker.github.io/FLOSS/reference/index.html">Functions</a>)</p>
@@ -252,6 +252,17 @@ effort creep         catchability by fleet   truth + refpts           LFD, bio s
 <code><a href="reference/oem_settings.html">oem_settings()</a></code>, <code><a href="reference/survey_settings.html">survey_settings()</a></code>, <code><a href="reference/season_design.html">season_design()</a></code>, <code><a href="reference/reef_oem.html">reef_oem()</a></code>, <code><a href="reference/sample_data.html">sample_data()</a></code>, <code><a href="reference/lfd_annual.html">lfd_annual()</a></code>, <code><a href="reference/plot_seasons.html">plot_seasons()</a></code> (CPUE with AR1 residuals, FLRef two-stage length samples, biological samples with random or length-stratified ageing)</td>
 </tr>
 <tr class="odd">
+<td>Aggregation (teaching)</td>
+<td>
+<code><a href="reference/catch_table.html">catch_table()</a></code>, <code><a href="reference/catch_table.html">effort_table()</a></code>, <code><a href="reference/catch_table.html">nominal_cpue()</a></code>, <code><a href="reference/plot_aggregate.html">plot_aggregate()</a></code>, <code><a href="reference/lfd_aggregate.html">lfd_aggregate()</a></code>, <code>plot_bio(by =)</code>
+</td>
+</tr>
+<tr class="even">
+<td>FLR export</td>
+<td>
+<code><a href="reference/as_flr.html">as_flr()</a></code>, <code>export_data(format = "rds")</code>: FLQuants, FLIndices and FLPar for JABBA3 and FLicc</td>
+</tr>
+<tr class="odd">
 <td>Colours</td>
 <td>FLOSS muted palette by default; <code><a href="reference/floss.r4col.html">floss.r4col()</a></code> (r4ss palette, as in JABBA) if preferred</td>
 </tr>
@@ -335,8 +346,8 @@ effort creep         catchability by fleet   truth + refpts           LFD, bio s
 <td>Gradual sampling shifts, change in sampling intensity (e.g. funding cut), randomly missing sampling years</td>
 </tr>
 <tr class="odd">
-<td>0.4.x</td>
-<td>Exporters for FLicc and JABBA3</td>
+<td><strong>0.5.0</strong></td>
+<td>Effort in fishing days; naive aggregation for teaching (catch, effort and nominal CPUE by fleet, all fleets, all species; length samples pooled or raised to the catch; biological samples by fleet, all fleets or season); FLR export for JABBA3 and FLicc</td>
 </tr>
 <tr class="even">
 <td>0.5</td>

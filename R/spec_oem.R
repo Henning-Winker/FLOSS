@@ -57,6 +57,8 @@ survey_settings <- function(years = NULL, timing = 0, cv = 0.25, rho = 0,
 #'   samples, per fleet.
 #' @param catch_cv,catch_bias catch CV and under-reporting (0.1 = 10% under).
 #' @param effort_cv effort-index CV.
+#' @param effort_days fishing days per year of a fleet at relative effort 1
+#'   (per fleet): observed effort is reported in fishing days.
 #' @param cpue_cv,cpue_rho CPUE CV and residual autocorrelation.
 #' @param cpue_creep does CPUE carry effort creep (rising catchability)?
 #' @param cpue_beta proportionality exponent, \eqn{I = qB^\beta}: 1 =
@@ -93,7 +95,8 @@ survey_settings <- function(years = NULL, timing = 0, cv = 0.25, rho = 0,
 #' @examples
 #' oem_settings(reef_fishery(), tail = c(traps = 5, gillnet = 10, linefish = 15))
 oem_settings <- function(fishery, tail = 10, catch_cv = 0.1, catch_bias = 0,
-                         effort_cv = 0.1, cpue_cv = 0.2, cpue_rho = 0.3,
+                         effort_cv = 0.1, effort_days = 1000,
+                         cpue_cv = 0.2, cpue_rho = 0.3,
                          cpue_creep = TRUE, cpue_beta = 1, lfd_ess_age = 30,
                          lfd_ess_len = 300, lfd_bin = NULL, lfd_cv = 0.1,
                          bio_n = 100, bio_p_aged = 0.5,
@@ -135,7 +138,7 @@ oem_settings <- function(fishery, tail = 10, catch_cv = 0.1, catch_bias = 0,
     catch = list(cv = pf(catch_cv, "catch_cv"), bias = pf(catch_bias, "catch_bias"),
                  bias_from = if (!is.null(catch_bias_from))
                    pf(catch_bias_from, "catch_bias_from")),
-    effort = list(cv = pf(effort_cv, "effort_cv")),
+    effort = list(cv = pf(effort_cv, "effort_cv"), days = pf(effort_days, "effort_days")),
     cpue = list(cv = pf(cpue_cv, "cpue_cv"), rho = pf(cpue_rho, "cpue_rho"),
                 creep = cpue_creep, beta = pf(cpue_beta, "cpue_beta"),
                 q_step = cpue_q_step),

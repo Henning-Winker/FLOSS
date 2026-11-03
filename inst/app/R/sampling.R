@@ -20,13 +20,19 @@ sampling_ui <- function() {
           uiOutput("ct_rows"),
           fluidRow(column(4, checkboxInput("ct_from_on", "Under-reporting starts in a given year", FALSE)),
                    column(4, conditionalPanel("input.ct_from_on", uiOutput("ct_from_ui"))))),
-        box(width = 12, title = "Catch", plotOutput("sm_catch", height = 380),
+        box(width = 12, title = "Catch",
+          radioButtons("ct_by", NULL, inline = TRUE, choices = c("By fleet" = "fleet",
+            "All fleets summed" = "aggregate", "All species and fleets summed" = "combined")),
+          plotOutput("sm_catch", height = 380),
           p(class = "note", "Points: reported catch. Dashed (Hide truth unticked): true catch."))),
       tabPanel("Effort",
         box(width = 12, title = "Reported effort by fleet",
           uiOutput("ef_rows"),
-          p(class = "note", "Nominal effort as reported, with observation error. It does not include effort creep: that is the point of creep.")),
-        box(width = 12, title = "Effort", plotOutput("sm_effort", height = 360))),
+          p(class = "note", "Effort is reported in fishing days per year: relative effort (Fishery step) x the fleet's fishing days at relative effort 1, with observation error. It does not include effort creep: that is the point of creep.")),
+        box(width = 12, title = "Effort",
+          radioButtons("ef_by", NULL, inline = TRUE, choices = c("By fleet" = "fleet", "All fleets summed" = "aggregate")),
+          plotOutput("sm_effort", height = 360),
+          div(class = "flagbox", tags$strong("Teaching: "), "summing fishing days over fleets treats a day of trap fishing and a day of linefishing as the same effort, although they catch different amounts and sizes of fish."))),
       tabPanel("CPUE",
         box(width = 12, title = "Catch per unit effort by fleet",
           uiOutput("cp_rows"),
@@ -35,8 +41,13 @@ sampling_ui <- function() {
             column(4, checkboxInput("cp_qstep_on", lab("Catchability step (warning flag)", "q_step"), FALSE))),
           conditionalPanel("input.cp_qstep_on", uiOutput("cp_qstep_ui")),
           p(class = "note", "CPUE = q x vulnerable biomass^beta x error. Errors are lognormal with autocorrelation rho; high rho mimics non-random sampling (a fleet returning to the same grounds), so residuals come in runs.")),
-        box(width = 12, title = "Indices", plotOutput("sm_cpue", height = 400),
-          p(class = "note", "CPUE by fleet and the survey index, each relative to its mean. Dashed (Hide truth unticked): what a perfect index would show."))),
+        box(width = 12, title = "Indices",
+          radioButtons("cp_view", NULL, inline = TRUE, choices = c(
+            "Index by fleet (as sampled)" = "index", "Nominal CPUE by fleet" = "fleet",
+            "Nominal: all fleets" = "aggregate", "Nominal: all species and fleets" = "combined")),
+          plotOutput("sm_cpue", height = 400),
+          p(class = "note", "Index by fleet: the CPUE series of the sampled years and the survey, each relative to its mean. Nominal CPUE: reported catch / reported fishing days for all years (kg per day, shown relative to its mean), by fleet, summed over fleets, or summed over species and fleets. Dashed (Hide truth unticked): true catch / true effort, or the perfect index; grey: true spawning biomass."),
+          div(class = "flagbox", tags$strong("Teaching: "), "nominal CPUE summed over fleets changes when the fleet mix changes, even if the stock does not; summed over species, it can hide the decline of one species behind the others."))),
       tabPanel("Survey",
         box(width = 12, title = "Fishery-independent survey",
           checkboxInput("sv_on", "Include a survey", TRUE),
@@ -48,13 +59,18 @@ sampling_ui <- function() {
           uiOutput("lf_rows"),
           fluidRow(column(4, numericInput("lf_bin", "Length bin (mm, 0 = automatic)", value = 0, min = 0, step = 5)))),
         box(width = 12, title = "Length samples",
+          fluidRow(column(4, radioButtons("lf_by", "Fleets", inline = TRUE,
+                                          choices = c("By fleet" = "fleet", "All fleets pooled" = "aggregate"))),
+                   column(5, radioButtons("lf_raise", "Numbers", inline = TRUE,
+                                          choices = c("As sampled" = "sample", "Raised to the catch" = "catch")))),
           fluidRow(column(3, uiOutput("lf_src_ui")),
                    column(3, radioButtons("lf_type", "View", inline = TRUE,
                                           choices = c("Bubbles (all years)" = "bubble", "Histograms" = "bars"))),
                    column(3, conditionalPanel("input.lf_type == 'bars'", uiOutput("lf_years_ui"))),
                    column(3, checkboxInput("lf_coh", "Show year classes (growth lines or ages)", TRUE))),
           plotOutput("sm_lfd", height = 560),
-          p(class = "note", "Bubble size: share of fish in each length bin. Real modes move along the growth lines from year to year; modes that jump or vanish are sampling noise.")),
+          p(class = "note", "Bubble size: share of fish in each length bin. Real modes move along the growth lines from year to year; modes that jump or vanish are sampling noise. Pooled as sampled, each fleet counts by its sample size; raised to the catch, by its catch (numbers = sample x catch / sample weight)."),
+          div(class = "flagbox", tags$strong("Teaching: "), "pooling the samples of all fleets as measured lets the most heavily sampled fleet dominate the length distribution, not the fleet that catches most. Compare pooled and raised.")),
         box(width = 12, title = "Length-based indicators",
           plotOutput("sm_ind", height = 460),
           div(class = "flagbox", tags$strong("Warning flags: "),
@@ -105,8 +121,10 @@ sampling_ui <- function() {
             column(4, selectInput("bi_what", "Show", choices = c("Age and length" = "age_length",
               "Length and weight" = "length_weight", "Maturity at length" = "maturity",
               "Age-length key" = "alk", "Length distribution" = "length"))),
-            column(4, uiOutput("bi_src_ui"))),
-          plotOutput("sm_bio", height = 400),
+            column(4, uiOutput("bi_src_ui")),
+            column(4, radioButtons("bi_by", "Group by", inline = TRUE,
+                                   choices = c("Fleet" = "fleet", "All fleets together" = "aggregate", "Season" = "season")))),
+          plotOutput("sm_bio", height = 420),
           p(class = "note", "Observations only: nothing is fitted here.")),
         box(width = 12, title = "Catch at age from the length samples and the age-length key",
           plotOutput("sm_caa", height = 380),
@@ -167,7 +185,9 @@ sampling_server <- function(input, output, session, rv, r) {
   })
 
   output$ef_rows <- renderUI(fleet_rows(list(
-    list(id = "ef_cv", label = "CV", value = function(i, p) 0.1, min = 0, max = 1, step = 0.05))))
+    list(id = "ef_cv", label = "CV", value = function(i, p) 0.1, min = 0, max = 1, step = 0.05),
+    list(id = "ef_days", label = "Fishing days at relative effort 1", value = function(i, p) p$days[[i]],
+         min = 1, max = 1e6, step = 100))))
   keep("ef_rows")
 
   output$cp_rows <- renderUI(fleet_rows(list(
@@ -276,10 +296,17 @@ sampling_server <- function(input, output, session, rv, r) {
         else p("None: the data are a fair picture of the stock, apart from sampling noise."))
   })
 
-  output$sm_catch <- renderPlot(plot_obs(dat(), spname(), r$iters(), "catch", truth = r$show_truth()) +
-                                  theme(text = element_text(size = 14)))
+  output$sm_catch <- renderPlot({
+    by <- input$ct_by %||% "fleet"
+    p <- if (by == "fleet") plot_obs(dat(), spname(), r$iters(), "catch", truth = r$show_truth())
+         else plot_aggregate(dat(), spname(), r$iters(), "catch", by, truth = r$show_truth())
+    p + theme(text = element_text(size = 14))
+  })
 
   output$sm_effort <- renderPlot({
+    if (identical(input$ef_by, "aggregate"))
+      return(plot_aggregate(dat(), spname(), r$iters(), "effort", "aggregate", truth = r$show_truth()) +
+               theme(text = element_text(size = 14)))
     d <- dat()$effort
     d <- d[d$iter %in% r$iters(), ]
     d$fleet <- factor(d$fleet, levels = r$fleets())
@@ -290,14 +317,18 @@ sampling_server <- function(input, output, session, rv, r) {
       geom_line(linewidth = 0.5) + geom_point(size = 1.2) +
       facet_wrap(~fleet, scales = "free_y") +
       scale_colour_manual(values = if (multi) app_iter_cols(levels(d$iter)) else app_cols(r$fleets())) +
-      labs(x = "Year", y = "Reported effort (relative)", colour = "Iteration") + theme_bw(base_size = 14) +
+      labs(x = "Year", y = "Reported effort (fishing days)", colour = "Iteration") + theme_bw(base_size = 14) +
       theme(legend.position = if (multi) "bottom" else "none")
     if (r$show_truth()) p <- p + geom_line(aes(y = effort_true), linetype = 2, linewidth = 0.4)
     p
   })
 
-  output$sm_cpue <- renderPlot(plot_obs(dat(), spname(), r$iters(), "index", truth = r$show_truth()) +
-                                 theme(text = element_text(size = 14)))
+  output$sm_cpue <- renderPlot({
+    v <- input$cp_view %||% "index"
+    p <- if (v == "index") plot_obs(dat(), spname(), r$iters(), "index", truth = r$show_truth())
+         else plot_aggregate(dat(), spname(), r$iters(), "cpue", v, truth = r$show_truth())
+    p + theme(text = element_text(size = 14))
+  })
 
   output$sm_survey <- renderPlot({
     d <- dat()$survey
@@ -327,8 +358,11 @@ sampling_server <- function(input, output, session, rv, r) {
     src <- if (identical(input$lf_src %||% "__all__", "__all__")) NULL else input$lf_src
     ty <- input$lf_type %||% "bubble"
     yrs <- if (ty == "bars" && length(input$lf_years) == 2) seq(input$lf_years[1], input$lf_years[2])
-    plot_lfd(dat(), spname(), r$iters()[1], source = src, type = ty, years = yrs,
-             cohorts = isTRUE(input$lf_coh)) +
+    by <- input$lf_by %||% "fleet"; ra <- input$lf_raise %||% "sample"
+    lf <- if (by == "fleet" && ra == "sample") NULL else lfd_aggregate(dat(), spname(), by, ra)
+    if (!is.null(lf)) src <- NULL
+    FLOSS::plot_lfd(dat(), spname(), r$iters()[1], source = src, type = ty, years = yrs,
+             cohorts = isTRUE(input$lf_coh), lfd = lf) +
       theme(text = element_text(size = 14))
   })
   output$sm_ind <- renderPlot(plot_indicators(dat(), spname(), r$iters()[1], truth = r$show_truth()))
@@ -339,7 +373,8 @@ sampling_server <- function(input, output, session, rv, r) {
   })
   bsrc <- reactive(if (identical(input$bi_src %||% "__all__", "__all__")) NULL else input$bi_src)
   output$sm_bio <- renderPlot({
-    plot_bio(dat(), spname(), r$iters()[1], what = input$bi_what %||% "age_length", source = bsrc()) +
+    plot_bio(dat(), spname(), r$iters()[1], what = input$bi_what %||% "age_length", source = bsrc(),
+             by = input$bi_by %||% "fleet") +
       theme(text = element_text(size = 14))
   })
   output$sm_caa <- renderPlot({

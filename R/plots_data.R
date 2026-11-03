@@ -111,6 +111,8 @@ plot_obs <- function(data, species = NULL, iter = 1, what = c("index", "catch"),
 #' @param years years to show; default all (for `"bars"`, the last six).
 #' @param cohorts add cohort growth lines (bubble) or age-class marks (bars).
 #' @param season seasons to include (pooled); default all.
+#' @param lfd optional length table to plot instead of `data$lfd`, e.g. from
+#'   [lfd_aggregate()] (pooled over fleets or raised to the catch).
 #' @return a `ggplot`.
 #' @export
 #' @examples
@@ -121,10 +123,11 @@ plot_obs <- function(data, species = NULL, iter = 1, what = c("index", "catch"),
 #' }
 plot_lfd <- function(data, species = NULL, iter = 1, source = NULL,
                      type = c("bubble", "bars"), years = NULL,
-                     cohorts = FALSE, season = NULL) {
+                     cohorts = FALSE, season = NULL, lfd = NULL) {
   type <- match.arg(type)
   species <- species %||% unique(data$lfd$species)[1]
-  l <- data$lfd
+  l <- lfd %||% data$lfd
+  raised <- identical(attr(lfd, "raise"), "catch")
   if (!is.null(season) && !is.null(l$season)) l <- l[l$season %in% season, ]
   d <- pick(lfd_annual(l), species, iter[1], source)
   if (type == "bars" && is.null(years)) years <- utils::tail(sort(unique(d$year)), 6)
@@ -140,7 +143,7 @@ plot_lfd <- function(data, species = NULL, iter = 1, source = NULL,
       ggplot2::geom_col(width = bw * 0.95) +
       ggplot2::scale_fill_manual(values = src_colours(data), guide = "none") +
       ggplot2::facet_grid(year ~ source, scales = "free_y") +
-      ggplot2::labs(x = "Length (cm)", y = "Proportion of the year's sample",
+      ggplot2::labs(x = "Length (cm)", y = if (raised) "Proportion of the year's catch (raised)" else "Proportion of the year's sample",
                     title = species, subtitle = paste("Iteration", iter[1])) +
       ggplot2::theme_bw() +
       ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0))
@@ -197,42 +200,60 @@ plot_lfd <- function(data, species = NULL, iter = 1, source = NULL,
 #' @inheritParams plot_availability
 #' @param what one of the options above.
 #' @param source sources to include; default all.
+#' @param by how the fish are grouped: `"fleet"` (colour by fleet or survey),
+#'   `"aggregate"` (all fleets together, as a naive analyst would pool
+#'   them) or `"season"` (colour by sampling season, one panel per source:
+#'   fish grow through the year, so length at age rises from season to
+#'   season).
 #' @return a `ggplot`.
 #' @export
 plot_bio <- function(data, species = NULL, iter = 1,
                      what = c("age_length", "length_weight", "maturity", "alk",
                               "length"),
-                     source = NULL) {
+                     source = NULL, by = c("fleet", "aggregate", "season")) {
   what <- match.arg(what)
+  by <- match.arg(by)
   species <- species %||% unique(data$bio$species)[1]
   b <- pick(data$bio, species, iter, source)
-  cols <- src_colours(data)
+  if (by == "season" && is.null(b$season)) by <- "fleet"
+  if (by == "aggregate") {
+    b$grp <- "all fleets"
+    cols <- src_colours(data)
+  } else if (by == "season") {
+    b$grp <- factor(paste("Season", b$season))
+    cols <- stats::setNames(season_colours(nlevels(b$grp)), levels(b$grp))
+  } else {
+    b$grp <- b$source
+    cols <- src_colours(data)
+  }
+  b$source <- factor(b$source, levels = intersect(names(src_colours(data)), unique(b$source)))
+  fac <- if (by == "season") ggplot2::facet_wrap(~source) else NULL
   th <- ggplot2::theme_bw()
   switch(what,
     age_length = {
       b <- b[!is.na(b$age), ]
       ggplot2::ggplot(b, ggplot2::aes(.data$age, .data$len_mm / 10,
-                                      colour = .data$source)) +
+                                      colour = .data$grp)) +
         ggplot2::geom_jitter(width = 0.15, height = 0, alpha = 0.4, size = 1) +
-        ggplot2::scale_colour_manual(values = cols) +
+        ggplot2::scale_colour_manual(values = cols) + fac +
         ggplot2::labs(x = "Observed age (years)", y = "Length (cm)",
                       colour = NULL, title = species) + th
     },
     length_weight = ggplot2::ggplot(b, ggplot2::aes(.data$len_mm / 10,
                                                     .data$wt_g / 1000,
-                                                    colour = .data$source)) +
+                                                    colour = .data$grp)) +
       ggplot2::geom_point(alpha = 0.35, size = 1) +
-      ggplot2::scale_colour_manual(values = cols) +
+      ggplot2::scale_colour_manual(values = cols) + fac +
       ggplot2::labs(x = "Length (cm)", y = "Weight (kg)", colour = NULL,
                     title = species) + th,
     maturity = {
       bin <- lfd_bin_mm(data, species)
       b$lb <- (floor(b$len_mm / bin) + 0.5) * bin / 10
-      m <- stats::aggregate(mature ~ lb, b, function(x) c(p = mean(x), n = length(x)))
+      m <- stats::aggregate(mature ~ lb + grp, b, function(x) c(p = mean(x), n = length(x)))
       m <- do.call(data.frame, m)
-      ggplot2::ggplot(m, ggplot2::aes(.data$lb, .data$mature.p)) +
-        ggplot2::geom_point(ggplot2::aes(size = .data$mature.n),
-                            colour = "#0A5F78", alpha = 0.7) +
+      ggplot2::ggplot(m, ggplot2::aes(.data$lb, .data$mature.p, colour = .data$grp)) +
+        ggplot2::geom_point(ggplot2::aes(size = .data$mature.n), alpha = 0.7) +
+        ggplot2::scale_colour_manual(values = cols, name = NULL) +
         ggplot2::scale_size_area(max_size = 5, name = "Fish") +
         ggplot2::scale_y_continuous(limits = c(0, 1)) +
         ggplot2::labs(x = "Length (cm)", y = "Proportion mature",
@@ -252,12 +273,13 @@ plot_bio <- function(data, species = NULL, iter = 1,
                       title = paste(species, "- observed age-length key")) + th
     },
     length = ggplot2::ggplot(b, ggplot2::aes(.data$len_mm / 10,
-                                             fill = .data$source)) +
-      ggplot2::geom_histogram(bins = 40, colour = NA, alpha = 0.85) +
+                                             fill = .data$grp)) +
+      ggplot2::geom_histogram(bins = 40, colour = NA, alpha = 0.85,
+                              position = if (by == "season") "stack" else "identity") +
       ggplot2::scale_fill_manual(values = cols) +
-      ggplot2::facet_wrap(~source, scales = "free_y") +
-      ggplot2::labs(x = "Length (cm)", y = "Fish", title = species) + th +
-      ggplot2::theme(legend.position = "none"))
+      (if (by == "aggregate") NULL else ggplot2::facet_wrap(~source, scales = "free_y")) +
+      ggplot2::labs(x = "Length (cm)", y = "Fish", title = species, fill = NULL) + th +
+      ggplot2::theme(legend.position = if (by == "season") "bottom" else "none"))
 }
 
 #' Plot catch-at-age from [caa_obs()]

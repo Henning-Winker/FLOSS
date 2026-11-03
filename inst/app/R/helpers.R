@@ -34,6 +34,7 @@ fishery_presets <- list(
       gillnet  = list(e0 = 0.05, fhi = 0.5, flo = 1.5, breaks = c(0.5, 0.8)),
       linefish = list(e0 = 0.05, fhi = 2.5, flo = 0.9, breaks = c(0.6, 0.8))),
     tail = c(traps = 5, gillnet = 10, linefish = 15),
+    days = c(traps = 4000, gillnet = 1500, linefish = 3000),
     rho = c(traps = 0.3, gillnet = 0.3, linefish = 0.6),
     ess_age = c(traps = 30, gillnet = 30, linefish = 50),
     ess_len = c(traps = 300, gillnet = 300, linefish = 500),
@@ -42,7 +43,7 @@ fishery_presets <- list(
     label = "One gear: handline (effort = F/Fmsy)",
     fleets = "handline",
     trends = list(handline = list(e0 = 0.05, fhi = 1.5, flo = 1.0, breaks = c(0.4, 0.6))),
-    tail = c(handline = 15), rho = c(handline = 0.3),
+    tail = c(handline = 15), rho = c(handline = 0.3), days = c(handline = 2000),
     ess_age = c(handline = 50), ess_len = c(handline = 500),
     bio_n = c(handline = 200))
 )
@@ -201,7 +202,7 @@ make_reactives <- function(input, rv) {
       years = years,
       catch_cv = pf("ct_cv", 0.1), catch_bias = pf("ct_bias", 0, 1 / 100),
       catch_bias_from = if (isTRUE(input$ct_from_on)) input$ct_from,
-      effort_cv = pf("ef_cv", 0.1),
+      effort_cv = pf("ef_cv", 0.1), effort_days = pf("ef_days", p$days),
       cpue_cv = pf("cp_cv", 0.2), cpue_rho = pf("cp_rho", p$rho), cpue_beta = pf("cp_beta", 1),
       cpue_creep = isTRUE(input$cp_creep %||% TRUE), cpue_q_step = qstep,
       lfd_ess_age = pf("lf_ess_age", p$ess_age), lfd_ess_len = pf("lf_ess_len", p$ess_len),

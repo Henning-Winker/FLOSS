@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -519,6 +519,55 @@ points, true status, true catch, true ages and the list of
 <strong>planted artefacts</strong> (data problems and treatments set on
 purpose). Remove the answer key before giving the data to trainees.
 <code><a href="../reference/export_truth.html">export_truth()</a></code> writes the truth alone, for the trainer.</p>
+<p><strong>Naive aggregation (teaching).</strong> Effort is reported in
+fishing days, so catch, effort and nominal CPUE (kg per fishing day) can
+be summed over fleets, or over fleets and species
+(<code><a href="../reference/catch_table.html">catch_table()</a></code>, <code><a href="../reference/catch_table.html">effort_table()</a></code>,
+<code><a href="../reference/catch_table.html">nominal_cpue()</a></code>, <code><a href="../reference/plot_aggregate.html">plot_aggregate()</a></code>), and length
+samples pooled over fleets as measured or raised to each fleet’s catch
+(<code><a href="../reference/lfd_aggregate.html">lfd_aggregate()</a></code>). Biological samples can be grouped by
+fleet, all fleets or season (<code>plot_bio(by =)</code>).
+<code>export_data(aggregate = TRUE)</code> adds these tables to the
+export.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Aggregate</th>
+<th>What it ignores</th>
+<th>What it can produce</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Effort summed over fleets</td>
+<td>a fishing day differs between gears</td>
+<td>effort that rises while F falls (fleet mix)</td>
+</tr>
+<tr class="even">
+<td>Nominal CPUE, all fleets</td>
+<td>fleet catchability and selectivity</td>
+<td>trends driven by the fleet mix</td>
+</tr>
+<tr class="odd">
+<td>Nominal CPUE, all species</td>
+<td>species composition</td>
+<td>a stable index while one species collapses</td>
+</tr>
+<tr class="even">
+<td>Length samples pooled as measured</td>
+<td>catch share of each fleet</td>
+<td>the most sampled fleet dominates</td>
+</tr>
+</tbody>
+</table>
+<p><strong>FLR objects.</strong> <code><a href="../reference/as_flr.html">as_flr()</a></code> and
+<code>export_data(format = "rds")</code> give FLQuants of catch, effort
+and length frequencies, FLIndices with log-scale SEs and the
+life-history FLPar, ready for JABBA3 (<code>jb3_data()</code>) and FLicc
+(<code>stocklen()</code>, <code>fiticc()</code>).</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>

@@ -27,7 +27,7 @@ number of fish).
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,7 +88,8 @@ number of fish).</p></li>
 <span>  species <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  iter <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age_length"</span>, <span class="st">"length_weight"</span>, <span class="st">"maturity"</span>, <span class="st">"alk"</span>, <span class="st">"length"</span><span class="op">)</span>,</span>
-<span>  source <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  source <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fleet"</span>, <span class="st">"aggregate"</span>, <span class="st">"season"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -113,6 +114,14 @@ shown in rows (length samples).</p></dd>
 
 <dt>source</dt>
 <dd><p>sources to include; default all.</p></dd>
+
+
+<dt>by</dt>
+<dd><p>how the fish are grouped: <code>"fleet"</code> (colour by fleet or survey),
+<code>"aggregate"</code> (all fleets together, as a naive analyst would pool
+them) or <code>"season"</code> (colour by sampling season, one panel per source:
+fish grow through the year, so length at age rises from season to
+season).</p></dd>
 
 </dl></div>
     <div class="section level2">

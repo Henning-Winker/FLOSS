@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -481,6 +481,56 @@ on their own, e.g. for a trainer’s slides:</p>
 <code class="sourceCode R"><span><span class="va">tdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/export_truth.html">export_truth</a></span><span class="op">(</span><span class="va">dat</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reef_truth"</span><span class="op">)</span>, format <span class="op">=</span> <span class="st">"csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">tdir</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "refpts.csv"           "status.csv"           "truth_timeseries.csv"</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="naive-aggregation-teaching">Naive aggregation (teaching)<a class="anchor" aria-label="anchor" href="#naive-aggregation-teaching"></a>
+</h3>
+<p>An analyst often has catch and effort for the whole fishery, not by
+fleet, and sometimes for all species together. FLOSS reports effort in
+fishing days, so catch, effort and nominal CPUE (kg per fishing day) can
+be shown by fleet, summed over fleets, or summed over fleets and
+species.</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_aggregate.html">plot_aggregate</a></span><span class="op">(</span><span class="va">dat</span>, <span class="st">"Lutjanus bohar"</span>, what <span class="op">=</span> <span class="st">"cpue"</span>, by <span class="op">=</span> <span class="st">"fleet"</span>, truth <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-33-1.png" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_aggregate.html">plot_aggregate</a></span><span class="op">(</span><span class="va">dat</span>, <span class="st">"Lutjanus bohar"</span>, what <span class="op">=</span> <span class="st">"cpue"</span>, by <span class="op">=</span> <span class="st">"aggregate"</span>, truth <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-34-1.png" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_aggregate.html">plot_aggregate</a></span><span class="op">(</span><span class="va">dat</span>, what <span class="op">=</span> <span class="st">"cpue"</span>, by <span class="op">=</span> <span class="st">"combined"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-34-2.png" width="100%" style="display: block; margin: auto;"></p>
+<div class="flag">
+<p><strong>Warning flag.</strong> Nominal CPUE summed over fleets
+changes whenever the fleet mix changes (here linefish effort rises and
+falls), even if the stock does not; summed over species, the decline of
+one species can hide behind the others. Compare with the fleet-level
+series and, as a trainer, the true spawning biomass (grey).</p>
+</div>
+<p>The tables behind these plots are <code><a href="../reference/catch_table.html">catch_table()</a></code>,
+<code><a href="../reference/catch_table.html">effort_table()</a></code> and <code><a href="../reference/catch_table.html">nominal_cpue()</a></code>.</p>
+<p>Length samples can be pooled over fleets as measured, or raised to
+each fleet’s catch first (numbers = sample numbers x catch / sample
+weight):</p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pooled</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lfd_aggregate.html">lfd_aggregate</a></span><span class="op">(</span><span class="va">dat</span>, <span class="st">"Lutjanus bohar"</span>, by <span class="op">=</span> <span class="st">"aggregate"</span>, raise <span class="op">=</span> <span class="st">"sample"</span><span class="op">)</span></span>
+<span><span class="va">raised</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lfd_aggregate.html">lfd_aggregate</a></span><span class="op">(</span><span class="va">dat</span>, <span class="st">"Lutjanus bohar"</span>, by <span class="op">=</span> <span class="st">"aggregate"</span>, raise <span class="op">=</span> <span class="st">"catch"</span><span class="op">)</span></span>
+<span><span class="va">mean_len</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">l</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">l</span><span class="op">$</span><span class="va">len_mm</span> <span class="op">*</span> <span class="va">l</span><span class="op">$</span><span class="va">n</span>, <span class="va">l</span><span class="op">$</span><span class="va">year</span>, <span class="va">sum</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">l</span><span class="op">$</span><span class="va">n</span>, <span class="va">l</span><span class="op">$</span><span class="va">year</span>, <span class="va">sum</span><span class="op">)</span> <span class="op">/</span> <span class="fl">10</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>pooled <span class="op">=</span> <span class="fu">mean_len</span><span class="op">(</span><span class="va">pooled</span><span class="op">[</span><span class="va">pooled</span><span class="op">$</span><span class="va">iter</span> <span class="op">==</span> <span class="fl">1</span>, <span class="op">]</span><span class="op">)</span>,</span>
+<span>            raised <span class="op">=</span> <span class="fu">mean_len</span><span class="op">(</span><span class="va">raised</span><span class="op">[</span><span class="va">raised</span><span class="op">$</span><span class="va">iter</span> <span class="op">==</span> <span class="fl">1</span>, <span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 2024</span></span>
+<span><span class="co">#&gt; pooled 49.8 47.1 48.4 48.6 49.9 46.2 46.9 45.7 46.2 47.3 43.4 42.6 42.1 41.3</span></span>
+<span><span class="co">#&gt; raised 49.8 47.1 48.4 48.6 49.9 42.2 43.5 42.7 42.5 44.9 42.1 41.1 40.0 38.8</span></span>
+<span><span class="co">#&gt;        2025</span></span>
+<span><span class="co">#&gt; pooled 40.7</span></span>
+<span><span class="co">#&gt; raised 40.0</span></span>
+<span><span class="fu"><a href="../reference/plot_lfd.html">plot_lfd</a></span><span class="op">(</span><span class="va">dat</span>, <span class="st">"Lutjanus bohar"</span>, type <span class="op">=</span> <span class="st">"bars"</span>, lfd <span class="op">=</span> <span class="va">raised</span>, years <span class="op">=</span> <span class="fl">2020</span><span class="op">:</span><span class="fl">2025</span><span class="op">)</span></span></code></pre></div>
+<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-35-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p>Pooled as measured, each fleet counts by its sample size; raised, by
+its catch. Biological samples can be shown by fleet, all fleets
+together, or by season (length at age rises through the year):</p>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_bio.html">plot_bio</a></span><span class="op">(</span><span class="va">dat</span>, <span class="st">"Lutjanus bohar"</span>, what <span class="op">=</span> <span class="st">"age_length"</span>, by <span class="op">=</span> <span class="st">"season"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-36-1.png" width="100%" style="display: block; margin: auto;"></p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="save-the-datasets">8 Save the datasets<a class="anchor" aria-label="anchor" href="#save-the-datasets"></a>
@@ -490,7 +540,7 @@ answer key in its own folder; <code>give = "data"</code> leaves out the
 life-history parameters, <code>format = c("csv", "xlsx")</code> adds one
 Excel workbook per iteration, and <code>zip = TRUE</code> writes a zip
 file to hand out.</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/export_data.html">export_data</a></span><span class="op">(</span><span class="va">dat</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reef_course"</span><span class="op">)</span>, give <span class="op">=</span> <span class="st">"data_lh"</span>,</span>
 <span>                   format <span class="op">=</span> <span class="st">"csv"</span>, answer_key <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">out</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -509,40 +559,74 @@ file to hand out.</p>
 <span><span class="co">#&gt; [25] "iter_03/effort.csv"               "iter_03/lfd.csv"                 </span></span>
 <span><span class="co">#&gt; [27] "iter_03/lhpars.csv"               "iter_03/survey.csv"              </span></span>
 <span><span class="co">#&gt; [29] "README.txt"                       "settings.yaml"</span></span></code></pre></div>
-<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">readLines</span>(<span class="fu">file.path</span>(out, <span class="st">"README.txt"</span>)), <span class="at">sep =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a>FLOSS simulated fishery data</span>
-<span id="cb36-3"><a href="#cb36-3" tabindex="-1"></a>Created with FLOSS <span class="dv">0</span>.<span class="fl">4.3</span> on <span class="dv">2026-11-03</span></span>
-<span id="cb36-4"><a href="#cb36-4" tabindex="-1"></a></span>
-<span id="cb36-5"><a href="#cb36-5" tabindex="-1"></a>Species<span class="sc">:</span> Siganus sutor, Lethrinus mahsena, Lutjanus bohar, Carcharhinus melanopterus</span>
-<span id="cb36-6"><a href="#cb36-6" tabindex="-1"></a>Fleets<span class="sc">:</span> traps, gillnet, linefish</span>
-<span id="cb36-7"><a href="#cb36-7" tabindex="-1"></a>Years<span class="sc">:</span> <span class="dv">1971-2025</span></span>
-<span id="cb36-8"><a href="#cb36-8" tabindex="-1"></a><span class="fu">Datasets</span> (iterations)<span class="sc">:</span> <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span></span>
-<span id="cb36-9"><a href="#cb36-9" tabindex="-1"></a></span>
-<span id="cb36-10"><a href="#cb36-10" tabindex="-1"></a>Files <span class="cf">in</span> each iter_xx folder<span class="sc">:</span></span>
-<span id="cb36-11"><a href="#cb36-11" tabindex="-1"></a>  catch.csv   observed catch by <span class="fu">fleet</span> (t)</span>
-<span id="cb36-12"><a href="#cb36-12" tabindex="-1"></a>  effort.csv  nominal effort index by <span class="fu">fleet</span> (relative)</span>
-<span id="cb36-13"><a href="#cb36-13" tabindex="-1"></a>  cpue.csv    CPUE by fleet, scaled to mean <span class="dv">1</span> over the years sampled</span>
-<span id="cb36-14"><a href="#cb36-14" tabindex="-1"></a>  survey.csv  survey biomass index, scaled to mean <span class="dv">1</span></span>
-<span id="cb36-15"><a href="#cb36-15" tabindex="-1"></a>  lfd.csv     length samples<span class="sc">:</span> number of fish per length bin and <span class="fu">season</span> (<span class="at">len_mm =</span> lower limit, mm)</span>
-<span id="cb36-16"><a href="#cb36-16" tabindex="-1"></a>  bio.csv     one row per fish<span class="sc">:</span> season, len_mm, <span class="fu">age</span> (<span class="at">NA =</span> not aged), wt_g, <span class="fu">mature</span> (<span class="dv">0</span><span class="sc">/</span><span class="dv">1</span>)</span>
-<span id="cb36-17"><a href="#cb36-17" tabindex="-1"></a>  lhpars.csv  life<span class="sc">-</span>history <span class="fu">parameters</span> (cm, g, years)</span>
-<span id="cb36-18"><a href="#cb36-18" tabindex="-1"></a></span>
-<span id="cb36-19"><a href="#cb36-19" tabindex="-1"></a>Sampling years by fleet<span class="sc">:</span></span>
-<span id="cb36-20"><a href="#cb36-20" tabindex="-1"></a>  traps<span class="sc">:</span> <span class="dv">2021-2025</span></span>
-<span id="cb36-21"><a href="#cb36-21" tabindex="-1"></a>  gillnet<span class="sc">:</span> <span class="dv">2016-2025</span></span>
-<span id="cb36-22"><a href="#cb36-22" tabindex="-1"></a>  linefish<span class="sc">:</span> <span class="dv">2011-2025</span></span>
-<span id="cb36-23"><a href="#cb36-23" tabindex="-1"></a></span>
-<span id="cb36-24"><a href="#cb36-24" tabindex="-1"></a>answer_key<span class="sc">/</span> holds the true stock dynamics and reference points.</span>
-<span id="cb36-25"><a href="#cb36-25" tabindex="-1"></a>Remove it before giving the data to trainees.</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">readLines</span>(<span class="fu">file.path</span>(out, <span class="st">"README.txt"</span>)), <span class="at">sep =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a>FLOSS simulated fishery data</span>
+<span id="cb41-3"><a href="#cb41-3" tabindex="-1"></a>Created with FLOSS <span class="dv">0</span>.<span class="fl">5.0</span> on <span class="dv">2026-11-03</span></span>
+<span id="cb41-4"><a href="#cb41-4" tabindex="-1"></a></span>
+<span id="cb41-5"><a href="#cb41-5" tabindex="-1"></a>Species<span class="sc">:</span> Siganus sutor, Lethrinus mahsena, Lutjanus bohar, Carcharhinus melanopterus</span>
+<span id="cb41-6"><a href="#cb41-6" tabindex="-1"></a>Fleets<span class="sc">:</span> traps, gillnet, linefish</span>
+<span id="cb41-7"><a href="#cb41-7" tabindex="-1"></a>Years<span class="sc">:</span> <span class="dv">1971-2025</span></span>
+<span id="cb41-8"><a href="#cb41-8" tabindex="-1"></a><span class="fu">Datasets</span> (iterations)<span class="sc">:</span> <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span></span>
+<span id="cb41-9"><a href="#cb41-9" tabindex="-1"></a></span>
+<span id="cb41-10"><a href="#cb41-10" tabindex="-1"></a>Files <span class="cf">in</span> each iter_xx folder<span class="sc">:</span></span>
+<span id="cb41-11"><a href="#cb41-11" tabindex="-1"></a>  catch.csv   observed catch by <span class="fu">fleet</span> (t)</span>
+<span id="cb41-12"><a href="#cb41-12" tabindex="-1"></a>  effort.csv  nominal effort by <span class="fu">fleet</span> (fishing days)</span>
+<span id="cb41-13"><a href="#cb41-13" tabindex="-1"></a>  cpue.csv    CPUE by fleet, scaled to mean <span class="dv">1</span> over the years sampled</span>
+<span id="cb41-14"><a href="#cb41-14" tabindex="-1"></a>  survey.csv  survey biomass index, scaled to mean <span class="dv">1</span></span>
+<span id="cb41-15"><a href="#cb41-15" tabindex="-1"></a>  lfd.csv     length samples<span class="sc">:</span> number of fish per length bin and <span class="fu">season</span> (<span class="at">len_mm =</span> lower limit, mm)</span>
+<span id="cb41-16"><a href="#cb41-16" tabindex="-1"></a>  bio.csv     one row per fish<span class="sc">:</span> season, len_mm, <span class="fu">age</span> (<span class="at">NA =</span> not aged), wt_g, <span class="fu">mature</span> (<span class="dv">0</span><span class="sc">/</span><span class="dv">1</span>)</span>
+<span id="cb41-17"><a href="#cb41-17" tabindex="-1"></a>  lhpars.csv  life<span class="sc">-</span>history <span class="fu">parameters</span> (cm, g, years)</span>
+<span id="cb41-18"><a href="#cb41-18" tabindex="-1"></a>  (optional) catch_aggregate, effort_aggregate, cpue_nominal, lfd_aggregate<span class="sc">:</span></span>
+<span id="cb41-19"><a href="#cb41-19" tabindex="-1"></a>              catch and effort by fleet <span class="sc">/</span> all fleets <span class="sc">/</span> all species, nominal CPUE</span>
+<span id="cb41-20"><a href="#cb41-20" tabindex="-1"></a>              (kg per fishing day), length samples pooled and raised to the catch</span>
+<span id="cb41-21"><a href="#cb41-21" tabindex="-1"></a>  (optional) floss_flr.rds  FLR objects by species <span class="cf">for</span> JABBA3 and <span class="fu">FLicc</span> (<span class="fu">as_flr</span>())</span>
+<span id="cb41-22"><a href="#cb41-22" tabindex="-1"></a></span>
+<span id="cb41-23"><a href="#cb41-23" tabindex="-1"></a>Sampling years by fleet<span class="sc">:</span></span>
+<span id="cb41-24"><a href="#cb41-24" tabindex="-1"></a>  traps<span class="sc">:</span> <span class="dv">2021-2025</span></span>
+<span id="cb41-25"><a href="#cb41-25" tabindex="-1"></a>  gillnet<span class="sc">:</span> <span class="dv">2016-2025</span></span>
+<span id="cb41-26"><a href="#cb41-26" tabindex="-1"></a>  linefish<span class="sc">:</span> <span class="dv">2011-2025</span></span>
+<span id="cb41-27"><a href="#cb41-27" tabindex="-1"></a></span>
+<span id="cb41-28"><a href="#cb41-28" tabindex="-1"></a>answer_key<span class="sc">/</span> holds the true stock dynamics and reference points.</span>
+<span id="cb41-29"><a href="#cb41-29" tabindex="-1"></a>Remove it before giving the data to trainees.</span></code></pre></div>
 <p>Trainees (or you) can read a dataset back and use the same plots:</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_dataset.html">read_dataset</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out</span>, <span class="st">"iter_01"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">d1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "bio"    "catch"  "cpue"   "effort" "lfd"    "lhpars" "survey"</span></span>
 <span><span class="fu"><a href="../reference/plot_bio.html">plot_bio</a></span><span class="op">(</span><span class="va">d1</span>, <span class="st">"Siganus sutor"</span>, what <span class="op">=</span> <span class="st">"age_length"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-35-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-39-1.png" width="100%" style="display: block; margin: auto;"></p>
 <p><code>settings.yaml</code> holds the fishery, species and sampling
-settings and the seed, so the datasets can be re-created exactly.</p>
+settings and the seed, so the datasets can be re-created exactly.
+<code>aggregate = TRUE</code> adds the aggregated tables (catch and
+effort summed over fleets and species, nominal CPUE, pooled and raised
+length samples).</p>
+<div class="section level3">
+<h3 id="flr-objects-for-jabba3-and-flicc">FLR objects for JABBA3 and FLicc<a class="anchor" aria-label="anchor" href="#flr-objects-for-jabba3-and-flicc"></a>
+</h3>
+<p><code>format = "rds"</code> writes, per iteration,
+<code>floss_flr.rds</code>: one <code><a href="../reference/as_flr.html">as_flr()</a></code> object per species
+with FLQuants of catch, effort and length frequencies, FLIndices (with
+log-scale SEs in <code>index.var</code>) and the life-history FLPar.</p>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_flr.html">as_flr</a></span><span class="op">(</span><span class="va">dat</span>, <span class="st">"Lutjanus bohar"</span>, iter <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">f</span></span>
+<span><span class="co">#&gt; FLOSS data as FLR objects: Lutjanus bohar - iteration 1 </span></span>
+<span><span class="co">#&gt;   catch (FLQuants, t): traps, gillnet, linefish </span></span>
+<span><span class="co">#&gt;   indices (FLIndices): traps, gillnet, linefish, survey </span></span>
+<span><span class="co">#&gt;   effort (FLQuants, days): traps, gillnet, linefish </span></span>
+<span><span class="co">#&gt;   lfd (FLQuants, len x year): traps, gillnet, linefish, survey </span></span>
+<span><span class="co">#&gt;   lhpar: linf, k, t0, M, L50, a, b, tmax, s </span></span>
+<span><span class="co">#&gt;   JABBA3: jb3_data(x$catch, x$indices, auxiliary = x$effort)</span></span>
+<span><span class="co">#&gt;   FLicc:  stocklen(x$lfd, x$lhpar); catch_by_gear = x$catch_by_gear</span></span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># production model (JABBA3): catch by fleet, all indices, effort as auxiliary data</span></span>
+<span><span class="va">jb</span> <span class="op">&lt;-</span> <span class="fu">JABBA3</span><span class="fu">::</span><span class="fu">jb3_data</span><span class="op">(</span><span class="va">f</span><span class="op">$</span><span class="va">catch</span>, <span class="va">f</span><span class="op">$</span><span class="va">indices</span>, stock <span class="op">=</span> <span class="st">"bohar"</span>, auxiliary <span class="op">=</span> <span class="va">f</span><span class="op">$</span><span class="va">effort</span><span class="op">)</span></span>
+<span><span class="co"># length-based (FLicc): length frequencies by gear and life history</span></span>
+<span><span class="va">stk</span> <span class="op">&lt;-</span> <span class="fu">FLicc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/FLicc/man/stocklen.html" class="external-link">stocklen</a></span><span class="op">(</span><span class="va">f</span><span class="op">$</span><span class="va">lfd</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gillnet"</span>, <span class="st">"linefish"</span><span class="op">)</span><span class="op">]</span>, <span class="va">f</span><span class="op">$</span><span class="va">lhpar</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">FLicc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/FLicc/man/fiticc.html" class="external-link">fiticc</a></span><span class="op">(</span><span class="va">f</span><span class="op">$</span><span class="va">lfd</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gillnet"</span>, <span class="st">"linefish"</span><span class="op">)</span><span class="op">]</span>, <span class="va">stk</span>,</span>
+<span>                     catch_by_gear <span class="op">=</span> <span class="va">f</span><span class="op">$</span><span class="va">catch_by_gear</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gillnet"</span>, <span class="st">"linefish"</span><span class="op">)</span><span class="op">]</span> <span class="op">/</span></span>
+<span>                       <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">f</span><span class="op">$</span><span class="va">catch_by_gear</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gillnet"</span>, <span class="st">"linefish"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="treatments-one-change-same-random-numbers">9 Treatments: one change, same random numbers<a class="anchor" aria-label="anchor" href="#treatments-one-change-same-random-numbers"></a>
@@ -551,20 +635,20 @@ settings and the seed, so the datasets can be re-created exactly.</p>
 recruitment, selectivity, creep, M). <code><a href="../reference/run_treatment.html">run_treatment()</a></code> runs
 it against the baseline with the same random numbers; see
 <code><a href="../articles/floss-03-teaching.html">vignette("floss-03-teaching")</a></code> for the teaching cards.</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_treatment.html">run_treatment</a></span><span class="op">(</span><span class="st">"lutjanus_bohar"</span>, <span class="va">fy</span>,</span>
 <span>                    <span class="fu"><a href="../reference/treatment.html">treatment</a></span><span class="op">(</span><span class="st">"halve linefish effort from 2010"</span>,</span>
 <span>                              effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fleet <span class="op">=</span> <span class="st">"linefish"</span>, from <span class="op">=</span> <span class="fl">2010</span>, mult <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                    nsim <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_treatment.html">plot_treatment</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span></span></code></pre></div>
-<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-36-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-42-1.png" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="everything-in-one-call">10 Everything in one call<a class="anchor" aria-label="anchor" href="#everything-in-one-call"></a>
 </h2>
 <p><code><a href="../reference/simulate_fishery.html">simulate_fishery()</a></code> builds the operating models and
 samples the data in one step:</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_fishery.html">simulate_fishery</a></span><span class="op">(</span><span class="va">ids</span>, fishery <span class="op">=</span> <span class="fu"><a href="../reference/load_fishery.html">load_fishery</a></span><span class="op">(</span><span class="op">)</span>, oem <span class="op">=</span> <span class="fu"><a href="../reference/reef_oem.html">reef_oem</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>                        nsim <span class="op">=</span> <span class="fl">100</span>, iters <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/export_data.html">export_data</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">data</span>, <span class="st">"reef_course"</span>, format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"csv"</span>, <span class="st">"xlsx"</span><span class="op">)</span>, zip <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -576,12 +660,12 @@ samples the data in one step:</p>
 effort is unchanged but fishing mortality rises. Linefish CPUE, which
 carries the creep, stays high while the stock declines
 (hyperstability):</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fy_creep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reef_fishery.html">reef_fishery</a></span><span class="op">(</span>creep <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>traps <span class="op">=</span> <span class="fl">0</span>, gillnet <span class="op">=</span> <span class="fl">0</span>, linefish <span class="op">=</span> <span class="fl">0.03</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">om_creep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/build_om.html">build_om</a></span><span class="op">(</span><span class="fu"><a href="../reference/species_library.html">load_species</a></span><span class="op">(</span><span class="st">"lutjanus_bohar"</span><span class="op">)</span>, <span class="va">fy_creep</span>, nsim <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="va">dat_creep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sample_data.html">sample_data</a></span><span class="op">(</span><span class="va">om_creep</span>, <span class="fu"><a href="../reference/reef_oem.html">reef_oem</a></span><span class="op">(</span>fishery <span class="op">=</span> <span class="va">fy_creep</span><span class="op">)</span>, iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_obs.html">plot_obs</a></span><span class="op">(</span><span class="va">dat_creep</span>, what <span class="op">=</span> <span class="st">"index"</span>, truth <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-38-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="floss-02-user-guide_files/figure-html/unnamed-chunk-44-1.png" width="100%" style="display: block; margin: auto;"></p>
 <p>Compare <code>oms$lutjanus_bohar</code> and <code>om_creep</code>
 with <code><a href="../reference/plot_om.html">plot_om()</a></code>: the stock is more depleted, but the
 linefish CPUE barely shows it.</p>

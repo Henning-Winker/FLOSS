@@ -102,6 +102,11 @@ reference:
   - length_indicators
   - plot_length_indicators
   - plot_indicators
+- title: Aggregation (teaching)
+  contents:
+  - catch_table
+  - lfd_aggregate
+  - plot_aggregate
 - title: Basic fits (optional)
   contents:
   - fit_growth
@@ -121,6 +126,7 @@ reference:
   - export_data
   - read_dataset
   - simulate_fishery
+  - as_flr
 - title: Colours
   contents:
   - floss.r4col

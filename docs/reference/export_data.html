@@ -11,7 +11,7 @@ settings needed to re-create them, and, separately, the answer key:"><!-- mathja
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,6 +68,7 @@ settings needed to re-create them, and, separately, the answer key:</p>
 <span>  give <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"data_lh"</span>, <span class="st">"data"</span><span class="op">)</span>,</span>
 <span>  format <span class="op">=</span> <span class="st">"csv"</span>,</span>
 <span>  answer_key <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  aggregate <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  zip <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -88,12 +89,23 @@ settings needed to re-create them, and, separately, the answer key:</p>
 
 
 <dt>format</dt>
-<dd><p><code>"csv"</code> and/or <code>"xlsx"</code> (needs 'writexl'; one workbook per
-iteration).</p></dd>
+<dd><p>any of <code>"csv"</code>, <code>"xlsx"</code> (needs 'writexl'; one workbook per
+iteration) and <code>"rds"</code> (one <code>floss_flr.rds</code> per iteration: a list by
+species of <code><a href="as_flr.html">as_flr()</a></code> objects, i.e. FLQuants of catch, effort and length
+frequencies, FLIndices and the life-history FLPar, ready for JABBA3 and
+FLicc).</p></dd>
 
 
 <dt>answer_key</dt>
 <dd><p>write the <code>answer_key</code> folder.</p></dd>
+
+
+<dt>aggregate</dt>
+<dd><p>also write the aggregated tables (for teaching):
+<code>catch_aggregate</code> (by fleet, all fleets, all species), <code>effort_aggregate</code>
+(by fleet, all fleets), <code>cpue_nominal</code> (catch / effort at the three
+levels) and <code>lfd_aggregate</code> (by fleet and all fleets, as sampled and
+raised to the catch); see <code><a href="catch_table.html">catch_table()</a></code> and <code><a href="lfd_aggregate.html">lfd_aggregate()</a></code>.</p></dd>
 
 
 <dt>zip</dt>

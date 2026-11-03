@@ -10,6 +10,7 @@ export_data(
   give = c("data_lh", "data"),
   format = "csv",
   answer_key = TRUE,
+  aggregate = FALSE,
   zip = FALSE
 )
 }
@@ -21,10 +22,19 @@ export_data(
 \item{give}{what goes into the trainee folders: \code{"data"} or \code{"data_lh"}
 (adds the life-history parameters).}
 
-\item{format}{\code{"csv"} and/or \code{"xlsx"} (needs 'writexl'; one workbook per
-iteration).}
+\item{format}{any of \code{"csv"}, \code{"xlsx"} (needs 'writexl'; one workbook per
+iteration) and \code{"rds"} (one \code{floss_flr.rds} per iteration: a list by
+species of \code{\link[=as_flr]{as_flr()}} objects, i.e. FLQuants of catch, effort and length
+frequencies, FLIndices and the life-history FLPar, ready for JABBA3 and
+FLicc).}
 
 \item{answer_key}{write the \code{answer_key} folder.}
+
+\item{aggregate}{also write the aggregated tables (for teaching):
+\code{catch_aggregate} (by fleet, all fleets, all species), \code{effort_aggregate}
+(by fleet, all fleets), \code{cpue_nominal} (catch / effort at the three
+levels) and \code{lfd_aggregate} (by fleet and all fleets, as sampled and
+raised to the catch); see \code{\link[=catch_table]{catch_table()}} and \code{\link[=lfd_aggregate]{lfd_aggregate()}}.}
 
 \item{zip}{also write \verb{<dir>.zip}.}
 }

@@ -12,7 +12,8 @@ plot_lfd(
   type = c("bubble", "bars"),
   years = NULL,
   cohorts = FALSE,
-  season = NULL
+  season = NULL,
+  lfd = NULL
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ shown in rows (length samples).}
 \item{cohorts}{add cohort growth lines (bubble) or age-class marks (bars).}
 
 \item{season}{seasons to include (pooled); default all.}
+
+\item{lfd}{optional length table to plot instead of \code{data$lfd}, e.g. from
+\code{\link[=lfd_aggregate]{lfd_aggregate()}} (pooled over fleets or raised to the catch).}
 }
 \value{
 a \code{ggplot}.

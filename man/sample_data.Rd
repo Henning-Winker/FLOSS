@@ -51,7 +51,8 @@ so changing e.g. the biological-sample settings does not change the CPUE.
 \itemize{
 \item \code{sample_catch()}: observed catch by fleet (t).
 
-\item \code{sample_effort()}: observed nominal effort by fleet (relative).
+\item \code{sample_effort()}: observed nominal effort by fleet, in fishing days
+(relative effort x \code{effort_days} of the fleet).
 
 \item \code{sample_cpue()}: CPUE by fleet with AR1 lognormal residuals,
 scaled to mean 1 over the sampled years; \code{index_true} is the true

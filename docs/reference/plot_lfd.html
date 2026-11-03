@@ -33,7 +33,7 @@ marked at the top, so modes can be matched to year classes.
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,7 +100,8 @@ marked at the top, so modes can be matched to year classes.</p></li>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bubble"</span>, <span class="st">"bars"</span><span class="op">)</span>,</span>
 <span>  years <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cohorts <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  season <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  season <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  lfd <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -137,6 +138,11 @@ shown in rows (length samples).</p></dd>
 
 <dt>season</dt>
 <dd><p>seasons to include (pooled); default all.</p></dd>
+
+
+<dt>lfd</dt>
+<dd><p>optional length table to plot instead of <code>data$lfd</code>, e.g. from
+<code><a href="lfd_aggregate.html">lfd_aggregate()</a></code> (pooled over fleets or raised to the catch).</p></dd>
 
 </dl></div>
     <div class="section level2">

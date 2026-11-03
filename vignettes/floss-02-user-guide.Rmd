@@ -321,6 +321,53 @@ tdir <- export_truth(dat, file.path(tempdir(), "reef_truth"), format = "csv")
 list.files(tdir)
 ```
 
+## Naive aggregation (teaching)
+
+An analyst often has catch and effort for the whole fishery, not by fleet,
+and sometimes for all species together. FLOSS reports effort in fishing
+days, so catch, effort and nominal CPUE (kg per fishing day) can be shown
+by fleet, summed over fleets, or summed over fleets and species.
+
+```{r, fig.height = 4}
+plot_aggregate(dat, "Lutjanus bohar", what = "cpue", by = "fleet", truth = TRUE)
+```
+
+```{r, fig.height = 3.5, fig.width = 6}
+plot_aggregate(dat, "Lutjanus bohar", what = "cpue", by = "aggregate", truth = TRUE)
+plot_aggregate(dat, what = "cpue", by = "combined")
+```
+
+::: {.flag}
+**Warning flag.** Nominal CPUE summed over fleets changes whenever the fleet
+mix changes (here linefish effort rises and falls), even if the stock does
+not; summed over species, the decline of one species can hide behind the
+others. Compare with the fleet-level series and, as a trainer, the true
+spawning biomass (grey).
+:::
+
+The tables behind these plots are `catch_table()`, `effort_table()` and
+`nominal_cpue()`.
+
+Length samples can be pooled over fleets as measured, or raised to each
+fleet's catch first (numbers = sample numbers x catch / sample weight):
+
+```{r, fig.height = 5.5, fig.width = 7}
+pooled <- lfd_aggregate(dat, "Lutjanus bohar", by = "aggregate", raise = "sample")
+raised <- lfd_aggregate(dat, "Lutjanus bohar", by = "aggregate", raise = "catch")
+mean_len <- function(l) tapply(l$len_mm * l$n, l$year, sum) / tapply(l$n, l$year, sum) / 10
+round(rbind(pooled = mean_len(pooled[pooled$iter == 1, ]),
+            raised = mean_len(raised[raised$iter == 1, ])), 1)
+plot_lfd(dat, "Lutjanus bohar", type = "bars", lfd = raised, years = 2020:2025)
+```
+
+Pooled as measured, each fleet counts by its sample size; raised, by its
+catch. Biological samples can be shown by fleet, all fleets together, or by
+season (length at age rises through the year):
+
+```{r, fig.height = 4}
+plot_bio(dat, "Lutjanus bohar", what = "age_length", by = "season")
+```
+
 # 8 Save the datasets
 
 `export_data()` writes one folder per iteration and the answer key in its own
@@ -347,7 +394,30 @@ plot_bio(d1, "Siganus sutor", what = "age_length")
 ```
 
 `settings.yaml` holds the fishery, species and sampling settings and the seed,
-so the datasets can be re-created exactly.
+so the datasets can be re-created exactly. `aggregate = TRUE` adds the
+aggregated tables (catch and effort summed over fleets and species, nominal
+CPUE, pooled and raised length samples).
+
+## FLR objects for JABBA3 and FLicc
+
+`format = "rds"` writes, per iteration, `floss_flr.rds`: one `as_flr()`
+object per species with FLQuants of catch, effort and length frequencies,
+FLIndices (with log-scale SEs in `index.var`) and the life-history FLPar.
+
+```{r}
+f <- as_flr(dat, "Lutjanus bohar", iter = 1)
+f
+```
+
+```{r, eval = FALSE}
+# production model (JABBA3): catch by fleet, all indices, effort as auxiliary data
+jb <- JABBA3::jb3_data(f$catch, f$indices, stock = "bohar", auxiliary = f$effort)
+# length-based (FLicc): length frequencies by gear and life history
+stk <- FLicc::stocklen(f$lfd[c("gillnet", "linefish")], f$lhpar)
+fit <- FLicc::fiticc(f$lfd[c("gillnet", "linefish")], stk,
+                     catch_by_gear = f$catch_by_gear[c("gillnet", "linefish")] /
+                       sum(f$catch_by_gear[c("gillnet", "linefish")]))
+```
 
 # 9 Treatments: one change, same random numbers
 

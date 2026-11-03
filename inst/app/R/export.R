@@ -15,11 +15,13 @@ export_ui <- function() {
             column(4, radioButtons("ex_give", "Give trainees",
               choices = c("Data and life history" = "data_lh", "Data only" = "data"))),
             column(4, checkboxGroupInput("ex_format", "File format",
-              choices = c("csv (one folder per dataset)" = "csv", "Excel (one file per dataset)" = "xlsx"),
+              choices = c("csv (one folder per dataset)" = "csv", "Excel (one file per dataset)" = "xlsx",
+                          "R: FLR objects for JABBA3 / FLicc (.rds)" = "rds"),
               selected = "csv")),
-            column(4, uiOutput("ex_key_ui"))),
+            column(4, uiOutput("ex_key_ui"),
+                   checkboxInput("ex_agg", "Also aggregated tables (teaching): catch and effort summed over fleets and species, nominal CPUE, pooled and raised length samples", FALSE))),
           downloadButton("ex_download", "Download datasets (.zip)", class = "btn-primary"),
-          p(class = "note", "One folder or file per dataset (iteration) with catch, effort, cpue, survey, lfd (len_mm, n) and bio (len_mm, age, wt_g, mature), plus README.txt and settings.yaml, which re-creates the data.")),
+          p(class = "note", "One folder or file per dataset (iteration) with catch, effort, cpue, survey, lfd (len_mm, n) and bio (len_mm, age, wt_g, mature), plus README.txt and settings.yaml, which re-creates the data. The .rds holds, by species, FLQuants of catch, effort (fishing days) and length frequencies, FLIndices with log-scale SEs and the life-history FLPar: as_flr() in R.")),
         box(width = 12, title = "What is in the export", uiOutput("ex_preview"))),
       tabPanel("Settings",
         box(width = 12, title = "Save the settings",
@@ -74,7 +76,8 @@ export_server <- function(input, output, session, rv, r) {
       tmp <- file.path(tempfile("floss"), "floss_data")
       fmt <- input$ex_format %||% "csv"
       export_data(sub(), tmp, give = input$ex_give %||% "data_lh", format = fmt,
-                  answer_key = r$show_truth() && isTRUE(input$ex_key), zip = TRUE)
+                  answer_key = r$show_truth() && isTRUE(input$ex_key),
+                  aggregate = isTRUE(input$ex_agg), zip = TRUE)
       file.copy(paste0(tmp, ".zip"), file)
     })
 

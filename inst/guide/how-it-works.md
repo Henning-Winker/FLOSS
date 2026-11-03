@@ -192,3 +192,23 @@ true time series, reference points, true status, true catch, true ages and
 the list of **planted artefacts** (data problems and treatments set on
 purpose). Remove the answer key before giving the data to trainees.
 `export_truth()` writes the truth alone, for the trainer.
+
+**Naive aggregation (teaching).** Effort is reported in fishing days, so
+catch, effort and nominal CPUE (kg per fishing day) can be summed over
+fleets, or over fleets and species (`catch_table()`, `effort_table()`,
+`nominal_cpue()`, `plot_aggregate()`), and length samples pooled over fleets
+as measured or raised to each fleet's catch (`lfd_aggregate()`). Biological
+samples can be grouped by fleet, all fleets or season (`plot_bio(by =)`).
+`export_data(aggregate = TRUE)` adds these tables to the export.
+
+| Aggregate | What it ignores | What it can produce |
+|---|---|---|
+| Effort summed over fleets | a fishing day differs between gears | effort that rises while F falls (fleet mix) |
+| Nominal CPUE, all fleets | fleet catchability and selectivity | trends driven by the fleet mix |
+| Nominal CPUE, all species | species composition | a stable index while one species collapses |
+| Length samples pooled as measured | catch share of each fleet | the most sampled fleet dominates |
+
+**FLR objects.** `as_flr()` and `export_data(format = "rds")` give FLQuants
+of catch, effort and length frequencies, FLIndices with log-scale SEs and
+the life-history FLPar, ready for JABBA3 (`jb3_data()`) and FLicc
+(`stocklen()`, `fiticc()`).

@@ -10,6 +10,7 @@ oem_settings(
   catch_cv = 0.1,
   catch_bias = 0,
   effort_cv = 0.1,
+  effort_days = 1000,
   cpue_cv = 0.2,
   cpue_rho = 0.3,
   cpue_creep = TRUE,
@@ -42,6 +43,9 @@ samples, per fleet.}
 \item{catch_cv, catch_bias}{catch CV and under-reporting (0.1 = 10\% under).}
 
 \item{effort_cv}{effort-index CV.}
+
+\item{effort_days}{fishing days per year of a fleet at relative effort 1
+(per fleet): observed effort is reported in fishing days.}
 
 \item{cpue_cv, cpue_rho}{CPUE CV and residual autocorrelation.}
 
