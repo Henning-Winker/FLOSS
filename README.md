@@ -1,4 +1,4 @@
-# FLOSS <img src="https://img.shields.io/badge/status-v0.3%20prototype-orange" align="right"/>
+# FLOSS <img src="https://img.shields.io/badge/status-v0.4%20prototype-orange" align="right"/>
 
 **FL Operating model & Sampling Simulator**
 
@@ -30,8 +30,30 @@ effort creep         catchability by fleet   truth + refpts           LFD, bio s
 * **Species library.** Four example reef species (*Siganus sutor*,
   *Lethrinus mahsena*, *Lutjanus bohar*, *Carcharhinus melanopterus*); users
   can copy, edit and save their own as plain YAML.
-* **Engine first.** Everything runs from R scripts; the Shiny app (v0.3)
-  only collects inputs and calls the same functions.
+* **Engine first.** Everything runs from R scripts; the Shiny app
+  (`run_app()`) only collects inputs and calls the same functions.
+
+## The app
+
+```r
+install.packages(c("shiny", "shinydashboard", "commonmark"))
+FLOSS::run_app()
+```
+
+The app has the layout of the FLicc app: numbered steps in the left panel,
+sub-tabs on each page, a *Before you run* checklist with the **Build
+operating model** and **Sample data** buttons, and a status pill at the top.
+
+| Step | Sub-tabs |
+|---|---|
+| Guide | Start here, How it works, Sampling and size data, Warning flags, Truth and export, Settings explained |
+| 1 Fishery | Fleets and effort, Effort creep, Effort realisation |
+| 2 Species | Library (choose, add, save), Life history, Selectivity, Exploitation |
+| 3 Operating model | Settings, Stock trends, Fleets, Equilibrium, Spawners vs vulnerable, Stock and recruitment |
+| 4 Treatments | Build, Predict, Reveal (prediction vs what happened, true response, length data) |
+| 5 Sampling | Overview, Catch, Effort, CPUE, Survey, Length frequencies, Biological samples |
+| 6 Export | Datasets (zip of csv/xlsx with optional answer key), Settings (YAML) |
+| 7 True status | Status, Trajectories, Kobe plot, Downloads (only when **Hide truth** is unticked) |
 
 ## Installation
 
@@ -108,7 +130,8 @@ plot_length_indicators(length_indicators(rt, "Lutjanus bohar"))
 | **0.1** | Specs (fishery, species) with YAML library; OM engine reproducing the multi-gear reef example; shared effort and effort creep |
 | **0.2** | Sampling: catch, effort, CPUE (AR1 residuals), survey, two-stage length samples (FLRef `lfd.sim()`), biological samples (random or length-stratified ageing); observed ALK and catch-at-age; export with answer key; user guide |
 | **0.3** | Treatments with common random numbers; dynamics plots; length indicators, cohort lines, indicator dashboard; plantable artefacts with hidden answer key; optional basic fits; guide and teaching vignette |
-| 0.4 | Shiny app: Fishery - Species - OM - Sampling - Export - Truth, guide tab and info tooltips (`floss_tip()`), "hide truth" switch; exporters for FLicc and JABBA3 |
+| **0.4** | Shiny app `run_app()` in the FLicc layout: Guide, Fishery, Species, OM, Treatments (predict, reveal), Sampling, Export, True status; info tooltips (`floss_tip()`), Hide truth switch |
+| 0.4.x | Exporters for FLicc and JABBA3 |
 | 0.5 | Trainee data viewer for exported datasets |
 | 0.6 | Project save/load, more survey designs, seasonal effort |
 | later | sex-structured and spatial stocks, link to `mse` via `sampling.lfd.oem()` |
