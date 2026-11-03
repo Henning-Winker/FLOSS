@@ -1,6 +1,6 @@
 # Plots of observed data (no model fits).
 
-# fleet colours in fishery order (as in the app), then the survey: floss.r4col()
+# fleet colours in fishery order (as in the app), then the survey
 src_colours <- function(data) {
   fleet_colours(data$settings$fishery$fleets %||% unique(data$catch$fleet))
 }
@@ -69,58 +69,104 @@ plot_obs <- function(data, species = NULL, iter = 1, what = c("index", "catch"),
   d$source <- factor(d$source, levels = intersect(names(src_colours(data)), d$source))
   d$iter <- factor(d$iter)
   multi <- nlevels(d$iter) > 1
+  # gears are in separate panels, so with several iterations colour shows the
+  # iteration; with one iteration it shows the gear
+  col_by <- if (multi) "iter" else "source"
+  cols <- if (multi) iter_colours(levels(d$iter)) else src_colours(data)
   p <- ggplot2::ggplot(d, ggplot2::aes(.data$year, .data$value,
-                                       colour = .data$source,
+                                       colour = .data[[col_by]],
                                        group = .data$iter)) +
-    ggplot2::geom_line(linewidth = 0.4, alpha = if (multi) 0.6 else 1) +
-    ggplot2::geom_point(size = if (multi) 0.9 else 1.4,
-                        alpha = if (multi) 0.6 else 1) +
-    ggplot2::scale_colour_manual(values = src_colours(data)) +
+    ggplot2::geom_line(linewidth = 0.5) +
+    ggplot2::geom_point(size = if (multi) 1.1 else 1.4) +
+    ggplot2::scale_colour_manual(values = cols) +
     ggplot2::facet_wrap(~source, scales = "free_y") +
-    ggplot2::labs(x = "Year", y = ylab, title = species,
-                  subtitle = if (multi) paste("Iterations", paste(levels(d$iter),
-                                                                   collapse = ", "))) +
-    ggplot2::theme_bw() + ggplot2::theme(legend.position = "none")
+    ggplot2::labs(x = "Year", y = ylab, title = species, colour = "Iteration") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = if (multi) "bottom" else "none")
   if (truth && !is.null(d$true))
-    p <- p + ggplot2::geom_line(ggplot2::aes(y = .data$true), linetype = 2,
-                                colour = "grey20")
+    p <- p + ggplot2::geom_line(ggplot2::aes(y = .data$true, colour = .data[[col_by]]),
+                                linetype = 2, linewidth = 0.4, alpha = 0.8,
+                                data = d, inherit.aes = TRUE) +
+      ggplot2::labs(caption = "Dashed: true values")
   p
 }
 
-#' Plot length samples as bubbles (year x length)
+#' Plot length samples
 #'
-#' With `cohorts = TRUE`, von Bertalanffy growth lines follow each year class
-#' through the samples (mid-year length of the cohort born in each year):
-#' real modes move along these lines; patterns that jump or vanish are
-#' sampling noise or selectivity, not dynamics.
+#' * `type = "bubble"`: one row per year, bubble area = proportion of the
+#'   year's sample at each length. With `cohorts = TRUE`, von Bertalanffy
+#'   growth lines follow each year class through the samples: real modes
+#'   move along these lines; patterns that jump or vanish are sampling noise
+#'   or selectivity, not dynamics.
+#' * `type = "bars"`: the classic length-frequency histogram, one panel per
+#'   year (rows) and source (columns), as proportions of each year's sample.
+#'   With `cohorts = TRUE`, the mean length of each age class in that year is
+#'   marked at the top, so modes can be matched to year classes.
+#'
+#' Seasonal samples are pooled for the year (counts summed).
 #'
 #' @inheritParams plot_availability
-#' @param source fleets / survey to show (facets); default all.
-#' @param cohorts add cohort growth lines (needs life-history parameters).
+#' @param source fleets / survey to show; default all.
+#' @param type `"bubble"` or `"bars"`.
+#' @param years years to show; default all (for `"bars"`, the last six).
+#' @param cohorts add cohort growth lines (bubble) or age-class marks (bars).
 #' @param season seasons to include (pooled); default all.
 #' @return a `ggplot`.
 #' @export
+#' @examples
+#' \donttest{
+#' x <- simulate_fishery("lutjanus_bohar", nsim = 2, iters = 1)
+#' plot_lfd(x$data, cohorts = TRUE)
+#' plot_lfd(x$data, type = "bars", source = c("gillnet", "linefish"))
+#' }
 plot_lfd <- function(data, species = NULL, iter = 1, source = NULL,
+                     type = c("bubble", "bars"), years = NULL,
                      cohorts = FALSE, season = NULL) {
+  type <- match.arg(type)
   species <- species %||% unique(data$lfd$species)[1]
   l <- data$lfd
   if (!is.null(season) && !is.null(l$season)) l <- l[l$season %in% season, ]
-  d <- pick(lfd_annual(l), species, iter, source)
+  d <- pick(lfd_annual(l), species, iter[1], source)
+  if (type == "bars" && is.null(years)) years <- utils::tail(sort(unique(d$year)), 6)
+  if (!is.null(years)) d <- d[d$year %in% years, ]
+  if (!nrow(d)) stop("no length samples for this selection")
   d$p <- d$n / stats::ave(d$n, d$year, d$source, d$iter, FUN = sum)
   d$source <- factor(d$source, levels = intersect(names(src_colours(data)), d$source))
+  bw <- lfd_bin_mm(data, species) / 10
+  lh <- if (cohorts) true_lh(data, species)
+  if (type == "bars") {
+    d$L <- d$len_mm / 10 + bw / 2
+    g <- ggplot2::ggplot(d, ggplot2::aes(.data$L, .data$p, fill = .data$source)) +
+      ggplot2::geom_col(width = bw * 0.95) +
+      ggplot2::scale_fill_manual(values = src_colours(data), guide = "none") +
+      ggplot2::facet_grid(year ~ source, scales = "free_y") +
+      ggplot2::labs(x = "Length (cm)", y = "Proportion of the year's sample",
+                    title = species, subtitle = paste("Iteration", iter[1])) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0))
+    if (!is.null(lh)) {
+      ages <- 0:lh$tmax
+      La <- lh$linf * (1 - exp(-lh$k * (ages + 0.5 - lh$t0)))
+      ma <- data.frame(age = ages, L = La)
+      # older ages crowd near Linf: keep ages at least two bins apart
+      ma <- ma[c(TRUE, diff(ma$L) >= 2 * bw), ]
+      ma <- ma[ma$L >= min(d$L) & ma$L <= max(d$L), ]
+      g <- g + ggplot2::geom_vline(data = ma, ggplot2::aes(xintercept = .data$L),
+                                   colour = "grey55", linewidth = 0.25, linetype = 3) +
+        ggplot2::labs(caption = "Dotted: mean length of each age class in mid-year (young ages, left)")
+    }
+    return(g)
+  }
   g <- ggplot2::ggplot(d, ggplot2::aes(.data$len_mm / 10, .data$year)) +
     ggplot2::geom_point(ggplot2::aes(size = .data$p, colour = .data$source),
                         alpha = 0.55) +
     ggplot2::scale_size_area(max_size = 5, guide = "none") +
     ggplot2::scale_colour_manual(values = src_colours(data),
                                  guide = "none") +
-    (if (length(unique(d$iter)) > 1)
-      ggplot2::facet_grid(paste("Iteration", iter) ~ source) else
-        ggplot2::facet_wrap(~source)) +
+    ggplot2::facet_wrap(~source) +
     ggplot2::labs(x = "Length (cm)", y = "Year", title = species,
                   subtitle = "Bubble area = proportion of the year's sample") +
     ggplot2::theme_bw()
-  lh <- if (cohorts) true_lh(data, species)
   if (!is.null(lh)) {
     yrs <- seq(min(d$year), max(d$year))
     lmax <- max(d$len_mm) / 10
@@ -281,7 +327,7 @@ plot_seasons <- function(data, species = NULL, iter = 1, source = NULL) {
     ggplot2::geom_point(data = ml, ggplot2::aes(colour = .data$season), size = 1.7) +
     ggplot2::geom_line(data = pm, ggplot2::aes(linetype = .data$how), colour = "black") +
     ggplot2::facet_grid(panel ~ source, scales = "free_y", switch = "y") +
-    ggplot2::scale_fill_manual(values = floss.r4col(nlevels(n$season)), aesthetics = c("colour", "fill")) +
+    ggplot2::scale_fill_manual(values = season_colours(nlevels(n$season)), aesthetics = c("colour", "fill")) +
     ggplot2::scale_linetype_manual(values = c(1, 2)) +
     ggplot2::labs(x = "Year", y = NULL, fill = "Season", colour = "Season", linetype = NULL,
                   title = species, subtitle = paste("Iteration", iter[1])) +

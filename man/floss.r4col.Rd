@@ -18,8 +18,8 @@ a character vector of colours.
 The "rich colours" palette of r4ss and JABBA (\code{rc4()}, \code{ss3col()}, after
 \code{rich.colors} by Arni Magnusson): dark blue through green and yellow to
 red. For three colours it returns blue, red and green3, as in JABBA.
-FLOSS uses it for fleets and survey, seasons, selectivities and treatment
-runs.
+Available for users who prefer the r4ss look; FLOSS plots use their own
+muted palette by default.
 }
 \examples{
 floss.r4col(4)

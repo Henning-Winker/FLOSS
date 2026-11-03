@@ -1,7 +1,7 @@
 Package: FLOSS
 Type: Package
 Title: FL Operating Model and Sampling Simulator
-Version: 0.4.2
+Version: 0.4.3
 Authors@R: c(
     person("Henning", "Winker", email = "henning.winker@gmail.com",
            role = c("aut", "cre")))

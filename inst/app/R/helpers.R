@@ -86,11 +86,11 @@ sel_len <- function(s, L) {
                                    exp(-(L - s$Lpeak)^2 / (2 * s$sd_right^2))))
 }
 
-# Fleet colours (floss.r4col(), the r4ss palette of JABBA): fleets, then the survey
-app_cols <- function(fleets) {
-  cols <- floss.r4col(length(fleets) + 1)
-  c(stats::setNames(cols[seq_along(fleets)], fleets), survey = cols[length(fleets) + 1])
-}
+# Fleet colours (the FLOSS palette): fleets in fishery order, then the survey
+app_cols <- function(fleets) FLOSS:::fleet_colours(fleets)
+
+# Iteration colours (used where gears are in separate panels)
+app_iter_cols <- function(iters) FLOSS:::iter_colours(iters)
 
 sel_types <- c("S-shaped (logistic)" = "logistic", "Symmetric dome (normal)" = "normal",
                "Dome, two spreads (double normal)" = "dnormal")

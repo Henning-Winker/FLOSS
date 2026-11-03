@@ -6,8 +6,8 @@
 #' The "rich colours" palette of r4ss and JABBA (`rc4()`, `ss3col()`, after
 #' `rich.colors` by Arni Magnusson): dark blue through green and yellow to
 #' red. For three colours it returns blue, red and green3, as in JABBA.
-#' FLOSS uses it for fleets and survey, seasons, selectivities and treatment
-#' runs.
+#' Available for users who prefer the r4ss look; FLOSS plots use their own
+#' muted palette by default.
 #'
 #' @param n number of colours.
 #' @param alpha transparency (0-1).
@@ -31,13 +31,30 @@ floss.r4col <- function(n, alpha = 1) {
   col
 }
 
-# Fleet colours (fleets first, then the survey), shared by all data plots
-fleet_colours <- function(fleets) {
-  cols <- floss.r4col(length(fleets) + 1)
-  c(stats::setNames(cols[seq_along(fleets)], fleets), survey = cols[length(fleets) + 1])
+# The FLOSS palette: muted, distinct colours for fleets, iterations and
+# treatment runs; the survey is dark navy.
+floss_pal <- c("#0A6E8C", "#A85400", "#5B45A8", "#2E7D32", "#8E2C48", "#B08900",
+               "#4E6E81", "#C0587E")
+
+# n colours from the FLOSS palette (beyond 8, interpolated)
+floss_cols <- function(n) {
+  if (n <= length(floss_pal)) floss_pal[seq_len(n)] else grDevices::colorRampPalette(floss_pal)(n)
 }
+
+# Fleet colours (fleets in fishery order, then the survey), shared by all plots
+fleet_colours <- function(fleets) {
+  c(stats::setNames(floss_cols(length(fleets)), fleets), survey = "#102330")
+}
+
+# Iteration colours, used when gears are already separated by panels
+iter_colours <- function(iters) stats::setNames(floss_cols(length(iters)), iters)
 
 # Run colours for treatments: baseline black, then the palette
 run_colours <- function(runs) {
-  stats::setNames(c("#111111", floss.r4col(max(1, length(runs) - 1)))[seq_along(runs)], runs)
+  stats::setNames(c("#111111", floss_cols(max(1, length(runs) - 1)))[seq_along(runs)], runs)
+}
+
+# Season colours: a sequential scale through the year
+season_colours <- function(n) {
+  grDevices::hcl.colors(n + 1, "viridis")[seq_len(n)]   # drop the palest yellow
 }

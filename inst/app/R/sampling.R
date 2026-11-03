@@ -48,9 +48,12 @@ sampling_ui <- function() {
           uiOutput("lf_rows"),
           fluidRow(column(4, numericInput("lf_bin", "Length bin (mm, 0 = automatic)", value = 0, min = 0, step = 5)))),
         box(width = 12, title = "Length samples",
-          fluidRow(column(4, uiOutput("lf_src_ui")),
-                   column(4, checkboxInput("lf_coh", "Show year-class growth lines", TRUE))),
-          plotOutput("sm_lfd", height = 460),
+          fluidRow(column(3, uiOutput("lf_src_ui")),
+                   column(3, radioButtons("lf_type", "View", inline = TRUE,
+                                          choices = c("Bubbles (all years)" = "bubble", "Histograms" = "bars"))),
+                   column(3, conditionalPanel("input.lf_type == 'bars'", uiOutput("lf_years_ui"))),
+                   column(3, checkboxInput("lf_coh", "Show year classes (growth lines or ages)", TRUE))),
+          plotOutput("sm_lfd", height = 560),
           p(class = "note", "Bubble size: share of fish in each length bin. Real modes move along the growth lines from year to year; modes that jump or vanish are sampling noise.")),
         box(width = 12, title = "Length-based indicators",
           plotOutput("sm_ind", height = 460),
@@ -279,11 +282,17 @@ sampling_server <- function(input, output, session, rv, r) {
   output$sm_effort <- renderPlot({
     d <- dat()$effort
     d <- d[d$iter %in% r$iters(), ]
-    p <- ggplot(d, aes(year, effort, colour = fleet, group = interaction(fleet, iter))) +
+    d$fleet <- factor(d$fleet, levels = r$fleets())
+    d$iter <- factor(d$iter)
+    multi <- nlevels(d$iter) > 1
+    # fleets are in separate panels: with several iterations, colour = iteration
+    p <- ggplot(d, aes(year, effort, colour = if (multi) iter else fleet, group = iter)) +
       geom_line(linewidth = 0.5) + geom_point(size = 1.2) +
-      facet_wrap(~fleet, scales = "free_y") + scale_colour_manual(values = app_cols(r$fleets())) +
-      labs(x = "Year", y = "Reported effort (relative)") + theme_bw(base_size = 14) + theme(legend.position = "none")
-    if (r$show_truth()) p <- p + geom_line(aes(y = effort_true), linetype = 2, colour = "grey20")
+      facet_wrap(~fleet, scales = "free_y") +
+      scale_colour_manual(values = if (multi) app_iter_cols(levels(d$iter)) else app_cols(r$fleets())) +
+      labs(x = "Year", y = "Reported effort (relative)", colour = "Iteration") + theme_bw(base_size = 14) +
+      theme(legend.position = if (multi) "bottom" else "none")
+    if (r$show_truth()) p <- p + geom_line(aes(y = effort_true), linetype = 2, linewidth = 0.4)
     p
   })
 
@@ -294,9 +303,14 @@ sampling_server <- function(input, output, session, rv, r) {
     d <- dat()$survey
     validate(need(!is.null(d) && nrow(d) > 0, "No survey in these data."))
     d <- d[d$species == spname() & d$iter %in% r$iters(), ]
-    p <- ggplot(d, aes(year, index, group = iter)) + geom_line(colour = app_cols(r$fleets())[["survey"]]) + geom_point(colour = app_cols(r$fleets())[["survey"]]) +
-      labs(x = "Year", y = "Survey index (relative to mean)", title = spname()) + theme_bw(base_size = 14)
-    if (r$show_truth()) p <- p + geom_line(aes(y = index_true), linetype = 2, colour = "grey20")
+    d$iter <- factor(d$iter)
+    multi <- nlevels(d$iter) > 1
+    cols <- if (multi) app_iter_cols(levels(d$iter)) else stats::setNames(app_cols(r$fleets())[["survey"]], levels(d$iter))
+    p <- ggplot(d, aes(year, index, group = iter, colour = iter)) + geom_line(linewidth = 0.5) + geom_point() +
+      scale_colour_manual(values = cols) +
+      labs(x = "Year", y = "Survey index (relative to mean)", title = spname(), colour = "Iteration") +
+      theme_bw(base_size = 14) + theme(legend.position = if (multi) "bottom" else "none")
+    if (r$show_truth()) p <- p + geom_line(aes(y = index_true), linetype = 2, linewidth = 0.4)
     p
   })
 
@@ -304,9 +318,17 @@ sampling_server <- function(input, output, session, rv, r) {
     s <- unique(dat()$lfd$source)
     selectInput("lf_src", "Samples from", choices = c("All" = "__all__", stats::setNames(s, s)))
   })
+  output$lf_years_ui <- renderUI({
+    y <- range(dat()$lfd$year)
+    sliderInput("lf_years", "Years", min = y[1], max = y[2], value = c(max(y[1], y[2] - 5), y[2]),
+                step = 1, sep = "")
+  })
   output$sm_lfd <- renderPlot({
     src <- if (identical(input$lf_src %||% "__all__", "__all__")) NULL else input$lf_src
-    plot_lfd(dat(), spname(), r$iters()[1], source = src, cohorts = isTRUE(input$lf_coh)) +
+    ty <- input$lf_type %||% "bubble"
+    yrs <- if (ty == "bars" && length(input$lf_years) == 2) seq(input$lf_years[1], input$lf_years[2])
+    plot_lfd(dat(), spname(), r$iters()[1], source = src, type = ty, years = yrs,
+             cohorts = isTRUE(input$lf_coh)) +
       theme(text = element_text(size = 14))
   })
   output$sm_ind <- renderPlot(plot_indicators(dat(), spname(), r$iters()[1], truth = r$show_truth()))

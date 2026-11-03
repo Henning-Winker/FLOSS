@@ -18,6 +18,7 @@ Workflow: \code{\link[=fishery]{fishery()}} -> \code{\link[=species]{species()}}
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://henning-winker.github.io/FLOSS/}
   \item \url{https://github.com/Henning-Winker/FLOSS}
   \item Report bugs at \url{https://github.com/Henning-Winker/FLOSS/issues}
 }

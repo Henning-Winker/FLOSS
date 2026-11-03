@@ -14,7 +14,7 @@ plot_seasons(data, species = NULL, iter = 1, source = NULL)
 \item{iter}{iteration(s); several iterations are overlaid (lines) or
 shown in rows (length samples).}
 
-\item{source}{fleets / survey to show (facets); default all.}
+\item{source}{fleets / survey to show; default all.}
 }
 \value{
 a \code{ggplot}.

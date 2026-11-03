@@ -103,7 +103,7 @@ plot_eq_selectivity <- function(sp, sels, fmax = 10) {
     ggplot2::geom_line(linewidth = 0.9) +
     ggplot2::geom_point(data = pts, size = 2.5) +
     ggplot2::facet_wrap(~what, scales = "free_y") +
-    ggplot2::scale_colour_manual(values = floss.r4col(length(sels))) +
+    ggplot2::scale_colour_manual(values = floss_cols(length(sels))) +
     ggplot2::labs(x = "F (Fbar)", y = NULL, colour = "Selectivity",
                   title = sp$species,
                   subtitle = "Same stock, different selectivity; points: MSY") +

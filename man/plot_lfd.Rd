@@ -2,13 +2,15 @@
 % Please edit documentation in R/plots_data.R
 \name{plot_lfd}
 \alias{plot_lfd}
-\title{Plot length samples as bubbles (year x length)}
+\title{Plot length samples}
 \usage{
 plot_lfd(
   data,
   species = NULL,
   iter = 1,
   source = NULL,
+  type = c("bubble", "bars"),
+  years = NULL,
   cohorts = FALSE,
   season = NULL
 )
@@ -21,9 +23,13 @@ plot_lfd(
 \item{iter}{iteration(s); several iterations are overlaid (lines) or
 shown in rows (length samples).}
 
-\item{source}{fleets / survey to show (facets); default all.}
+\item{source}{fleets / survey to show; default all.}
 
-\item{cohorts}{add cohort growth lines (needs life-history parameters).}
+\item{type}{\code{"bubble"} or \code{"bars"}.}
+
+\item{years}{years to show; default all (for \code{"bars"}, the last six).}
+
+\item{cohorts}{add cohort growth lines (bubble) or age-class marks (bars).}
 
 \item{season}{seasons to include (pooled); default all.}
 }
@@ -31,8 +37,25 @@ shown in rows (length samples).}
 a \code{ggplot}.
 }
 \description{
-With \code{cohorts = TRUE}, von Bertalanffy growth lines follow each year class
-through the samples (mid-year length of the cohort born in each year):
-real modes move along these lines; patterns that jump or vanish are
-sampling noise or selectivity, not dynamics.
+\itemize{
+\item \code{type = "bubble"}: one row per year, bubble area = proportion of the
+year's sample at each length. With \code{cohorts = TRUE}, von Bertalanffy
+growth lines follow each year class through the samples: real modes
+move along these lines; patterns that jump or vanish are sampling noise
+or selectivity, not dynamics.
+\item \code{type = "bars"}: the classic length-frequency histogram, one panel per
+year (rows) and source (columns), as proportions of each year's sample.
+With \code{cohorts = TRUE}, the mean length of each age class in that year is
+marked at the top, so modes can be matched to year classes.
+}
+}
+\details{
+Seasonal samples are pooled for the year (counts summed).
+}
+\examples{
+\donttest{
+x <- simulate_fishery("lutjanus_bohar", nsim = 2, iters = 1)
+plot_lfd(x$data, cohorts = TRUE)
+plot_lfd(x$data, type = "bars", source = c("gillnet", "linefish"))
+}
 }

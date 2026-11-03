@@ -13,7 +13,7 @@ navbar:
       text: How it works
       href: articles/floss-00-how-it-works.html
     articles:
-      text: Articles
+      text: Materials
       menu:
       - text: How FLOSS works
         href: articles/floss-00-how-it-works.html
@@ -25,7 +25,7 @@ navbar:
         href: articles/floss-01-reef-om.html
 
 articles:
-- title: Guides
+- title: Materials
   contents:
   - floss-00-how-it-works
   - floss-02-user-guide
