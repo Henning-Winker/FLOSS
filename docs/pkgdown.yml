@@ -1,0 +1,13 @@
+pandoc: 3.1.3
+pkgdown: 2.0.7
+pkgdown_sha: ~
+articles:
+  floss-00-how-it-works: floss-00-how-it-works.html
+  floss-01-reef-om: floss-01-reef-om.html
+  floss-02-user-guide: floss-02-user-guide.html
+  floss-03-teaching: floss-03-teaching.html
+last_built: 2026-11-03T06:11Z
+urls:
+  reference: https://henning-winker.github.io/FLOSS/reference
+  article: https://henning-winker.github.io/FLOSS/articles
+

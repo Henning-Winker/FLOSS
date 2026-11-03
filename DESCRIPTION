@@ -36,7 +36,7 @@ Suggests:
     shinydashboard,
     commonmark
 Additional_repositories: https://flr.r-universe.dev
-URL: https://github.com/Henning-Winker/FLOSS
+URL: https://henning-winker.github.io/FLOSS/, https://github.com/Henning-Winker/FLOSS
 BugReports: https://github.com/Henning-Winker/FLOSS/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

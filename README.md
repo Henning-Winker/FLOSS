@@ -1,6 +1,12 @@
-# FLOSS <img src="https://img.shields.io/badge/status-v0.4.1%20prototype-orange" align="right"/>
+# FLOSS <img src="https://img.shields.io/badge/status-v0.4.2%20prototype-orange" align="right"/>
 
 **FL Operating model & Sampling Simulator**
+
+**Guide and documentation: <https://henning-winker.github.io/FLOSS/>**
+([How it works](https://henning-winker.github.io/FLOSS/articles/floss-00-how-it-works.html) ·
+[User guide](https://henning-winker.github.io/FLOSS/articles/floss-02-user-guide.html) ·
+[Teaching scenarios](https://henning-winker.github.io/FLOSS/articles/floss-03-teaching.html) ·
+[Functions](https://henning-winker.github.io/FLOSS/reference/index.html))
 
 FLOSS builds multi-fleet, multi-species age-structured operating models and
 the data such fisheries produce: catch and effort by fleet, CPUE,
@@ -57,10 +63,13 @@ operating model** and **Sample data** buttons, and a status pill at the top.
 
 ## Installation
 
+Install the FLR packages from r-universe only, then FLOSS from GitHub:
+
 ```r
 install.packages(c("FLCore", "ggplotFL", "FLBRP", "FLasher", "FLife", "FLRef"),
-                 repos = c("https://flr.r-universe.dev", "https://cloud.r-project.org"))
-remotes::install_github("Henning-Winker/FLOSS")
+                 repos = "https://flr.r-universe.dev")
+remotes::install_github("Henning-Winker/FLOSS", build_vignettes = TRUE)
+install.packages(c("shiny", "shinydashboard", "commonmark"))   # for the app
 ```
 
 ## Quick start

@@ -1,0 +1,126 @@
+url: https://henning-winker.github.io/FLOSS/
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+
+navbar:
+  structure:
+    left: [intro, guide, articles, reference, news]
+    right: [search, github]
+  components:
+    guide:
+      text: How it works
+      href: articles/floss-00-how-it-works.html
+    articles:
+      text: Articles
+      menu:
+      - text: How FLOSS works
+        href: articles/floss-00-how-it-works.html
+      - text: User guide (four reef species, three fleets)
+        href: articles/floss-02-user-guide.html
+      - text: Teaching scenarios
+        href: articles/floss-03-teaching.html
+      - text: A reef operating model from saved specs
+        href: articles/floss-01-reef-om.html
+
+articles:
+- title: Guides
+  contents:
+  - floss-00-how-it-works
+  - floss-02-user-guide
+  - floss-03-teaching
+  - floss-01-reef-om
+
+reference:
+- title: App
+  contents:
+  - run_app
+  - floss_tip
+- title: Fishery
+  contents:
+  - fishery
+  - effort_trend
+  - reef_fishery
+  - one_gear_fishery
+  - trend_values
+  - effort_sim
+  - load_fishery
+- title: Species
+  contents:
+  - species
+  - selectivity
+  - one_gear_species
+  - species_library
+  - load_species
+  - save_species
+  - delete_species
+  - read_spec
+  - write_spec
+  - species_lhpar
+  - species_sel
+- title: Operating model
+  contents:
+  - build_om
+  - build_oms
+  - calibrate_msy
+  - catch_fleet
+  - plot_om
+  - plot_fleets
+  - plot_effort
+- title: Dynamics
+  contents:
+  - plot_eq
+  - plot_srr
+  - plot_eq_selectivity
+  - plot_ssb_vb
+- title: Treatments
+  contents:
+  - treatment
+  - run_treatment
+  - plot_treatment
+- title: Sampling
+  contents:
+  - oem_settings
+  - survey_settings
+  - season_design
+  - reef_oem
+  - sample_data
+  - planted_artefacts
+  - floss_gears
+  - lfd_annual
+- title: Observations and size data
+  contents:
+  - plot_availability
+  - plot_obs
+  - plot_lfd
+  - plot_seasons
+  - plot_bio
+  - alk_obs
+  - caa_obs
+  - plot_caa
+  - length_indicators
+  - plot_length_indicators
+  - plot_indicators
+- title: Basic fits (optional)
+  contents:
+  - fit_growth
+  - fit_lw
+  - fit_maturity
+  - catch_curve
+  - catch_curve_length
+  - M_empirical
+  - cpue_check
+  - plot_fit
+- title: Truth and export
+  contents:
+  - status_table
+  - plot_truth
+  - plot_kobe
+  - export_truth
+  - export_data
+  - read_dataset
+  - simulate_fishery
+- title: Colours
+  contents:
+  - floss.r4col
