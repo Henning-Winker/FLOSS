@@ -29,7 +29,8 @@ oem_settings(
   cpue_q_step = NULL,
   bio_age_bias = 0,
   survey = survey_settings(),
-  years = NULL
+  years = NULL,
+  seasons = season_design(4)
 )
 }
 \arguments{
@@ -84,6 +85,11 @@ are aged 10\% too young (typical of old fish read from whole otoliths).}
 
 \item{years}{optional named list by fleet of \code{c(first, last)} years,
 overriding \code{tail}.}
+
+\item{seasons}{seasonal sampling of the fleets' length and biological
+samples: a \code{\link[=season_design]{season_design()}} for all fleets, or a named list of designs
+by fleet. Default: four seasons, balanced. \code{season_design(1)} gives one
+annual sample at mid-year.}
 }
 \value{
 a list of class \code{floss_oem}.

@@ -59,9 +59,9 @@ vulnerable biomass (without effort creep).
 
 \item \code{sample_survey()}: survey biomass index (relative to its mean).
 
-\item \code{sample_lfd()}: two-stage length samples by fleet and survey
-(\code{\link[FLRef:lfd.sim]{FLRef::lfd.sim()}}); \code{len_mm} is the lower bin limit.
+\item \code{sample_lfd()}: two-stage length samples by fleet and survey,
+by season (see \code{\link[=season_design]{season_design()}}); \code{len_mm} is the lower bin limit.
 
-\item \code{sample_bio()}: biological samples: one row per fish.
+\item \code{sample_bio()}: biological samples: one row per fish, by season.
 
 }}

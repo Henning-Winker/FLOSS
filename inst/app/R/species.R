@@ -281,6 +281,7 @@ species_server <- function(input, output, session, rv, r) {
     d <- do.call(rbind, lapply(names(s$sel), function(f) data.frame(L = L, sel = sel_len(s$sel[[f]], L), fleet = f)))
     m <- data.frame(L = L, mat = 1 / (1 + exp(-log(19) * (L - s$lh$lm) / (0.15 * s$lh$lm))))
     ggplot(d, aes(L, sel, colour = fleet)) + geom_line(linewidth = 1.1) +
+      scale_colour_manual(values = app_cols(names(s$sel))) +
       geom_line(data = m, aes(L, mat), inherit.aes = FALSE, linetype = 2, colour = "grey30") +
       geom_vline(xintercept = s$lh$linf, linetype = 3, colour = "grey50") +
       labs(x = "Length (cm)", y = "Selectivity / proportion mature", colour = NULL,

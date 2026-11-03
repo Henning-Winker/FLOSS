@@ -4,7 +4,14 @@
 \alias{plot_lfd}
 \title{Plot length samples as bubbles (year x length)}
 \usage{
-plot_lfd(data, species = NULL, iter = 1, source = NULL, cohorts = FALSE)
+plot_lfd(
+  data,
+  species = NULL,
+  iter = 1,
+  source = NULL,
+  cohorts = FALSE,
+  season = NULL
+)
 }
 \arguments{
 \item{data}{a \code{floss_data} (or \code{\link[=read_dataset]{read_dataset()}} list).}
@@ -17,6 +24,8 @@ shown in rows (length samples).}
 \item{source}{fleets / survey to show (facets); default all.}
 
 \item{cohorts}{add cohort growth lines (needs life-history parameters).}
+
+\item{season}{seasons to include (pooled); default all.}
 }
 \value{
 a \code{ggplot}.

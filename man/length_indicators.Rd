@@ -4,7 +4,15 @@
 \alias{length_indicators}
 \title{Length-based indicators by year and source}
 \usage{
-length_indicators(x, species, iter = 1, source = NULL, Lc = NULL, lh = NULL)
+length_indicators(
+  x,
+  species,
+  iter = 1,
+  source = NULL,
+  Lc = NULL,
+  lh = NULL,
+  season_weight = c("none", "equal")
+)
 }
 \arguments{
 \item{x}{a \code{floss_data}, a \code{\link[=read_dataset]{read_dataset()}} list, or a \code{floss_treatments}
@@ -21,6 +29,10 @@ default the modal length.}
 
 \item{lh}{optional list with \code{linf}, \code{k}, \code{M}, \code{lm} (cm, per year);
 default from the species settings or \code{lhpars}.}
+
+\item{season_weight}{how seasonal length samples are pooled into a year
+(\code{\link[=lfd_annual]{lfd_annual()}}): \code{"none"} sums the counts (imbalanced sampling then
+biases the indicators), \code{"equal"} gives every season the same weight.}
 }
 \value{
 a data frame, one row per species, iteration, year and source.

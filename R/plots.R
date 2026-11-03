@@ -93,6 +93,10 @@ ribbon_plot <- function(df, iters, ylab) {
   if (!multi) p <- p + ggplot2::scale_colour_manual(values = "#0b5d8a") +
     ggplot2::scale_fill_manual(values = "#0b5d8a") +
     ggplot2::guides(colour = "none", fill = "none")
+  else {
+    cols <- stats::setNames(floss.r4col(length(unique(df$type))), unique(df$type))
+    p <- p + ggplot2::scale_colour_manual(values = cols) + ggplot2::scale_fill_manual(values = cols)
+  }
   p
 }
 

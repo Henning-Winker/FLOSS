@@ -144,41 +144,89 @@ sample_survey <- function(om, oem, iters = 1:10) {
   rel_index_df(obs, b, om$species$species, "survey")
 }
 
-#' @describeIn sample_data two-stage length samples by fleet and survey
-#'   ([FLRef::lfd.sim()]); `len_mm` is the lower bin limit.
+#' @describeIn sample_data two-stage length samples by fleet and survey,
+#'   by season (see [season_design()]); `len_mm` is the lower bin limit.
 #' @export
 sample_lfd <- function(om, oem, iters = 1:10) {
   stk <- iter(om$stock, iters)
   gears <- floss_gears(om, oem)
   cn <- catch_fleet(om, "n")
+  z_all <- harvest(stk) + m(stk)
   out <- lapply(om$fishery$fleets, function(f) {
     yrs <- year_window(stk, oem$years[[f]])
+    des <- fleet_seasons(oem, f)
+    x <- iter(cn[[f]], iters)
     do.call(rbind, lapply(fleet_periods(om, f), function(p) {
       yy <- intersect(yrs, ac(p$years))
       if (!length(yy)) return(NULL)
       g <- if (identical(p$sel, om$species$sel[[f]])) gears[[f]] else
         gear_for(om, oem, f, p$sel)
-      x <- iter(cn[[f]], iters)[, yy]
-      lfd_df(FLRef::lfd.sim(x, g, scale = FALSE), om$species$species, f)
+      seasonal_lfd(x, z_all, g, des, yy, iters, om$species$species, f,
+                   oem$lfd$ess_age[[f]], oem$lfd$ess_len[[f]])
     }))
   })
   sv <- oem$survey
   if (!is.null(sv) && isTRUE(sv$lfd)) {
     yrs <- year_window(stk, sv$years)
     n <- FLRef::survey_n_gear(stk, gears$survey, years = yrs, timing = sv$timing)
-    out <- c(out, list(lfd_df(FLRef::lfd.sim(n, gears$survey, scale = FALSE),
-                              om$species$species, "survey")))
+    d <- lfd_df(FLRef::lfd.sim(n, gears$survey, scale = FALSE), om$species$species, "survey")
+    d$season <- survey_season(oem)
+    out <- c(out, list(d[, lfd_cols]))
   }
   do.call(rbind, out)
 }
 
-#' @describeIn sample_data biological samples: one row per fish.
+lfd_cols <- c("species", "iter", "year", "season", "source", "len_mm", "n")
+
+# Season in which the survey takes place (on the scale of the fleets' seasons)
+survey_season <- function(oem) {
+  n <- fleet_seasons(oem, oem$fleets[1])$n
+  as.integer(min(n, floor((oem$survey$timing %||% 0) * n) + 1))
+}
+
+# Two-stage length samples of one fleet and gear period, by season:
+# stage 1 draws clusters (ages) from the season's catch-at-age, stage 2 draws
+# lengths from the age-length key at the season's mid-point.
+seasonal_lfd <- function(x, z_all, g, des, yy, iters, species, source,
+                         ess_age, ess_len) {
+  S <- des$n
+  keys <- if (S == 1) list(g$condALK) else lapply(season_mid(S), function(t) cond_alk_at(g, t))
+  lens <- round(as.numeric(colnames(keys[[1]])) * 10)
+  rows <- list()
+  for (j in seq_along(iters)) {
+    sh <- season_shares(des, yy)
+    for (y in yy) {
+      ca <- c(x[, y, , , , j])
+      if (sum(ca) <= 0) next
+      fr <- if (S == 1) matrix(1, length(ca), 1) else season_catch_frac(c(z_all[, y, , , , j]), S)
+      ea <- split_n(ess_age, sh[y, ])
+      el <- split_n(ess_len, sh[y, ])
+      for (s in seq_len(S)) {
+        if (el[s] <= 0) next
+        pa <- ca * fr[, s]
+        if (sum(pa) <= 0) next
+        an <- stats::rmultinom(1, max(ea[s], 1), pa)
+        pl <- as.numeric((an[, 1] / sum(an)) %*% keys[[s]])
+        if (sum(pl) <= 0) next
+        ln <- stats::rmultinom(1, el[s], pl)[, 1]
+        k <- ln > 0
+        rows[[length(rows) + 1]] <- data.frame(
+          species = species, iter = as.integer(iters[j]), year = as.integer(y),
+          season = s, source = source, len_mm = lens[k], n = as.integer(ln[k]))
+      }
+    }
+  }
+  do.call(rbind, rows)
+}
+
+#' @describeIn sample_data biological samples: one row per fish, by season.
 #' @export
 sample_bio <- function(om, oem, iters = 1:10) {
   stk <- iter(om$stock, iters)
   sp <- om$species
   gears <- floss_gears(om, oem)
   cn <- catch_fleet(om, "n")
+  z_all <- harvest(stk) + m(stk)
   bio <- oem$bio
   L50 <- sp$lh$lm
   L95 <- sp$lh$lm * bio$mat_L95
@@ -191,39 +239,57 @@ sample_bio <- function(om, oem, iters = 1:10) {
       x <- FLRef::survey_n_gear(stk, gears$survey, years = yrs,
                                 timing = oem$survey$timing)
       nfish <- oem$survey$bio_n
+      des <- season_design(1)
+      keys_for <- function(y) list(gears$survey$condALK)
+      season_lab <- survey_season(oem)
     } else {
       yrs <- year_window(stk, oem$years[[s]])
       x <- iter(cn[[s]], iters)[, yrs]
       nfish <- bio$n[[s]]
+      des <- fleet_seasons(oem, s)
+      # age-length keys by gear period and season
+      per <- fleet_periods(om, s)
+      pkeys <- lapply(per, function(p) {
+        g <- if (identical(p$sel, sp$sel[[s]])) gears[[s]] else gear_for(om, oem, s, p$sel)
+        if (des$n == 1) list(g$condALK) else lapply(season_mid(des$n), function(t) cond_alk_at(g, t))
+      })
+      keys_for <- function(y) {
+        for (k in rev(seq_along(per))) if (an(y) %in% per[[k]]$years) return(pkeys[[k]])
+        pkeys[[1]]
+      }
+      season_lab <- NULL
     }
     if (nfish <= 0) return(NULL)
-    key_for <- function(y) {
-      if (s == "survey") return(gears$survey$condALK)
-      for (p in fleet_periods(om, s)[-1])
-        if (an(y) %in% p$years) return(gear_for(om, oem, s, p$sel)$condALK)
-      gears[[s]]$condALK
-    }
-    K <- gears[[s]]$condALK
-    lens <- as.numeric(colnames(K))
+    S <- des$n
+    K0 <- gears[[s]]$condALK
+    lens <- as.numeric(colnames(K0))
     bw <- gears[[s]]$grid$bin
-    ages <- as.numeric(rownames(K))
-    keys <- lapply(yrs, key_for)
-    names(keys) <- yrs
+    ages <- as.numeric(rownames(K0))
     do.call(rbind, lapply(seq_along(iters), function(j) {
+      sh <- season_shares(des, yrs)
       do.call(rbind, lapply(yrs, function(y) {
-        K <- keys[[y]]
         p <- c(x[, y, , , , j])
         if (sum(p) <= 0) return(NULL)
-        a <- sample(ages, nfish, replace = TRUE, prob = p)
-        l <- vapply(a, function(ai) {
-          k <- sample(seq_along(lens), 1, prob = K[match(ai, ages), ])
-          lens[k] + stats::runif(1) * bw
-        }, 0)
-        w <- sp$lh$a * l^sp$lh$b * stats::rlnorm(nfish, -sdw^2 / 2, sdw)
+        keys <- keys_for(y)
+        fr <- if (S == 1) matrix(1, length(p), 1) else season_catch_frac(c(z_all[, y, , , , j]), S)
+        ns <- split_n(nfish, sh[y, ])
+        a <- integer(0); l <- numeric(0); sea <- integer(0)
+        for (q in seq_len(S)) {
+          if (ns[q] <= 0 || sum(p * fr[, q]) <= 0) next
+          aq <- sample(ages, ns[q], replace = TRUE, prob = p * fr[, q])
+          lq <- vapply(aq, function(ai) {
+            k <- sample(seq_along(lens), 1, prob = keys[[q]][match(ai, ages), ])
+            lens[k] + stats::runif(1) * bw
+          }, 0)
+          a <- c(a, aq); l <- c(l, lq); sea <- c(sea, rep(q, ns[q]))
+        }
+        n <- length(a)
+        if (!n) return(NULL)
+        w <- sp$lh$a * l^sp$lh$b * stats::rlnorm(n, -sdw^2 / 2, sdw)
         pm <- 1 / (1 + exp(-log(19) * (l - L50) / (L95 - L50)))
         # observed age: true age x (1 + ageing bias) + reading error
         age_obs <- pmax(0, round(a * (1 + (bio$age_bias %||% 0)) +
-                                   stats::rnorm(nfish, 0, bio$age_cv * pmax(a, 1))))
+                                   stats::rnorm(n, 0, bio$age_cv * pmax(a, 1))))
         if (identical(bio$age_scheme, "stratified")) {
           # bins on the reported (mm-rounded) length, as an observer would
           bin_id <- floor(round(l * 10) / (bw * 10))
@@ -231,12 +297,12 @@ sample_bio <- function(om, oem, iters = 1:10) {
             seq_along(i) %in% sample(seq_along(i), min(length(i), bio$n_per_bin)))
           age_obs[keep == 0] <- NA
         } else {
-          age_obs[stats::runif(nfish) > bio$p_aged] <- NA
+          age_obs[stats::runif(n) > bio$p_aged] <- NA
         }
         data.frame(species = sp$species, iter = iters[j], year = as.integer(y),
-                   source = s, fish_id = seq_len(nfish),
+                   season = season_lab %||% sea, source = s, fish_id = seq_len(n),
                    len_mm = round(l * 10), age = age_obs,
-                   wt_g = round(w, 1), mature = stats::rbinom(nfish, 1, pm),
+                   wt_g = round(w, 1), mature = stats::rbinom(n, 1, pm),
                    age_true = a)
       }))
     }))

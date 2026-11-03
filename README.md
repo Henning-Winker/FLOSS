@@ -1,4 +1,4 @@
-# FLOSS <img src="https://img.shields.io/badge/status-v0.4%20prototype-orange" align="right"/>
+# FLOSS <img src="https://img.shields.io/badge/status-v0.4.1%20prototype-orange" align="right"/>
 
 **FL Operating model & Sampling Simulator**
 
@@ -114,7 +114,8 @@ plot_length_indicators(length_indicators(rt, "Lutjanus bohar"))
 | Fishery | `fishery()`, `effort_trend()`, `reef_fishery()`, `load_fishery()`, `plot_effort()` |
 | Species | `species()`, `selectivity()`, `species_library()`, `load_species()`, `save_species()` |
 | Operating model | `build_om()`, `build_oms()`, `catch_fleet()`, `plot_om()`, `plot_fleets()` |
-| Sampling | `oem_settings()`, `survey_settings()`, `reef_oem()`, `sample_data()` (CPUE with AR1 residuals, FLRef two-stage length samples, biological samples with random or length-stratified ageing) |
+| Sampling | `oem_settings()`, `survey_settings()`, `season_design()`, `reef_oem()`, `sample_data()`, `lfd_annual()`, `plot_seasons()` (CPUE with AR1 residuals, FLRef two-stage length samples, biological samples with random or length-stratified ageing) |
+| Colours | `floss.r4col()` (r4ss palette, as in JABBA) |
 | Observations | `plot_availability()`, `plot_obs()`, `plot_lfd()`, `plot_bio()`, `alk_obs()`, `caa_obs()`, `plot_caa()` – observations only, nothing fitted |
 | Treatments | `treatment()`, `run_treatment()`, `plot_treatment()`, `one_gear_fishery()`, `one_gear_species()` – baseline and treatment share all random numbers |
 | Dynamics | `plot_eq()` (equilibrium curves with the realised path), `plot_srr()`, `plot_eq_selectivity()` (growth overfishing), `plot_ssb_vb()` (spawners vs what each gear sees) |
@@ -131,6 +132,7 @@ plot_length_indicators(length_indicators(rt, "Lutjanus bohar"))
 | **0.2** | Sampling: catch, effort, CPUE (AR1 residuals), survey, two-stage length samples (FLRef `lfd.sim()`), biological samples (random or length-stratified ageing); observed ALK and catch-at-age; export with answer key; user guide |
 | **0.3** | Treatments with common random numbers; dynamics plots; length indicators, cohort lines, indicator dashboard; plantable artefacts with hidden answer key; optional basic fits; guide and teaching vignette |
 | **0.4** | Shiny app `run_app()` in the FLicc layout: Guide, Fishery, Species, OM, Treatments (predict, reveal), Sampling, Export, True status; info tooltips (`floss_tip()`), Hide truth switch |
+| **0.4.1** | Seasonal sampling by default (`season_design()`: balanced, fixed imbalance, shift, opportunistic, per fleet), `lfd_annual()`, `plot_seasons()`, Seasons tab in the app; r4ss/JABBA palette `floss.r4col()` in all plots |
 | 0.4.x | Exporters for FLicc and JABBA3 |
 | 0.5 | Trainee data viewer for exported datasets |
 | 0.6 | Project save/load, more survey designs, seasonal effort |

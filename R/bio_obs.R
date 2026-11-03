@@ -55,7 +55,7 @@ caa_obs <- function(data, species, source, iter = 1, years = NULL,
   raise <- match.arg(raise)
   if (length(iter) != 1) stop("caa_obs() works on one iteration at a time")
   bin <- lfd_bin_mm(data, species)
-  l <- pick(data$lfd, species, iter, source, years)
+  l <- pick(lfd_annual(data$lfd), species, iter, source, years)
   if (!nrow(l)) stop("no length samples for this selection")
   yrs <- sort(unique(l$year))
   key_pooled <- if (alk == "pooled")

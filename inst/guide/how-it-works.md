@@ -94,8 +94,8 @@ identical.
 | Effort index | nominal effort x lognormal error | CV |
 | CPUE by fleet | vulnerable biomass^beta x efficiency (if creep is carried) x lognormal AR1 error | CV, rho, beta, catchability step |
 | Survey index | biomass at survey time x survey selectivity, AR1 error | timing, CV, rho, selectivity (relative to Linf), catchability step |
-| Length samples | two-stage sampling (FLRef `lfd.sim()`): clusters drawn from catch-at-age, then fish measured through the gear's length key | clusters (`ess_age`), fish measured (`ess_len`), length bin |
-| Biological samples | one row per fish: length (mm), age (with ageing error and bias), weight (g), maturity (0/1) | fish per year, ageing scheme (random or length-stratified), CVs |
+| Length samples | two-stage sampling by season: clusters drawn from the season's catch-at-age, then fish measured through the gear's length key at the middle of the season | clusters (`ess_age`), fish measured (`ess_len`), length bin, seasonal design |
+| Biological samples | one row per fish and season: length (mm), age (with ageing error and bias), weight (g), maturity (0/1) | fish per year, ageing scheme (random or length-stratified), CVs, seasonal design |
 
 CPUE, length and biological samples cover the last years of each fleet
 (e.g. 5, 10 and 15 years in the reef example); catch and effort cover all
@@ -105,6 +105,25 @@ years.
 sample carries less information than its number of fish suggests. The
 effective sample size lies between the number of clusters and the number
 of fish measured, depending on growth and selectivity.
+
+**Seasonal sampling.** By default the length and biological samples of a
+year are spread evenly over four seasons (`season_design()`). Within a
+season the catch-at-age is the catch taken between the start and end of
+the season, and lengths are those at the middle of the season, so fish in
+late-season samples are larger. Imbalanced designs:
+
+| Design | Example | Effect on the pooled annual length data |
+|---|---|---|
+| Balanced | equal shares | none |
+| Fixed imbalance | most samples in season 1 | mean length too low every year (a constant bias) |
+| Shift | sampling moves to seasons 3 and 4 from 2018 | a step in mean length in 2018 that looks like a change in mortality |
+| Opportunistic | shares vary at random from year to year | extra year-to-year noise in mean length |
+| Missing season | share 0 in the monsoon | no information on that part of the year |
+
+`lfd_annual(weight = "equal")` and `length_indicators(season_weight =
+"equal")` give every sampled season the same weight, which corrects an
+uneven spread but cannot recover a season that was not sampled.
+`plot_seasons()` shows the sample sizes and the mean length by season.
 
 **Autocorrelated CPUE residuals.** A fleet that keeps fishing the same
 grounds does not sample the stock at random; its errors persist from year
@@ -151,6 +170,7 @@ vanish or appear in one gear only are sampling noise or selectivity.
 | Catch-curve Z below M | selectivity not flat on the descending limb, or a recruitment trend |
 | A strong year class in an index that never moves through the length data | index noise or ageing error |
 | A step in an index in one year | change in catchability (vessel, gear, electronics) |
+| A step in mean length in the year the sampling season changed | seasonal sampling shift (fish are larger later in the year) |
 | CPUE residuals running in long streaks | non-random sampling |
 | CPUE of a gear that catches juveniles (or lets large fish escape) declines much less than other indices | the gear's vulnerable biomass is not the spawning stock (see `plot_ssb_vb()`) |
 

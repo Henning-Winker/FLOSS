@@ -83,6 +83,7 @@ fishery_server <- function(input, output, session, rv, r) {
       data.frame(year = yrs, effort = trend_values(f$trends[[fl]], yrs), fleet = fl)))
     ggplot(d, aes(year, effort, colour = fleet)) + geom_line(linewidth = 1) +
       (if (r$one_gear()) geom_hline(yintercept = 1, linetype = 2, colour = "grey50")) +
+      scale_colour_manual(values = app_cols(f$fleets)) +
       labs(x = "Year", y = if (r$one_gear()) "Effort = F / Fmsy" else "Relative effort", colour = NULL) +
       theme_bw(base_size = 14) + theme(legend.position = "bottom")
   })

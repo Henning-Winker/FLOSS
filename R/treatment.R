@@ -148,9 +148,7 @@ plot_treatment <- function(x, species = NULL) {
     c(vapply(t$effort, `[[`, 0, "from"), vapply(t$selectivity, `[[`, 0, "from"),
       vapply(t$creep, `[[`, 0, "from"), t$M$from,
       unlist(lapply(t$recruitment, function(r) r$from %||% min(r$years)))))))
-  cols <- stats::setNames(c("#111111", "#0A6E8C", "#A85400", "#5B45A8", "#2E7D32",
-                            "#8E2C48", "#B08900")[seq_along(levels(d$run))],
-                          levels(d$run))   # baseline always black
+  cols <- run_colours(levels(d$run))   # baseline always black
   ggplot2::ggplot(d, ggplot2::aes(.data$year, .data$med, colour = .data$run,
                                   fill = .data$run)) +
     ggplot2::geom_hline(yintercept = 1, linetype = 3, colour = "grey40") +

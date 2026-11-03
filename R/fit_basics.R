@@ -173,7 +173,7 @@ catch_curve <- function(x, species = NULL, source = NULL, iter = 1,
 #' @export
 catch_curve_length <- function(data, species, source, linf, k, t0 = 0,
                                iter = 1, years = NULL, lmax_prop = 0.95) {
-  l <- pick(data$lfd, species, iter, source, years)
+  l <- pick(lfd_annual(data$lfd), species, iter, source, years)
   if (!nrow(l)) stop("no length samples for this selection")
   bw <- lfd_bin_mm(data, species) / 10
   n <- stats::aggregate(n ~ len_mm, l, sum)

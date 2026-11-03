@@ -56,6 +56,28 @@ sampling_ui <- function() {
           plotOutput("sm_ind", height = 460),
           div(class = "flagbox", tags$strong("Warning flags: "),
               "mean length falling while the index rises; Z from mean length moving without any change in effort (a strong year class); fish above Linf."))),
+      tabPanel("Seasons",
+        box(width = 12, title = span("Seasonal sampling", tip("seasons")),
+          p("Length and biological samples are taken in seasons through the year. Fish grow between seasons and older fish die, so samples from late in the year have larger fish. If the sample is spread unevenly over the seasons, or the sampling season changes, the pooled annual length distribution shifts although the stock has not changed."),
+          fluidRow(
+            column(2, selectInput("se_n", "Seasons", choices = c(1, 2, 3, 4, 6, 12), selected = 4)),
+            column(5, radioButtons("se_type", "Design", choices = c(
+              "Balanced: equal samples in every season" = "balanced",
+              "Fixed imbalance: unequal shares" = "fixed",
+              "Shift: shares change from a given year" = "shift",
+              "Opportunistic: shares vary at random each year" = "random"))),
+            column(5, uiOutput("se_fleets_ui"))),
+          conditionalPanel("input.se_type != 'balanced'", uiOutput("se_share_ui")),
+          conditionalPanel("input.se_type == 'shift'", uiOutput("se_shift_ui")),
+          conditionalPanel("input.se_type == 'random'",
+            sliderInput("se_kappa", lab("How regular (higher = closer to the shares above)", "season_kappa"),
+                        min = 1, max = 100, value = 5, step = 1)),
+          p(class = "note", "Shares are relative: they are rescaled to sum to 1. The survey keeps its own timing (Survey tab)."),
+          div(class = "flagbox", tags$strong("Warning flag: "),
+              "mean length that steps up or down in the year the sampling season changed, or that tracks the share of samples from one season, is a sampling effect, not a change in growth or mortality.")),
+        box(width = 12, title = "Samples and mean length by season",
+          plotOutput("sm_seasons", height = 520),
+          p(class = "note", "Top: fish measured by season. Bottom: mean length by season (points) and pooled for the year (solid: counts summed; dashed: every sampled season weighted equally). Equal weights correct an uneven spread, but cannot recover a season that was not sampled."))),
       tabPanel("Biological samples",
         box(width = 12, title = "Fish measured, weighed, aged and staged",
           uiOutput("bi_rows"),
@@ -183,6 +205,39 @@ sampling_server <- function(input, output, session, rv, r) {
          min = 1, max = 10000, step = 50))))
   keep("lf_rows")
 
+  # ---- seasons ----
+  output$se_fleets_ui <- renderUI({
+    fl <- r$fleets()
+    checkboxGroupInput("se_fleets", "Fleets with this design (the others are balanced)",
+                       choices = fl, selected = fl)
+  })
+  keep("se_fleets_ui")
+  share_sliders <- function(prefix, n, def) {
+    fluidRow(lapply(seq_len(n), function(k) column(max(1, floor(12 / n)),
+      sliderInput(paste0(prefix, k), paste0("S", k), min = 0, max = 1, value = def[k], step = 0.05))))
+  }
+  output$se_share_ui <- renderUI({
+    n <- as.integer(input$se_n %||% 4)
+    tagList(tags$strong(if (identical(input$se_type, "shift")) "Shares by season, before the shift" else "Shares by season"),
+            share_sliders("se_share_", n, c(0.6, 0.2, 0.1, 0.1, rep(0.1, 8))[seq_len(n)]))
+  })
+  keep("se_share_ui")
+  output$se_shift_ui <- renderUI({
+    n <- as.integer(input$se_n %||% 4)
+    y <- r$fishery()$years
+    tagList(sliderInput("se_shift_year", "Shift from year", min = y[1] + 2, max = y[2], value = y[2] - 7, step = 1, sep = ""),
+            tags$strong("Shares by season, from that year"),
+            share_sliders("se_share2_", n, rev(c(0.6, 0.2, 0.1, 0.1, rep(0.1, 8))[seq_len(n)])))
+  })
+  keep("se_shift_ui")
+
+  output$sm_seasons <- renderPlot({
+    d <- dat()
+    validate(need(!is.null(d$lfd$season) && length(unique(d$lfd$season)) > 1,
+                  "These data have one season per year. Choose more seasons and press Sample data."))
+    plot_seasons(d, spname(), r$iters()[1]) + theme(text = element_text(size = 14))
+  })
+
   output$bi_rows <- renderUI(fleet_rows(list(
     list(id = "bi_n", label = lab("Fish per year", "bio_n"), value = function(i, p) p$bio_n[[i]],
          min = 0, max = 2000, step = 10))))
@@ -210,7 +265,7 @@ sampling_server <- function(input, output, session, rv, r) {
     d <- d[d$iter %in% r$iters(), ]
     p <- ggplot(d, aes(year, effort, colour = fleet, group = interaction(fleet, iter))) +
       geom_line(linewidth = 0.5) + geom_point(size = 1.2) +
-      facet_wrap(~fleet, scales = "free_y") +
+      facet_wrap(~fleet, scales = "free_y") + scale_colour_manual(values = app_cols(r$fleets())) +
       labs(x = "Year", y = "Reported effort (relative)") + theme_bw(base_size = 14) + theme(legend.position = "none")
     if (r$show_truth()) p <- p + geom_line(aes(y = effort_true), linetype = 2, colour = "grey20")
     p
@@ -223,7 +278,7 @@ sampling_server <- function(input, output, session, rv, r) {
     d <- dat()$survey
     validate(need(!is.null(d) && nrow(d) > 0, "No survey in these data."))
     d <- d[d$species == spname() & d$iter %in% r$iters(), ]
-    p <- ggplot(d, aes(year, index, group = iter)) + geom_line(colour = "#5B45A8") + geom_point(colour = "#5B45A8") +
+    p <- ggplot(d, aes(year, index, group = iter)) + geom_line(colour = app_cols(r$fleets())[["survey"]]) + geom_point(colour = app_cols(r$fleets())[["survey"]]) +
       labs(x = "Year", y = "Survey index (relative to mean)", title = spname()) + theme_bw(base_size = 14)
     if (r$show_truth()) p <- p + geom_line(aes(y = index_true), linetype = 2, colour = "grey20")
     p

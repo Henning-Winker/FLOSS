@@ -86,6 +86,12 @@ sel_len <- function(s, L) {
                                    exp(-(L - s$Lpeak)^2 / (2 * s$sd_right^2))))
 }
 
+# Fleet colours (floss.r4col(), the r4ss palette of JABBA): fleets, then the survey
+app_cols <- function(fleets) {
+  cols <- floss.r4col(length(fleets) + 1)
+  c(stats::setNames(cols[seq_along(fleets)], fleets), survey = cols[length(fleets) + 1])
+}
+
 sel_types <- c("S-shaped (logistic)" = "logistic", "Symmetric dome (normal)" = "normal",
                "Dome, two spreads (double normal)" = "dnormal")
 
@@ -188,7 +194,10 @@ make_reactives <- function(input, rv) {
     if (isTRUE(input$cp_qstep_on) && !is.null(input$cp_qstep_fleet)) {
       qstep <- stats::setNames(list(c(input$cp_qstep_year, input$cp_qstep_mult)), input$cp_qstep_fleet)
     }
-    tryCatch(oem_settings(f,
+    seasons <- tryCatch(app_seasons(input, fl), error = function(e) e)
+    if (inherits(seasons, "error"))
+      return(structure(list(msg = conditionMessage(seasons)), class = "floss_error"))
+    tryCatch(oem_settings(f, seasons = seasons,
       years = years,
       catch_cv = pf("ct_cv", 0.1), catch_bias = pf("ct_bias", 0, 1 / 100),
       catch_bias_from = if (isTRUE(input$ct_from_on)) input$ct_from,
@@ -229,6 +238,27 @@ make_reactives <- function(input, rv) {
   })
 
   r
+}
+
+# Seasonal sampling design from the Seasons inputs: the design for the chosen
+# fleets, balanced for the others
+app_seasons <- function(input, fl) {
+  n <- as.integer(input$se_n %||% 4)
+  type <- input$se_type %||% "balanced"
+  sh <- function(prefix) {
+    v <- vapply(seq_len(n), function(k) as.numeric(input[[paste0(prefix, k)]] %||% 1), 0)
+    if (sum(v) <= 0) stop("season shares must not all be 0")
+    v
+  }
+  des <- switch(type,
+    balanced = season_design(n),
+    fixed = season_design(n, share = sh("se_share_")),
+    shift = season_design(n, share = sh("se_share_"),
+                          shift = list(from = input$se_shift_year, share = sh("se_share2_"))),
+    random = season_design(n, share = sh("se_share_"), kappa = input$se_kappa %||% 5))
+  use <- input$se_fleets %||% fl
+  out <- lapply(stats::setNames(fl, fl), function(f) if (f %in% use) des else season_design(n))
+  out
 }
 
 # Short text for one species' data, e.g. in previews

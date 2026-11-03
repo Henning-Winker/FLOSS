@@ -82,6 +82,10 @@ survey_settings <- function(years = NULL, timing = 0, cv = 0.25, rho = 0,
 #' @param bio_age_bias artefact: proportional ageing bias, e.g. -0.1 = fish
 #'   are aged 10% too young (typical of old fish read from whole otoliths).
 #' @param survey [survey_settings()] or `NULL` for no survey.
+#' @param seasons seasonal sampling of the fleets' length and biological
+#'   samples: a [season_design()] for all fleets, or a named list of designs
+#'   by fleet. Default: four seasons, balanced. `season_design(1)` gives one
+#'   annual sample at mid-year.
 #' @param years optional named list by fleet of `c(first, last)` years,
 #'   overriding `tail`.
 #' @return a list of class `floss_oem`.
@@ -97,7 +101,8 @@ oem_settings <- function(fishery, tail = 10, catch_cv = 0.1, catch_bias = 0,
                          bio_n_per_bin = 5, age_cv = 0.1,
                          wt_cv = 0.1, mat_L95 = 1.15, catch_bias_from = NULL,
                          cpue_q_step = NULL, bio_age_bias = 0,
-                         survey = survey_settings(), years = NULL) {
+                         survey = survey_settings(), years = NULL,
+                         seasons = season_design(4)) {
   bio_age_scheme <- match.arg(bio_age_scheme)
   if (inherits(fishery, "floss_om")) fishery <- fishery$fishery
   if (inherits(fishery, "floss_oms")) fishery <- fishery[[1]]$fishery
@@ -116,6 +121,12 @@ oem_settings <- function(fishery, tail = 10, catch_cv = 0.1, catch_bias = 0,
     as.integer(c(last - tl[[f]] + 1, last))
   })
   names(yrs) <- fl
+  if (is.numeric(seasons)) seasons <- season_design(seasons)
+  if (!inherits(seasons, "floss_seasons")) {
+    if (is.null(names(seasons)) || !all(names(seasons) %in% fl))
+      stop("'seasons' must be a season_design() or a list of them named by fleet")
+    seasons <- lapply(stats::setNames(fl, fl), function(f) seasons[[f]] %||% season_design(4))
+  }
   if (!is.null(survey) && is.null(survey$years))
     survey$years <- as.integer(c(last - 24, last))
   structure(list(
@@ -135,7 +146,7 @@ oem_settings <- function(fishery, tail = 10, catch_cv = 0.1, catch_bias = 0,
                age_scheme = bio_age_scheme, n_per_bin = bio_n_per_bin,
                age_cv = age_cv, age_bias = bio_age_bias,
                wt_cv = wt_cv, mat_L95 = mat_L95),
-    survey = survey), class = "floss_oem")
+    survey = survey, seasons = seasons), class = "floss_oem")
 }
 
 #' @exportS3Method base::print
@@ -153,6 +164,11 @@ print.floss_oem <- function(x, ...) {
     cat("survey:", paste(x$survey$years, collapse = "-"), " timing",
         x$survey$timing, " cv", x$survey$cv, " rho", x$survey$rho,
         if (isTRUE(x$survey$lfd)) " + length samples", "\n")
+  for (f in x$fleets) {
+    d <- fleet_seasons(x, f)
+    cat("seasons", f, ":", d$n, if (d$n > 1) paste0("(", paste(sprintf("%.2f", d$share), collapse = "/"),
+        if (length(d$shift)) "; shifts", if (is.finite(d$kappa)) paste0("; kappa ", d$kappa), ")"), "\n")
+  }
   invisible(x)
 }
 
@@ -186,6 +202,12 @@ planted_artefacts <- function(oem, fishery = NULL, treatment = NULL) {
           if (!is.null(oem$catch$bias_from)) paste(" from", oem$catch$bias_from[[f]]) else ""))
     qs <- oem$cpue$q_step[[f]]
     if (!is.null(qs)) add("CPUE catchability step", f, sprintf("x %.2f from %d", qs[2], qs[1]))
+    sd <- fleet_seasons(oem, f)
+    if (sd$n > 1 && !is_balanced(sd))
+      add("imbalanced seasonal sampling", f, paste0("shares ", paste(sprintf("%.2f", sd$share), collapse = "/"),
+          if (length(sd$shift)) paste0("; from ", vapply(sd$shift, function(z) paste0(z$from, ": ",
+            paste(sprintf("%.2f", z$share), collapse = "/")), ""), collapse = ""),
+          if (is.finite(sd$kappa)) paste0("; random year-to-year, kappa ", sd$kappa)))
     if (oem$lfd$ess_age[[f]] < 15)
       add("very small length samples", f, sprintf("%d clusters", oem$lfd$ess_age[[f]]))
   }

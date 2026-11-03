@@ -25,15 +25,19 @@
 #' @param source sources; default all.
 #' @param Lc length of first capture (cm) per source (named) or one value;
 #'   default the modal length.
+#' @param season_weight how seasonal length samples are pooled into a year
+#'   ([lfd_annual()]): `"none"` sums the counts (imbalanced sampling then
+#'   biases the indicators), `"equal"` gives every season the same weight.
 #' @param lh optional list with `linf`, `k`, `M`, `lm` (cm, per year);
 #'   default from the species settings or `lhpars`.
 #' @return a data frame, one row per species, iteration, year and source.
 #' @export
 length_indicators <- function(x, species, iter = 1, source = NULL, Lc = NULL,
-                              lh = NULL) {
+                              lh = NULL, season_weight = c("none", "equal")) {
+  season_weight <- match.arg(season_weight)
   if (inherits(x, "floss_treatments")) {
     parts <- lapply(names(x$data), function(n)
-      length_indicators(x$data[[n]], species, iter, source, Lc, lh))
+      length_indicators(x$data[[n]], species, iter, source, Lc, lh, season_weight))
     out <- do.call(rbind, Map(function(p, n) cbind(run = n, p), parts, names(x$data)))
     out$run <- factor(out$run, levels = names(x$data))
     attr(out, "Lopt") <- attr(parts[[1]], "Lopt")   # cbind/rbind drop attributes
@@ -42,7 +46,7 @@ length_indicators <- function(x, species, iter = 1, source = NULL, Lc = NULL,
   }
   lh <- lh %||% true_lh(x, species)
   if (is.null(lh)) stop("life-history parameters needed: pass 'lh'")
-  l <- pick(x$lfd, species, iter, source)
+  l <- pick(lfd_annual(x$lfd, season_weight), species, iter, source)
   bw <- lfd_bin_mm(x, species) / 10
   l$L <- l$len_mm / 10 + bw / 2
   Lopt <- 3 * lh$linf / (3 + lh$M / lh$k)
@@ -114,12 +118,10 @@ plot_length_indicators <- function(li, source = NULL, stat = c("median", "all"))
   d$grp <- interaction(d$iter, d$source, if (runs) d$run else "", drop = TRUE)
   colour_by <- if (runs) "run" else "source"
   cols <- if (runs) {
-    stats::setNames(c("#111111", "#0A6E8C", "#A85400", "#5B45A8", "#2E7D32",
-                      "#8E2C48", "#B08900")[seq_along(levels(li$run))], levels(li$run))
+    run_colours(levels(li$run))
   } else {
     srcs <- setdiff(unique(li$source), "survey")
-    c(stats::setNames(c("#0A6E8C", "#A85400", "#5B45A8", "#2E7D32",
-                        "#8E2C48")[seq_along(srcs)], srcs), survey = "#102330")
+    fleet_colours(srcs)
   }
   g <- ggplot2::ggplot(d, ggplot2::aes(.data$year, .data$value, group = .data$grp,
                                        colour = .data[[colour_by]])) +

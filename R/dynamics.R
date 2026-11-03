@@ -103,8 +103,7 @@ plot_eq_selectivity <- function(sp, sels, fmax = 10) {
     ggplot2::geom_line(linewidth = 0.9) +
     ggplot2::geom_point(data = pts, size = 2.5) +
     ggplot2::facet_wrap(~what, scales = "free_y") +
-    ggplot2::scale_colour_manual(values = c("#A85400", "#0A6E8C", "#5B45A8", "#2E7D32",
-                                            "#8E2C48")[seq_along(sels)]) +
+    ggplot2::scale_colour_manual(values = floss.r4col(length(sels))) +
     ggplot2::labs(x = "F (Fbar)", y = NULL, colour = "Selectivity",
                   title = sp$species,
                   subtitle = "Same stock, different selectivity; points: MSY") +
@@ -166,8 +165,8 @@ plot_ssb_vb <- function(om, iters = NULL) {
   d$panel <- factor(d$panel, levels = c("Maturity and selectivity at length (cm)",
                                         "Trend relative to first year"))
   cols <- c(`SSB (spawners)` = "#111111",
-            stats::setNames(c("#0A6E8C", "#A85400", "#5B45A8", "#2E7D32", "#8E2C48")[
-              seq_along(om$fishery$fleets)], paste("vulnerable to", om$fishery$fleets)))
+            stats::setNames(fleet_colours(om$fishery$fleets)[om$fishery$fleets],
+                            paste("vulnerable to", om$fishery$fleets)))
   ggplot2::ggplot(d, ggplot2::aes(.data$x, .data$value, colour = .data$series,
                                   linetype = .data$series == "SSB (spawners)")) +
     ggplot2::geom_line(linewidth = 0.9) +

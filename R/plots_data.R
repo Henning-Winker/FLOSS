@@ -1,11 +1,8 @@
 # Plots of observed data (no model fits).
 
-# fleet colours in fishery order (as in the app); survey in navy
+# fleet colours in fishery order (as in the app), then the survey: floss.r4col()
 src_colours <- function(data) {
-  fl <- data$settings$fishery$fleets %||% unique(data$catch$fleet)
-  base <- c("#0A6E8C", "#A85400", "#5B45A8", "#2E7D32", "#8E2C48", "#555555")
-  base <- rep(base, length.out = length(fl))
-  c(stats::setNames(base, fl), survey = "#102330")
+  fleet_colours(data$settings$fishery$fleets %||% unique(data$catch$fleet))
 }
 
 #' Plot which data exist for which years
@@ -100,12 +97,15 @@ plot_obs <- function(data, species = NULL, iter = 1, what = c("index", "catch"),
 #' @inheritParams plot_availability
 #' @param source fleets / survey to show (facets); default all.
 #' @param cohorts add cohort growth lines (needs life-history parameters).
+#' @param season seasons to include (pooled); default all.
 #' @return a `ggplot`.
 #' @export
 plot_lfd <- function(data, species = NULL, iter = 1, source = NULL,
-                     cohorts = FALSE) {
+                     cohorts = FALSE, season = NULL) {
   species <- species %||% unique(data$lfd$species)[1]
-  d <- pick(data$lfd, species, iter, source)
+  l <- data$lfd
+  if (!is.null(season) && !is.null(l$season)) l <- l[l$season %in% season, ]
+  d <- pick(lfd_annual(l), species, iter, source)
   d$p <- d$n / stats::ave(d$n, d$year, d$source, d$iter, FUN = sum)
   d$source <- factor(d$source, levels = intersect(names(src_colours(data)), d$source))
   g <- ggplot2::ggplot(d, ggplot2::aes(.data$len_mm / 10, .data$year)) +
@@ -234,4 +234,58 @@ plot_caa <- function(caa, type = c("bubble", "bar")) {
       ggplot2::facet_wrap(~year) +
       ggplot2::labs(x = "Age", y = "Numbers", title = ttl) + ggplot2::theme_bw()
   }
+}
+
+#' Seasonal length sampling: sample sizes and mean length by season
+#'
+#' Left: fish measured per season and year (how balanced the sampling is).
+#' Right: mean length by season and year, with the pooled annual mean
+#' (black) and the mean with equal season weights (dashed). Fish grow
+#' through the year, so later seasons have larger fish; when most samples
+#' come from one part of the year, the pooled mean follows that season, and
+#' a shift in the sampling season looks like a change in the stock.
+#'
+#' @inheritParams plot_lfd
+#' @return a `ggplot`.
+#' @export
+plot_seasons <- function(data, species = NULL, iter = 1, source = NULL) {
+  species <- species %||% unique(data$lfd$species)[1]
+  l <- pick(data$lfd, species, iter[1], source)
+  if (is.null(l$season)) stop("these length samples have no seasons")
+  if (is.null(source)) l <- l[l$source != "survey", ]
+  bw <- lfd_bin_mm(data, species) / 10
+  l$L <- l$len_mm / 10 + bw / 2
+  n <- stats::aggregate(n ~ year + season + source, l, sum)
+  ml <- do.call(rbind, lapply(split(l, list(l$year, l$season, l$source), drop = TRUE), function(d)
+    data.frame(year = d$year[1], season = d$season[1], source = d$source[1],
+               value = stats::weighted.mean(d$L, d$n))))
+  pool <- function(w) {
+    a <- lfd_annual(l[, c("species", "iter", "year", "season", "source", "len_mm", "n")], w)
+    a$L <- a$len_mm / 10 + bw / 2
+    do.call(rbind, lapply(split(a, list(a$year, a$source), drop = TRUE), function(d)
+      data.frame(year = d$year[1], source = d$source[1],
+                 value = stats::weighted.mean(d$L, d$n), how = w)))
+  }
+  pm <- rbind(pool("none"), pool("equal"))
+  pm$how <- factor(pm$how, levels = c("none", "equal"),
+                   labels = c("pooled: counts summed", "pooled: equal season weights"))
+  lev <- c("Fish measured", "Mean length (cm)")
+  n$panel <- factor(lev[1], lev); ml$panel <- factor(lev[2], lev); pm$panel <- factor(lev[2], lev)
+  n$value <- n$n
+  n$season <- factor(n$season); ml$season <- factor(ml$season)
+  lev_src <- intersect(names(src_colours(data)), unique(l$source))   # fishery order
+  n$source <- factor(n$source, lev_src); ml$source <- factor(ml$source, lev_src)
+  pm$source <- factor(pm$source, lev_src)
+  ggplot2::ggplot(mapping = ggplot2::aes(.data$year, .data$value)) +
+    ggplot2::geom_col(data = n, ggplot2::aes(fill = .data$season), width = 0.8) +
+    ggplot2::geom_point(data = ml, ggplot2::aes(colour = .data$season), size = 1.7) +
+    ggplot2::geom_line(data = pm, ggplot2::aes(linetype = .data$how), colour = "black") +
+    ggplot2::facet_grid(panel ~ source, scales = "free_y", switch = "y") +
+    ggplot2::scale_fill_manual(values = floss.r4col(nlevels(n$season)), aesthetics = c("colour", "fill")) +
+    ggplot2::scale_linetype_manual(values = c(1, 2)) +
+    ggplot2::labs(x = "Year", y = NULL, fill = "Season", colour = "Season", linetype = NULL,
+                  title = species, subtitle = paste("Iteration", iter[1])) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "bottom", legend.box = "vertical",
+                   strip.placement = "outside")
 }
