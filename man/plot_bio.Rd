@@ -10,7 +10,8 @@ plot_bio(
   iter = 1,
   what = c("age_length", "length_weight", "maturity", "alk", "length"),
   source = NULL,
-  by = c("fleet", "aggregate", "season")
+  by = c("fleet", "aggregate", "season"),
+  truth = FALSE
 )
 }
 \arguments{
@@ -25,11 +26,12 @@ shown in rows (length samples).}
 
 \item{source}{sources to include; default all.}
 
-\item{by}{how the fish are grouped: \code{"fleet"} (colour by fleet or survey),
-\code{"aggregate"} (all fleets together, as a naive analyst would pool
-them) or \code{"season"} (colour by sampling season, one panel per source:
-fish grow through the year, so length at age rises from season to
-season).}
+\item{by}{panels: \code{"fleet"} (one panel per fleet), \code{"aggregate"} (all
+fleets in one panel, as a naive analyst would pool them) or \code{"season"}
+(one panel per sampling season: fish grow through the year, so length
+at age rises from season to season).}
+
+\item{truth}{draw the true growth, length-weight and maturity curves.}
 }
 \value{
 a \code{ggplot}.
@@ -41,6 +43,13 @@ a \code{ggplot}.
 \item \code{"maturity"}: observed proportion mature by length bin (point size =
 number of fish).
 \item \code{"alk"}: observed age-length key (counts; bubble area).
-\item \code{"length"}: length composition of the biological samples by source.
+\item \code{"length"}: length composition of the biological samples.
 }
+}
+\details{
+Points are always coloured by fleet (or survey); \code{by} sets the panels.
+With \code{truth = TRUE} the true relationship of the operating model is drawn
+over the observations: the von Bertalanffy growth curve (at the middle of
+the sampling season, or mid-year), the length-weight curve and the
+maturity ogive.
 }

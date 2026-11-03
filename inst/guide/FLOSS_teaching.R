@@ -91,8 +91,8 @@ plot_length_indicators(length_indicators(c1, "Lutjanus bohar", source = "handlin
 
 #' 
 ## ----card-1-light-versus-4, fig.height = 4.5----------------------------------
-plot_lfd(c1$data$baseline, "Lutjanus bohar", iter = 1, source = "handline")
-plot_lfd(c1$data$hard, "Lutjanus bohar", iter = 1, source = "handline")
+plot_lfd(c1$data$baseline, "Lutjanus bohar", iter = 1, source = "handline", type = "bubble")
+plot_lfd(c1$data$hard, "Lutjanus bohar", iter = 1, source = "handline", type = "bubble")
 
 #' 
 #' NOTE:
@@ -150,7 +150,7 @@ c3 <- run_treatment(hl, one_gear_fishery(1),
 
 #' 
 ## ----card-3-a-strong-2, fig.height = 5----------------------------------------
-plot_lfd(c3$data$pulse, "Lutjanus bohar", iter = 1, cohorts = TRUE)
+plot_lfd(c3$data$pulse, "Lutjanus bohar", iter = 1, type = "ridge", cohorts = TRUE)
 
 #' 
 ## ----card-3-a-strong-3, fig.height = 7----------------------------------------
@@ -220,7 +220,7 @@ d2 <- sample_data(om2, oem_settings(fy2, tail = 20, lfd_ess_age = 50, lfd_ess_le
 
 #' 
 ## ----card-5-two-gears-2, fig.height = 5---------------------------------------
-plot_lfd(d2, "Lutjanus bohar")
+plot_lfd(d2, "Lutjanus bohar", type = "bubble")
 
 #' 
 ## ----card-5-two-gears-3, fig.height = 6---------------------------------------

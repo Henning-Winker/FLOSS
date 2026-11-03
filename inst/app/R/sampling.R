@@ -75,12 +75,12 @@ sampling_ui <- function() {
                    column(5, radioButtons("lf_raise", "Numbers", inline = TRUE,
                                           choices = c("As sampled" = "sample", "Raised to the catch" = "catch")))),
           fluidRow(column(3, uiOutput("lf_src_ui")),
-                   column(3, radioButtons("lf_type", "View", inline = TRUE,
-                                          choices = c("Bubbles (all years)" = "bubble", "Histograms" = "bars"))),
-                   column(3, conditionalPanel("input.lf_type == 'bars'", uiOutput("lf_years_ui"))),
+                   column(3, radioButtons("lf_type", "View", inline = TRUE, selected = "bars",
+                                          choices = c("Histogram" = "bars", "Ridge" = "ridge", "Bubble" = "bubble"))),
+                   column(3, conditionalPanel("input.lf_type != 'bubble'", uiOutput("lf_years_ui"))),
                    column(3, checkboxInput("lf_coh", "Show year classes (growth lines or ages)", TRUE))),
           plotOutput("sm_lfd", height = 560),
-          p(class = "note", "Bubble size: share of fish in each length bin. Real modes move along the growth lines from year to year; modes that jump or vanish are sampling noise. Pooled as sampled, each fleet counts by its sample size; raised to the catch, by its catch (numbers = sample x catch / sample weight)."),
+          p(class = "note", "Histogram: one panel per year and fleet. Ridge: each year's distribution along the time axis. Bubble: bubble size = share of fish in each length bin. Real modes move along the growth lines from year to year; modes that jump or vanish are sampling noise. Pooled as sampled, each fleet counts by its sample size; raised to the catch, by its catch (numbers = sample x catch / sample weight)."),
           div(class = "flagbox", tags$strong("Teaching: "), "pooling the samples of all fleets as measured lets the most heavily sampled fleet dominate the length distribution, not the fleet that catches most. Compare pooled and raised.")),
         box(width = 12, title = "Length-based indicators",
           plotOutput("sm_ind", height = 460),
@@ -134,9 +134,9 @@ sampling_ui <- function() {
               "Age-length key" = "alk", "Length distribution" = "length"))),
             column(4, uiOutput("bi_src_ui")),
             column(4, radioButtons("bi_by", "Group by", inline = TRUE,
-                                   choices = c("Fleet" = "fleet", "All fleets together" = "aggregate", "Season" = "season")))),
+                                   choices = c("Panel per fleet" = "fleet", "All fleets in one panel" = "aggregate", "Panel per season" = "season")))),
           plotOutput("sm_bio", height = 420),
-          p(class = "note", "Observations only: nothing is fitted here.")),
+          p(class = "note", "Observations only: nothing is fitted here. Points are coloured by fleet. With Hide truth unticked, the dashed line is the true relationship of the operating model (growth at the middle of the sampling season).")),
         box(width = 12, title = "Catch at age from the length samples and the age-length key",
           plotOutput("sm_caa", height = 380),
           p(class = "note", "Length samples converted to ages with the pooled age-length key of the aged fish. Year classes should appear as diagonals.")))
@@ -427,8 +427,8 @@ sampling_server <- function(input, output, session, rv, r) {
   })
   output$sm_lfd <- renderPlot({
     src <- if (identical(input$lf_src %||% "__all__", "__all__")) NULL else input$lf_src
-    ty <- input$lf_type %||% "bubble"
-    yrs <- if (ty == "bars" && length(input$lf_years) == 2) seq(input$lf_years[1], input$lf_years[2])
+    ty <- input$lf_type %||% "bars"
+    yrs <- if (ty != "bubble" && length(input$lf_years) == 2) seq(input$lf_years[1], input$lf_years[2])
     by <- input$lf_by %||% "fleet"; ra <- input$lf_raise %||% "sample"
     lf <- if (by == "fleet" && ra == "sample") NULL else lfd_aggregate(dat(), spname(), by, ra)
     if (!is.null(lf)) src <- NULL
@@ -445,7 +445,7 @@ sampling_server <- function(input, output, session, rv, r) {
   bsrc <- reactive(if (identical(input$bi_src %||% "__all__", "__all__")) NULL else input$bi_src)
   output$sm_bio <- renderPlot({
     plot_bio(dat(), spname(), r$iters()[1], what = input$bi_what %||% "age_length", source = bsrc(),
-             by = input$bi_by %||% "fleet") +
+             by = input$bi_by %||% "fleet", truth = r$show_truth()) +
       theme(text = element_text(size = 14))
   })
   output$sm_caa <- renderPlot({

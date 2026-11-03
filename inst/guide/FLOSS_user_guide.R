@@ -227,11 +227,18 @@ plot_lfd(dat, "Lutjanus bohar", type = "bars", source = c("gillnet", "linefish",
          years = 2018:2025, cohorts = TRUE)
 
 #' 
+#' The ridge view shows each year's length distribution along the time axis
+#' with von Bertalanffy cohort lines: real modes move along them.
+#' 
+## ----length-frequencies-2, fig.height = 7-------------------------------------
+plot_lfd(dat, "Lutjanus bohar", type = "ridge", source = c("gillnet", "linefish"), cohorts = TRUE)
+
+#' 
 #' The bubble view shows all years at once. A strong year class appears as a
 #' ridge of large bubbles moving to the right along the growth lines.
 #' 
-## ----length-frequencies-2, fig.height = 5.5-----------------------------------
-plot_lfd(dat, "Lutjanus bohar", cohorts = TRUE)
+## ----length-frequencies-2b, fig.height = 5.5----------------------------------
+plot_lfd(dat, "Lutjanus bohar", type = "bubble", cohorts = TRUE)
 
 #' 
 #' NOTE:
@@ -352,11 +359,13 @@ plot_lfd(dat, "Lutjanus bohar", type = "bars", lfd = raised, years = 2020:2025)
 
 #' 
 #' Pooled as measured, each fleet counts by its sample size; raised, by its
-#' catch. Biological samples can be shown by fleet, all fleets together, or by
-#' season (length at age rises through the year):
+#' catch. Biological samples can be shown with a panel per fleet, all fleets in
+#' one panel, or a panel per season (points coloured by fleet throughout).
+#' Length at age rises through the year; as a trainer, `truth = TRUE` adds the
+#' true growth curve at the middle of each season:
 #' 
 ## ----naive-aggregation-teaching-4, fig.height = 4-----------------------------
-plot_bio(dat, "Lutjanus bohar", what = "age_length", by = "season")
+plot_bio(dat, "Lutjanus bohar", what = "age_length", by = "season", truth = TRUE)
 
 #' 
 #' # 8 Save the datasets

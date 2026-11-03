@@ -9,7 +9,7 @@ plot_lfd(
   species = NULL,
   iter = 1,
   source = NULL,
-  type = c("bubble", "bars"),
+  type = c("bars", "ridge", "bubble"),
   years = NULL,
   cohorts = FALSE,
   season = NULL,
@@ -26,9 +26,10 @@ shown in rows (length samples).}
 
 \item{source}{fleets / survey to show; default all.}
 
-\item{type}{\code{"bubble"} or \code{"bars"}.}
+\item{type}{\code{"bars"}, \code{"ridge"} or \code{"bubble"}.}
 
-\item{years}{years to show; default all (for \code{"bars"}, the last six).}
+\item{years}{years to show; default the last six for \code{"bars"}, all for
+\code{"ridge"} and \code{"bubble"}.}
 
 \item{cohorts}{add cohort growth lines (bubble) or age-class marks (bars).}
 
@@ -42,6 +43,12 @@ a \code{ggplot}.
 }
 \description{
 \itemize{
+\item \code{type = "bars"} (default): the classic length-frequency histogram, one
+panel per year (rows) and source (columns), see below.
+\item \code{type = "ridge"}: one length distribution per year, drawn as a ridge
+along the time axis (as FLRef's \code{plot_lfd_ridgeline()}), one panel per
+source; with \code{cohorts = TRUE}, von Bertalanffy lines follow each year
+class, so modes can be followed along them.
 \item \code{type = "bubble"}: one row per year, bubble area = proportion of the
 year's sample at each length. With \code{cohorts = TRUE}, von Bertalanffy
 growth lines follow each year class through the samples: real modes
