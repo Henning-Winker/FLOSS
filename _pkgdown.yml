@@ -23,6 +23,8 @@ navbar:
         href: articles/floss-03-teaching.html
       - text: "Training example: summed effort hides a shark decline"
         href: articles/floss-04-cpue-aggregation.html
+      - text: "Appendix: methods and equations"
+        href: articles/floss-05-methods.html
       - text: A reef operating model from saved specs
         href: articles/floss-01-reef-om.html
 
@@ -33,6 +35,7 @@ articles:
   - floss-02-user-guide
   - floss-03-teaching
   - floss-04-cpue-aggregation
+  - floss-05-methods
   - floss-01-reef-om
 
 reference:

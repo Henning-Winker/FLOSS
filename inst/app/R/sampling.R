@@ -126,7 +126,7 @@ sampling_ui <- function() {
               conditionalPanel("input.bi_scheme == 'stratified'",
               numericInput("bi_n_per_bin", "Otoliths per length bin", value = 5, min = 1))),
             column(2, numericInput("bi_age_cv", "Ageing CV", value = 0.1, min = 0, step = 0.05)),
-            column(2, numericInput("bi_age_bias", lab("Ageing bias (%)", "age_bias"), value = 0, step = 5)),
+            column(2, numericInput("bi_age_bias", lab("Ageing bias (%)", "age_bias"), value = -5, step = 1)),
             column(2, numericInput("bi_wt_cv", "Weighing CV", value = 0.1, min = 0, step = 0.05)))),
         box(width = 12, title = "Observations",
           fluidRow(

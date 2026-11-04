@@ -81,7 +81,8 @@ survey_settings <- function(years = NULL, timing = 0, cv = 0.25, rho = 0,
 #' @param cpue_q_step artefact: named list by fleet of `c(year, mult)`, the
 #'   fleet's catchability changes by `mult` from `year` (e.g. new
 #'   electronics), or `NULL`.
-#' @param bio_age_bias artefact: proportional ageing bias, e.g. -0.1 = fish
+#' @param bio_age_bias proportional ageing bias (default -0.05: fish are read
+#'   5% too young, typical of whole otoliths; 0 = unbiased), e.g. -0.1 = fish
 #'   are aged 10% too young (typical of old fish read from whole otoliths).
 #' @param survey [survey_settings()] or `NULL` for no survey.
 #' @param seasons seasonal sampling of the fleets' length and biological
@@ -103,7 +104,7 @@ oem_settings <- function(fishery, tail = 10, catch_cv = 0.1, catch_bias = 0,
                          bio_age_scheme = c("random", "stratified"),
                          bio_n_per_bin = 5, age_cv = 0.1,
                          wt_cv = 0.1, mat_L95 = 1.15, catch_bias_from = NULL,
-                         cpue_q_step = NULL, bio_age_bias = 0,
+                         cpue_q_step = NULL, bio_age_bias = -0.05,
                          survey = survey_settings(), years = NULL,
                          seasons = season_design(4)) {
   bio_age_scheme <- match.arg(bio_age_scheme)

@@ -1,0 +1,13 @@
+---
+title: "Appendix: methods and equations"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Appendix: methods and equations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, child = "../inst/guide/methods.Rmd"}
+```

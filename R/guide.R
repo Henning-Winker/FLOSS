@@ -9,6 +9,8 @@ floss_guides <- list(
                         title = "FLOSS teaching scenarios: predict the response, spot the warning flags"),
   `cpue-aggregation` = list(file = "cpue-aggregation.Rmd", out = "floss-04-cpue-aggregation",
                         title = "Training example: summed effort and nominal CPUE hide a shark decline"),
+  methods        = list(file = "methods.Rmd", out = "floss-05-methods",
+                        title = "Appendix: methods and equations"),
   `how-it-works` = list(file = "how-it-works.md", out = "floss-00-how-it-works",
                         title = "How FLOSS works"),
   `reef-om`      = list(file = "reef-om.Rmd", out = "floss-01-reef-om",
@@ -21,7 +23,8 @@ floss_guides <- list(
 #' stand-alone R Markdown file that you can edit and knit, plus an R script
 #' with its code, and with `render = TRUE` renders it to HTML.
 #'
-#' @param guide `"user-guide"`, `"teaching"`, `"cpue-aggregation"`, `"how-it-works"`, `"reef-om"`,
+#' @param guide `"user-guide"`, `"teaching"`, `"cpue-aggregation"`, `"methods"` (appendix with the
+#'   equations), `"how-it-works"`, `"reef-om"`,
 #'   or `"all"`.
 #' @param dir folder to write to (created).
 #' @param render also render to HTML (needs 'rmarkdown' and pandoc; runs all
@@ -40,7 +43,7 @@ floss_guides <- list(
 #' floss_guide("user-guide")                 # floss-02-user-guide.Rmd and .R
 #' floss_guide("all", dir = "guides", render = TRUE)
 #' }
-floss_guide <- function(guide = c("user-guide", "teaching", "cpue-aggregation", "how-it-works",
+floss_guide <- function(guide = c("user-guide", "teaching", "cpue-aggregation", "methods", "how-it-works",
                                   "reef-om", "all"),
                         dir = ".", render = FALSE, script = TRUE, open = interactive(),
                         overwrite = FALSE) {

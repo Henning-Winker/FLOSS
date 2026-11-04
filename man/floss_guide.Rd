@@ -5,8 +5,8 @@
 \title{Copy, and optionally render, a FLOSS guide}
 \usage{
 floss_guide(
-  guide = c("user-guide", "teaching", "cpue-aggregation", "how-it-works", "reef-om",
-    "all"),
+  guide = c("user-guide", "teaching", "cpue-aggregation", "methods", "how-it-works",
+    "reef-om", "all"),
   dir = ".",
   render = FALSE,
   script = TRUE,
@@ -15,7 +15,8 @@ floss_guide(
 )
 }
 \arguments{
-\item{guide}{\code{"user-guide"}, \code{"teaching"}, \code{"cpue-aggregation"}, \code{"how-it-works"}, \code{"reef-om"},
+\item{guide}{\code{"user-guide"}, \code{"teaching"}, \code{"cpue-aggregation"}, \code{"methods"} (appendix with the
+equations), \code{"how-it-works"}, \code{"reef-om"},
 or \code{"all"}.}
 
 \item{dir}{folder to write to (created).}
