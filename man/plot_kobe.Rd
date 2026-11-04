@@ -4,7 +4,7 @@
 \alias{plot_kobe}
 \title{Kobe plot of true status}
 \usage{
-plot_kobe(x, year = NULL, iters = NULL)
+plot_kobe(x, year = NULL, iters = NULL, species = NULL, trajectory = NULL)
 }
 \arguments{
 \item{x}{a \code{floss_data} (uses its answer key) or a \code{floss_om} /
@@ -13,10 +13,19 @@ plot_kobe(x, year = NULL, iters = NULL)
 \item{year}{assessment year; default the last year.}
 
 \item{iters}{iterations (for operating models; default all).}
+
+\item{species}{species to show; default all.}
+
+\item{trajectory}{draw the history as a path; default when one iteration
+is shown.}
 }
 \value{
 a \code{ggplot}.
 }
 \description{
-Kobe plot of true status
+True B/Bmsy against F/Fmsy, coloured by species. With several iterations,
+one point per species and iteration in the assessment year. With one
+iteration (or \code{trajectory = TRUE}), the whole history of each species is
+drawn as a path from the first year (open circle) to the assessment year
+(filled circle), as in JABBA's Kobe plot.
 }

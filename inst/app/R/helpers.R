@@ -2,6 +2,12 @@
 
 `%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
 
+# Use FLOSS's own functions even when another package attached later has a
+# function of the same name (e.g. JABBA3::status_table(), FLicc::plot_lfd()):
+# copy the FLOSS exports into the app's environment.
+for (.f in getNamespaceExports("FLOSS")) assign(.f, getExportedValue("FLOSS", .f))
+rm(.f)
+
 # ---- small UI pieces -----------------------------------------------------------
 
 # An (i) symbol with the explanation from floss_tip() shown on hover
@@ -253,9 +259,17 @@ make_reactives <- function(input, rv) {
                                identical(r$data_snap(), rv$data_snap))
 
   # Iterations shown on the pages (top selector)
+  # Iterations chosen at the top: any of the operating model's iterations
+  # (truth, operating model pages); data pages use those that were sampled
+  r$nsim <- reactive(if (is.null(rv$oms)) 0L else dims(rv$oms[[1]]$stock)$iter)
+  r$iters_om <- reactive({
+    v <- as.integer(input$iters_shown %||% 1)
+    v <- v[v >= 1 & v <= max(1, r$nsim())]
+    if (!length(v)) 1L else v
+  })
   r$iters <- reactive({
     its <- rv$data$settings$iters %||% 1
-    v <- as.integer(input$iters_shown %||% its[1])
+    v <- r$iters_om()
     v <- v[v %in% its]
     if (!length(v)) its[1] else v
   })

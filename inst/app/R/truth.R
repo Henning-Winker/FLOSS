@@ -17,10 +17,13 @@ truth_ui <- function() {
       tabPanel("Trajectories",
         box(width = 12, title = "True B/Bmsy, F/Fmsy and catch",
           plotOutput("ts_plot", height = 480),
-          p(class = "note", "The iterations chosen at the top are drawn as lines over the median and 90% interval of all iterations."))),
+          p(class = "note", "One line per iteration chosen at the top."))),
       tabPanel("Kobe plot",
-        box(width = 12, title = "Status of every iteration",
-          plotOutput("ts_kobe", height = 460))),
+        box(width = 12, title = "True status: Kobe plot",
+          radioButtons("ts_kobe_sp", NULL, inline = TRUE,
+                       choices = c("All species" = "all", "Only the species shown at the top" = "shown")),
+          plotOutput("ts_kobe", height = 520),
+          p(class = "note", "The iterations chosen at the top, coloured by species. One iteration: the whole history as a path from the first year (open circle) to the last (filled). Use the arrows at the top to step through iterations, 1-5 or All for many."))),
       tabPanel("Downloads",
         box(width = 12, title = "True time series and reference points (for trainers)",
           downloadButton("ts_download", "Download truth (.zip)"),
@@ -53,8 +56,11 @@ truth_server <- function(input, output, session, rv, r) {
   }, digits = 2)
 
   output$ts_plot <- renderPlot(plot_truth(oms(), species = r$species_used()[[r$shown()]]$species,
-                                          iters = r$iters()) + theme_bw(base_size = 14))
-  output$ts_kobe <- renderPlot(plot_kobe(oms()) + theme_bw(base_size = 14))
+                                          iters = r$iters_om()) + theme_bw(base_size = 14))
+  output$ts_kobe <- renderPlot(plot_kobe(oms(), iters = r$iters_om(),
+                                         species = if (identical(input$ts_kobe_sp, "shown"))
+                                           r$species_used()[[r$shown()]]$species) + theme_bw(base_size = 14) +
+                                 theme(legend.position = "bottom", legend.text = element_text(face = "italic")))
 
   output$ts_download <- downloadHandler(
     filename = function() paste0("floss_truth_", format(Sys.Date(), "%Y%m%d"), ".zip"),

@@ -62,16 +62,34 @@ run_server <- function(input, output, session, rv, r) {
       if (!identical(input[[id]], input$shown)) updateSelectInput(session, id, selected = input$shown)
   })
 
+  # Iteration picker: all iterations of the operating model (sampled ones
+  # marked with *); arrows step through single iterations
   output$iter_selector <- renderUI({
-    its <- rv$data$settings$iters
-    req(length(its) > 0)
-    div(style = "display:flex; align-items:center; gap:8px;",
+    n <- r$nsim()
+    req(n > 0)
+    sampled <- rv$data$settings$iters %||% integer(0)
+    ch <- stats::setNames(seq_len(n), paste0(seq_len(n), ifelse(seq_len(n) %in% sampled, " *", "")))
+    btn <- function(id, lab, ttl) actionButton(id, lab, title = ttl,
+      style = "padding:2px 8px; margin:0 1px; font-size:13px;")
+    div(style = "display:flex; align-items:center; gap:6px;",
         tags$strong("Iteration:"), tip("nsim"),
-        div(style = "width:190px; margin-bottom:-15px;",
-            selectizeInput("iters_shown", NULL, choices = its, multiple = TRUE,
-                           selected = isolate(input$iters_shown) %||% its[1],
-                           options = list(placeholder = "1", plugins = list("remove_button")))))
+        btn("iter_prev", "\u25C0", "Previous iteration"),
+        div(style = "width:170px; margin-bottom:-15px;",
+            selectizeInput("iters_shown", NULL, choices = ch, multiple = TRUE,
+                           selected = isolate(input$iters_shown) %||% 1,
+                           options = list(placeholder = "1", plugins = list("remove_button")))),
+        btn("iter_next", "\u25B6", "Next iteration"),
+        btn("iter_5", "1-5", "Show iterations 1 to 5"),
+        btn("iter_all", "All", "Show all iterations"))
   })
+  step_iter <- function(d) {
+    n <- r$nsim(); cur <- max(r$iters_om())
+    updateSelectizeInput(session, "iters_shown", selected = ((cur - 1 + d) %% n) + 1)
+  }
+  observeEvent(input$iter_prev, step_iter(-1))
+  observeEvent(input$iter_next, step_iter(1))
+  observeEvent(input$iter_5, updateSelectizeInput(session, "iters_shown", selected = seq_len(min(5, r$nsim()))))
+  observeEvent(input$iter_all, updateSelectizeInput(session, "iters_shown", selected = seq_len(r$nsim())))
 
   output$status_pill <- renderUI({
     txt <- if (!r$fishery_ok()) "Fishery settings need fixing"

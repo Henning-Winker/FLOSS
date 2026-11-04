@@ -60,28 +60,63 @@ plot_truth <- function(x, species = NULL, iters = NULL) {
 }
 
 #' Kobe plot of true status
+#'
+#' True B/Bmsy against F/Fmsy, coloured by species. With several iterations,
+#' one point per species and iteration in the assessment year. With one
+#' iteration (or `trajectory = TRUE`), the whole history of each species is
+#' drawn as a path from the first year (open circle) to the assessment year
+#' (filled circle), as in JABBA's Kobe plot.
+#'
 #' @inheritParams status_table
+#' @param species species to show; default all.
+#' @param trajectory draw the history as a path; default when one iteration
+#'   is shown.
 #' @return a `ggplot`.
 #' @export
-plot_kobe <- function(x, year = NULL, iters = NULL) {
-  d <- status_table(x, year, iters)
-  mx <- max(2, d$B_Bmsy, d$F_Fmsy) * 1.05
+plot_kobe <- function(x, year = NULL, iters = NULL, species = NULL, trajectory = NULL) {
+  tr <- truth_long(x, iters)
+  if (!is.null(species)) tr <- tr[tr$species %in% species, ]
+  year <- year %||% max(tr$year)
+  its <- unique(tr$iter)
+  trajectory <- trajectory %||% (length(its) == 1)
+  end <- tr[tr$year == year, ]
+  path <- tr[tr$year <= year, ]
+  path <- path[order(path$species, path$iter, path$year), ]
+  shown <- if (trajectory) path else end
+  mx <- max(2, shown$B_Bmsy, shown$F_Fmsy, na.rm = TRUE) * 1.05
   q <- data.frame(xmin = c(0, 1, 0, 1), xmax = c(1, mx, 1, mx),
                   ymin = c(0, 0, 1, 1), ymax = c(1, 1, mx, mx),
-                  fill = c("#F2D3A9", "#BFDCC5", "#E7A9A0", "#F2D3A9"))
-  ggplot2::ggplot() +
+                  fill = c("#FFE08A", "#5CB85C", "#D9534F", "#F0A04B"))
+  sps <- unique(tr$species)
+  cols <- stats::setNames(floss_cols(length(sps)), sps)
+  g <- ggplot2::ggplot() +
     ggplot2::geom_rect(data = q, ggplot2::aes(xmin = .data$xmin, xmax = .data$xmax,
                                               ymin = .data$ymin, ymax = .data$ymax),
-                       fill = q$fill, alpha = 0.8) +
-    ggplot2::geom_point(data = d, ggplot2::aes(.data$B_Bmsy, .data$F_Fmsy,
-                                               shape = .data$species),
-                        size = 2.4, colour = "#102330") +
+                       fill = q$fill, alpha = 0.75)
+  if (trajectory) {
+    start <- path[!duplicated(paste(path$species, path$iter)), ]
+    g <- g +
+      ggplot2::geom_path(data = path, ggplot2::aes(.data$B_Bmsy, .data$F_Fmsy, colour = .data$species,
+                                                   group = interaction(.data$species, .data$iter)),
+                         linewidth = 0.7) +
+      ggplot2::geom_point(data = start, ggplot2::aes(.data$B_Bmsy, .data$F_Fmsy, colour = .data$species),
+                          shape = 21, fill = "white", size = 2.5, stroke = 1) +
+      ggplot2::geom_point(data = end, ggplot2::aes(.data$B_Bmsy, .data$F_Fmsy, fill = .data$species),
+                          shape = 21, colour = "black", size = 3.6, stroke = 0.8) +
+      ggplot2::scale_fill_manual(values = cols, guide = "none")
+    sub <- paste0("True status ", min(path$year), "-", year, ", iteration ",
+                  paste(its, collapse = ", "), " (open: first year, filled: ", year, ")")
+  } else {
+    g <- g + ggplot2::geom_point(data = end, ggplot2::aes(.data$B_Bmsy, .data$F_Fmsy, colour = .data$species),
+                                 size = 2.6, alpha = 0.9)
+    sub <- paste0("True status in ", year, ", one point per species and iteration (",
+                  length(its), " iterations)")
+  }
+  g + ggplot2::scale_colour_manual(values = cols) +
     ggplot2::coord_cartesian(xlim = c(0, mx), ylim = c(0, mx), expand = FALSE) +
-    ggplot2::labs(x = "B / Bmsy", y = "F / Fmsy", shape = NULL,
-                  subtitle = paste("True status in", d$year[1],
-                                   "- one point per species and dataset")) +
+    ggplot2::labs(x = "B / Bmsy", y = "F / Fmsy", colour = NULL, subtitle = sub) +
     ggplot2::theme_bw() +
-    ggplot2::theme(legend.text = ggplot2::element_text(face = "italic"))
+    ggplot2::theme(legend.text = ggplot2::element_text(face = "italic"), legend.position = "bottom")
 }
 
 # ---- helpers ----------------------------------------------------------------

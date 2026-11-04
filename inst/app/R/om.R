@@ -86,7 +86,7 @@ om_server <- function(input, output, session, rv, r) {
   })
 
   output$om_eq <- renderPlot({
-    plot_eq(r$om(), iter = r$iters()[1], obs = isTRUE(input$om_eq_obs) && r$show_truth(), rel = isTRUE(input$om_eq_rel))
+    plot_eq(r$om(), iter = r$iters_om()[1], obs = isTRUE(input$om_eq_obs) && r$show_truth(), rel = isTRUE(input$om_eq_rel))
   })
 
   output$om_ssbvb <- renderPlot(plot_ssb_vb(r$om()) )
