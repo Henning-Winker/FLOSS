@@ -159,7 +159,7 @@ plot_length_indicators(length_indicators(rt, "Lutjanus bohar"))
 | **0.4** | Shiny app `run_app()` in the FLicc layout: Guide, Fishery, Species, OM, Treatments (predict, reveal), Sampling, Export, True status; info tooltips (`floss_tip()`), Hide truth switch |
 | **0.4.1** | Seasonal sampling by default (`season_design()`: balanced, fixed imbalance, shift, opportunistic, per fleet), `lfd_annual()`, `plot_seasons()`, Seasons tab in the app |
 | **0.4.2** | Gradual sampling shifts, change in sampling intensity (e.g. funding cut), randomly missing sampling years |
-| **0.5.7** | Appendix: methods and equations (effort, F by gear and species, MSY calibration, age-structured dynamics, treatments, sampling incl. two-stage length sampling and autocorrelated CPUE); ageing bias default -5%; Kobe trajectories; fix for JABBA3 masking |
+| **0.5.7** | Appendix: methods and equations (effort, F by gear and species, MSY calibration, age-structured dynamics, treatments, sampling incl. two-stage length sampling and autocorrelated CPUE); Kobe trajectories; fix for JABBA3 masking |
 | **0.5.5** | Length frequencies by season (`plot_lfd(by_season = TRUE)`; app: By season) to show imbalanced seasonal sampling; histogram, ridge and bubble views; survey off by default |
 | **0.5.1** | New fishery in the app (add gears by name); guides in `inst/guide` with `floss_guide()` and fully commented R scripts (as in JABBA3) |
 | **0.5.0** | Effort in fishing days; naive aggregation for teaching (catch, effort and nominal CPUE by fleet, all fleets, all species; length samples pooled or raised to the catch; biological samples by fleet, all fleets or season); FLR export for JABBA3 and FLicc |

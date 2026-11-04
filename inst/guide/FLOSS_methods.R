@@ -500,12 +500,14 @@ ggplot(d, aes(len_mm / 10, n)) + geom_col(fill = "#5B45A8", width = 1.4) +
 #' 
 #' **Ageing error metrics.**
 #' 
-#' * **Ageing bias** $b_A$: a systematic, proportional error. On average an
-#'   otolith reader assigns age $(1 + b_A)\,a$ to a fish of true age $a$. The
-#'   default is $b_A = -0.05$: fish are read 5% too young, so a 10-year-old is
-#'   read as 9.5 years on average (before rounding). Under-ageing of older fish
-#'   is common when whole otoliths are read and the outer rings are crowded. Set
-#'   $b_A = 0$ for unbiased ageing.
+#' * **Ageing bias** $b_A$: a systematic, proportional error with a direction. On
+#'   average an otolith reader assigns age $(1 + b_A)\,a$ to a fish of true age
+#'   $a$. The default is $b_A = 0$ (unbiased). A negative value means fish are
+#'   read too young: with $b_A = -0.05$ a 10-year-old is read as 9.5 years on
+#'   average (before rounding), as is common for older fish when whole otoliths
+#'   are read and the outer rings are crowded. A positive value means fish are
+#'   read too old. A non-zero bias is listed as a planted data problem in the
+#'   answer key.
 #' * **Ageing CV** $CV_A$: random reading error, the standard deviation of the
 #'   assigned age relative to the true age (at least one year for the youngest
 #'   ages): with $CV_A = 0.1$ a 10-year-old is read as 10 ± 1 years (one standard
@@ -555,7 +557,7 @@ plot_lfd(dat, sp$species, type = "ridge", source = "linefish", years = 2016:2025
 #' | Seasons and shares | $n$ seasons, share $\pi_j$ of the annual sample in season $j$ | 4, balanced |
 #' | Fish per year (biology) | fish measured, weighed and staged | traps, gillnet 100; linefish 200 |
 #' | Share aged / otoliths per bin | ageing scheme, random or length-stratified | 0.5 / 5 |
-#' | Ageing bias | $b_A$, proportional systematic ageing error | $-0.05$ |
+#' | Ageing bias | $b_A$, proportional systematic ageing error (negative: read too young) | 0 |
 #' | Ageing CV | $CV_A$, random ageing error | 0.1 |
 #' | Weighing CV | $\sigma_W$ via $CV$, error of weights | 0.1 |
 #' 

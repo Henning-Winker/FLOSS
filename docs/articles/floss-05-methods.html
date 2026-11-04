@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.8</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -596,13 +596,14 @@ bin (length-stratified).</p>
 <p><strong>Ageing error metrics.</strong></p>
 <ul>
 <li>
-<strong>Ageing bias</strong> <span class="math inline">\(b_A\)</span>: a systematic, proportional error. On
-average an otolith reader assigns age <span class="math inline">\((1 +
-b_A)\,a\)</span> to a fish of true age <span class="math inline">\(a\)</span>. The default is <span class="math inline">\(b_A = -0.05\)</span>: fish are read 5% too young,
-so a 10-year-old is read as 9.5 years on average (before rounding).
-Under-ageing of older fish is common when whole otoliths are read and
-the outer rings are crowded. Set <span class="math inline">\(b_A =
-0\)</span> for unbiased ageing.</li>
+<strong>Ageing bias</strong> <span class="math inline">\(b_A\)</span>: a systematic, proportional error
+with a direction. On average an otolith reader assigns age <span class="math inline">\((1 + b_A)\,a\)</span> to a fish of true age <span class="math inline">\(a\)</span>. The default is <span class="math inline">\(b_A = 0\)</span> (unbiased). A negative value
+means fish are read too young: with <span class="math inline">\(b_A =
+-0.05\)</span> a 10-year-old is read as 9.5 years on average (before
+rounding), as is common for older fish when whole otoliths are read and
+the outer rings are crowded. A positive value means fish are read too
+old. A non-zero bias is listed as a planted data problem in the answer
+key.</li>
 <li>
 <strong>Ageing CV</strong> <span class="math inline">\(CV_A\)</span>: random reading error, the standard
 deviation of the assigned age relative to the true age (at least one
@@ -737,8 +738,8 @@ between <span class="math inline">\(n^{(1)}\)</span> and <span class="math inlin
 <td>Ageing bias</td>
 <td>
 <span class="math inline">\(b_A\)</span>, proportional systematic
-ageing error</td>
-<td><span class="math inline">\(-0.05\)</span></td>
+ageing error (negative: read too young)</td>
+<td>0</td>
 </tr>
 <tr class="odd">
 <td>Ageing CV</td>

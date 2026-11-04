@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.8</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -350,11 +350,10 @@ the same story, and why?</p>
 <p>The answer (trainers only):</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d6</span><span class="op">$</span><span class="va">settings</span><span class="op">$</span><span class="va">artefacts</span></span>
-<span><span class="co">#&gt;                        artefact              where                  detail</span></span>
-<span><span class="co">#&gt; 1          effort creep in CPUE           linefish 3.0% per year from 1969</span></span>
-<span><span class="co">#&gt; 2 autocorrelated CPUE residuals           linefish              rho = 0.60</span></span>
-<span><span class="co">#&gt; 3      survey catchability step             survey        x 0.60 from 2012</span></span>
-<span><span class="co">#&gt; 4                   ageing bias biological samples         -5% of true age</span></span></code></pre></div>
+<span><span class="co">#&gt;                        artefact    where                  detail</span></span>
+<span><span class="co">#&gt; 1          effort creep in CPUE linefish 3.0% per year from 1969</span></span>
+<span><span class="co">#&gt; 2 autocorrelated CPUE residuals linefish              rho = 0.60</span></span>
+<span><span class="co">#&gt; 3      survey catchability step   survey        x 0.60 from 2012</span></span></code></pre></div>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_indicators.html">plot_indicators</a></span><span class="op">(</span><span class="va">d6</span>, <span class="st">"Lutjanus bohar"</span>, truth <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="floss-03-teaching_files/figure-html/card-7-which-indicator-4-1.png" width="100%" style="display: block; margin: auto;"></p>

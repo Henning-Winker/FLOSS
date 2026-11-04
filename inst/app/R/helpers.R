@@ -248,7 +248,7 @@ make_reactives <- function(input, rv) {
       lfd_bin = if (isTRUE((input$lf_bin %||% 0) > 0)) input$lf_bin,
       bio_n = pf("bi_n", p$bio_n), bio_p_aged = input$bi_p_aged %||% 0.5,
       bio_age_scheme = input$bi_scheme %||% "random", bio_n_per_bin = input$bi_n_per_bin %||% 5,
-      age_cv = input$bi_age_cv %||% 0.1, bio_age_bias = (input$bi_age_bias %||% -5) / 100,
+      age_cv = input$bi_age_cv %||% 0.1, bio_age_bias = (input$bi_age_bias %||% 0) / 100,
       wt_cv = input$bi_wt_cv %||% 0.1, survey = sv),
       error = function(e) structure(list(msg = conditionMessage(e)), class = "floss_error"))
   })

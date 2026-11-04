@@ -15,7 +15,7 @@ samples cover the last tail years of each fleet (or years)."><!-- mathjax --><sc
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.8</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -94,7 +94,7 @@ samples cover the last <code>tail</code> years of each fleet (or <code>years</co
 <span>  mat_L95 <span class="op">=</span> <span class="fl">1.15</span>,</span>
 <span>  catch_bias_from <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cpue_q_step <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bio_age_bias <span class="op">=</span> <span class="op">-</span><span class="fl">0.05</span>,</span>
+<span>  bio_age_bias <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  survey <span class="op">=</span> <span class="fu"><a href="survey_settings.html">survey_settings</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  years <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seasons <span class="op">=</span> <span class="fu"><a href="season_design.html">season_design</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
@@ -187,8 +187,8 @@ electronics), or <code>NULL</code>.</p></dd>
 
 
 <dt>bio_age_bias</dt>
-<dd><p>proportional ageing bias (default -0.05: fish are read
-5% too young, typical of whole otoliths; 0 = unbiased), e.g. -0.1 = fish
+<dd><p>proportional ageing bias (default 0 = unbiased); a
+planted data problem when not 0, e.g. -0.1 = fish
 are aged 10% too young (typical of old fish read from whole otoliths).</p></dd>
 
 

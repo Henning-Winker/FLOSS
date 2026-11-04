@@ -28,7 +28,7 @@ oem_settings(
   mat_L95 = 1.15,
   catch_bias_from = NULL,
   cpue_q_step = NULL,
-  bio_age_bias = -0.05,
+  bio_age_bias = 0,
   survey = survey_settings(),
   years = NULL,
   seasons = season_design(4)
@@ -82,8 +82,8 @@ with a new quota.}
 fleet's catchability changes by \code{mult} from \code{year} (e.g. new
 electronics), or \code{NULL}.}
 
-\item{bio_age_bias}{proportional ageing bias (default -0.05: fish are read
-5\% too young, typical of whole otoliths; 0 = unbiased), e.g. -0.1 = fish
+\item{bio_age_bias}{proportional ageing bias (default 0 = unbiased); a
+planted data problem when not 0, e.g. -0.1 = fish
 are aged 10\% too young (typical of old fish read from whole otoliths).}
 
 \item{survey}{\code{\link[=survey_settings]{survey_settings()}} or \code{NULL} for no survey.}

@@ -30,7 +30,7 @@ floss_tips_list <- list(
   ess_len = "Stage 2 of length sampling: number of fish measured per year.",
   bio_n = "Fish per year with length, age, weight and maturity recorded.",
   age_scheme = "Random: a share of fish is aged. Length-stratified: at most n otoliths per length bin.",
-  age_bias = "Systematic ageing error: -5% (default) = fish read 5% too young on average; 0 = unbiased.",
+  age_bias = "Systematic ageing error: 0 (default) = unbiased; -5% = fish read 5% too young on average, +5% = 5% too old.",
   q_step = "A sudden change in catchability from a given year (new vessel, gear or electronics).",
   seasons = "Length and biological samples are spread over seasons; fish grow through the year, so the season of sampling changes the lengths seen.",
   season_kappa = "Opportunistic sampling: low values give very uneven shares from year to year, high values stay close to the shares set.",
