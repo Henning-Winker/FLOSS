@@ -20,8 +20,9 @@
 #' Each card changes **one thing** in a stock and asks trainees to **predict**
 #' the response before they see it. FLOSS runs the baseline and the treatment
 #' with the same random numbers, so every difference is caused by the
-#' treatment. The last card plants a data problem: the task is to find the
-#' indicator that is not telling the truth.
+#' treatment. Card 7 plants a data problem: the task is to find the
+#' indicator that is not telling the truth. Card 8 shows how effort summed over
+#' fleets hides the decline of a shark caught as bycatch.
 #' 
 #' The cards use *Lutjanus bohar* and a single logistic gear (a handline that
 #' catches fish from the length at maturity), then add a second gear and a
@@ -295,6 +296,49 @@ plot_indicators(d6, "Lutjanus bohar", truth = TRUE)
 #' drops abruptly in 2012 while CPUE of other fleets does not: a step change in
 #' survey catchability, not a collapse. Real changes in abundance appear, with
 #' lags, in every index that can see the stock; artefacts appear in one.
+#' 
+#' # Card 8: summed effort hides a shark decline
+#' 
+#' PREDICT FIRST:
+#' **Predict first.** Blacktip reef sharks are caught by traps, gillnets and
+#' linefish in the reef fishery. After the 1990s total fishing days fall, and
+#' shark catch per fishing day over all fleets stays roughly flat. Is the shark
+#' stock stable? Is fishing pressure on the shark falling?
+#' 
+## ----card-8-summed-effort-----------------------------------------------------
+shark <- load_species("carcharhinus_melanopterus")
+om8 <- build_om(shark, load_fishery("reef_3fleets"), nsim = 5)
+d8  <- sample_data(om8, reef_oem(), iters = 1)
+
+#' 
+## ----card-8-summed-effort-2, fig.height = 3.5---------------------------------
+plot_aggregate(d8, what = "effort", by = "fleet")
+plot_aggregate(d8, what = "effort", by = "aggregate")
+
+#' 
+## ----card-8-summed-effort-3, fig.height = 3.5, fig.width = 6------------------
+plot_aggregate(d8, shark$species, what = "cpue", by = "aggregate", truth = TRUE)
+
+#' 
+## ----card-8-summed-effort-4, fig.height = 3.5---------------------------------
+plot_aggregate(d8, shark$species, what = "cpue", by = "fleet", truth = TRUE)
+# catchability per fishing day, relative to a gillnet day: relq / effort_days
+q_day <- unlist(shark$relq) / unlist(reef_oem()$effort$days)[names(shark$relq)]
+round(q_day / q_day["gillnet"], 3)
+
+#' 
+#' WARNING FLAG:
+#' **Warning flag.** Spawning biomass (grey) declines throughout, but the
+#' aggregated CPUE does not. A fishing day is not a common unit: one gillnet
+#' day kills as many sharks as about seven linefish days or nearly 200 trap
+#' days. Summed days are dominated by traps and linefish, which hardly catch
+#' sharks, while gillnet days, a small share of the total, cause most of the
+#' shark mortality. As effort shifts from linefish to gillnets, catch per
+#' summed day is inflated and offsets the decline. Each fleet CPUE declines
+#' with the stock; the continued decline follows the increase in gillnet
+#' effort. Keep effort and CPUE by fleet, or standardise for fleet. The
+#' [full training example](floss-04-cpue-aggregation.html) works through
+#' catchability per day, effective effort and a standardised index.
 #' 
 #' # References
 #' 

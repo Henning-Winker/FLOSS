@@ -1,0 +1,13 @@
+---
+title: "Training example: summed effort and nominal CPUE hide a shark decline"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Training example: summed effort and nominal CPUE hide a shark decline}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, child = "../inst/guide/cpue-aggregation.Rmd"}
+```
