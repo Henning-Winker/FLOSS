@@ -13,7 +13,8 @@ plot_lfd(
   years = NULL,
   cohorts = FALSE,
   season = NULL,
-  lfd = NULL
+  lfd = NULL,
+  by_season = FALSE
 )
 }
 \arguments{
@@ -33,10 +34,12 @@ shown in rows (length samples).}
 
 \item{cohorts}{add cohort growth lines (bubble) or age-class marks (bars).}
 
-\item{season}{seasons to include (pooled); default all.}
+\item{season}{seasons to include; default all.}
 
 \item{lfd}{optional length table to plot instead of \code{data$lfd}, e.g. from
 \code{\link[=lfd_aggregate]{lfd_aggregate()}} (pooled over fleets or raised to the catch).}
+
+\item{by_season}{show the seasons separately instead of pooling them.}
 }
 \value{
 a \code{ggplot}.
@@ -61,7 +64,13 @@ marked at the top, so modes can be matched to year classes.
 }
 }
 \details{
-Seasonal samples are pooled for the year (counts summed).
+Seasonal samples are pooled for the year (counts summed), unless
+\code{by_season = TRUE}: then each season is shown separately (histogram: a
+panel per year and season; ridge: one ridge per season within the year,
+coloured by season, as FLRef's \code{plot_lfd_ridgeline()} with seasonal data;
+bubble: seasons stacked within the year). Fish grow through the year, so
+modes move to the right from season to season; with imbalanced sampling
+(\code{\link[=season_design]{season_design()}}) some seasons have few or no samples.
 }
 \examples{
 \donttest{

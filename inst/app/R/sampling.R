@@ -78,9 +78,10 @@ sampling_ui <- function() {
                    column(3, radioButtons("lf_type", "View", inline = TRUE, selected = "bars",
                                           choices = c("Histogram" = "bars", "Ridge" = "ridge", "Bubble" = "bubble"))),
                    column(3, conditionalPanel("input.lf_type != 'bubble'", uiOutput("lf_years_ui"))),
-                   column(3, checkboxInput("lf_coh", "Show year classes (growth lines or ages)", TRUE))),
+                   column(3, checkboxInput("lf_coh", "Show year classes (growth lines or ages)", TRUE),
+                             checkboxInput("lf_season", "By season", FALSE))),
           plotOutput("sm_lfd", height = 560),
-          p(class = "note", "Histogram: one panel per year and fleet. Ridge: each year's distribution along the time axis. Bubble: bubble size = share of fish in each length bin. Real modes move along the growth lines from year to year; modes that jump or vanish are sampling noise. Pooled as sampled, each fleet counts by its sample size; raised to the catch, by its catch (numbers = sample x catch / sample weight)."),
+          p(class = "note", "Histogram: one panel per year and fleet. Ridge: each year's distribution along the time axis. Bubble: bubble size = share of fish in each length bin. By season: the seasons of each year shown separately (set the seasonal design, balanced or not, in the Seasons tab); pick one fleet in Samples from for the histogram. Real modes move along the growth lines from year to year; modes that jump or vanish are sampling noise. Pooled as sampled, each fleet counts by its sample size; raised to the catch, by its catch (numbers = sample x catch / sample weight)."),
           div(class = "flagbox", tags$strong("Teaching: "), "pooling the samples of all fleets as measured lets the most heavily sampled fleet dominate the length distribution, not the fleet that catches most. Compare pooled and raised.")),
         box(width = 12, title = "Length-based indicators",
           plotOutput("sm_ind", height = 460),
@@ -432,8 +433,11 @@ sampling_server <- function(input, output, session, rv, r) {
     by <- input$lf_by %||% "fleet"; ra <- input$lf_raise %||% "sample"
     lf <- if (by == "fleet" && ra == "sample") NULL else lfd_aggregate(dat(), spname(), by, ra)
     if (!is.null(lf)) src <- NULL
+    bys <- isTRUE(input$lf_season)
+    if (bys && !is.null(lf)) showNotification("By season shows the samples as measured, by fleet (pooled and raised samples have no seasons).", type = "message")
+    if (bys) lf <- NULL
     FLOSS::plot_lfd(dat(), spname(), r$iters()[1], source = src, type = ty, years = yrs,
-             cohorts = isTRUE(input$lf_coh), lfd = lf) +
+             cohorts = isTRUE(input$lf_coh), lfd = lf, by_season = bys) +
       theme(text = element_text(size = 14))
   })
   output$sm_ind <- renderPlot(plot_indicators(dat(), spname(), r$iters()[1], truth = r$show_truth()))

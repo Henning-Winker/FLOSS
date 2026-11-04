@@ -45,7 +45,7 @@ marked at the top, so modes can be matched to year classes.
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.5</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -119,7 +119,8 @@ marked at the top, so modes can be matched to year classes.</p></li>
 <span>  years <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cohorts <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  season <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  lfd <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  lfd <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  by_season <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -156,12 +157,16 @@ shown in rows (length samples).</p></dd>
 
 
 <dt>season</dt>
-<dd><p>seasons to include (pooled); default all.</p></dd>
+<dd><p>seasons to include; default all.</p></dd>
 
 
 <dt>lfd</dt>
 <dd><p>optional length table to plot instead of <code>data$lfd</code>, e.g. from
 <code><a href="lfd_aggregate.html">lfd_aggregate()</a></code> (pooled over fleets or raised to the catch).</p></dd>
+
+
+<dt>by_season</dt>
+<dd><p>show the seasons separately instead of pooling them.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -172,7 +177,13 @@ shown in rows (length samples).</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Seasonal samples are pooled for the year (counts summed).</p>
+    <p>Seasonal samples are pooled for the year (counts summed), unless
+<code>by_season = TRUE</code>: then each season is shown separately (histogram: a
+panel per year and season; ridge: one ridge per season within the year,
+coloured by season, as FLRef's <code>plot_lfd_ridgeline()</code> with seasonal data;
+bubble: seasons stacked within the year). Fish grow through the year, so
+modes move to the right from season to season; with imbalanced sampling
+(<code><a href="season_design.html">season_design()</a></code>) some seasons have few or no samples.</p>
     </div>
 
     <div class="section level2">

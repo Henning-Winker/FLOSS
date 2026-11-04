@@ -109,7 +109,13 @@ plot_obs <- function(data, species = NULL, iter = 1, what = c("index", "catch"),
 #'   With `cohorts = TRUE`, the mean length of each age class in that year is
 #'   marked at the top, so modes can be matched to year classes.
 #'
-#' Seasonal samples are pooled for the year (counts summed).
+#' Seasonal samples are pooled for the year (counts summed), unless
+#' `by_season = TRUE`: then each season is shown separately (histogram: a
+#' panel per year and season; ridge: one ridge per season within the year,
+#' coloured by season, as FLRef's `plot_lfd_ridgeline()` with seasonal data;
+#' bubble: seasons stacked within the year). Fish grow through the year, so
+#' modes move to the right from season to season; with imbalanced sampling
+#' ([season_design()]) some seasons have few or no samples.
 #'
 #' @inheritParams plot_availability
 #' @param source fleets / survey to show; default all.
@@ -117,7 +123,8 @@ plot_obs <- function(data, species = NULL, iter = 1, what = c("index", "catch"),
 #' @param years years to show; default the last six for `"bars"`, all for
 #'   `"ridge"` and `"bubble"`.
 #' @param cohorts add cohort growth lines (bubble) or age-class marks (bars).
-#' @param season seasons to include (pooled); default all.
+#' @param season seasons to include; default all.
+#' @param by_season show the seasons separately instead of pooling them.
 #' @param lfd optional length table to plot instead of `data$lfd`, e.g. from
 #'   [lfd_aggregate()] (pooled over fleets or raised to the catch).
 #' @return a `ggplot`.
@@ -130,12 +137,14 @@ plot_obs <- function(data, species = NULL, iter = 1, what = c("index", "catch"),
 #' }
 plot_lfd <- function(data, species = NULL, iter = 1, source = NULL,
                      type = c("bars", "ridge", "bubble"), years = NULL,
-                     cohorts = FALSE, season = NULL, lfd = NULL) {
+                     cohorts = FALSE, season = NULL, lfd = NULL, by_season = FALSE) {
   type <- match.arg(type)
   species <- species %||% unique(data$lfd$species)[1]
   l <- lfd %||% data$lfd
   raised <- identical(attr(lfd, "raise"), "catch")
   if (!is.null(season) && !is.null(l$season)) l <- l[l$season %in% season, ]
+  if (by_season && !is.null(l$season) && length(unique(l$season)) > 1)
+    return(plot_lfd_seasons(data, l, species, iter[1], source, type, years, cohorts))
   d <- pick(lfd_annual(l), species, iter[1], source)
   if (type == "bars" && is.null(years)) years <- utils::tail(sort(unique(d$year)), 6)
   if (!is.null(years)) d <- d[d$year %in% years, ]
@@ -218,6 +227,85 @@ plot_lfd <- function(data, species = NULL, iter = 1, source = NULL,
                                                        group = .data$cohort),
                                 colour = "grey45", linewidth = 0.25, alpha = 0.7,
                                 inherit.aes = FALSE)
+  }
+  g
+}
+
+# Length samples by season (see plot_lfd(by_season = TRUE))
+plot_lfd_seasons <- function(data, l, species, iter, source, type, years, cohorts) {
+  d <- pick(l, species, iter, source)
+  if (type == "bars" && is.null(years)) years <- utils::tail(sort(unique(d$year)), 4)
+  if (!is.null(years)) d <- d[d$year %in% years, ]
+  if (!nrow(d)) stop("no length samples for this selection")
+  S <- max(d$season)
+  bw <- lfd_bin_mm(data, species) / 10
+  d$L <- d$len_mm / 10 + bw / 2
+  d$p <- d$n / stats::ave(d$n, d$year, d$season, d$source, FUN = sum)
+  d$source <- factor(d$source, levels = intersect(names(src_colours(data)), unique(d$source)))
+  d$Season <- factor(paste("Season", d$season), levels = paste("Season", seq_len(S)))
+  scol <- stats::setNames(season_colours(S), levels(d$Season))
+  lh <- if (cohorts) true_lh(data, species)
+  n_s <- stats::aggregate(n ~ year + season + source, d, sum)
+  sub <- paste0("Iteration ", iter, "; fish measured per season: ",
+                paste(stats::aggregate(n ~ season, n_s, sum)$n, collapse = " / "))
+  if (type == "bars") {
+    fill <- if (nlevels(d$source) > 1) "source" else "Season"
+    vals <- if (fill == "source") src_colours(data) else scol
+    g <- ggplot2::ggplot(d, ggplot2::aes(.data$L, .data$p, fill = .data[[fill]])) +
+      ggplot2::geom_col(width = bw * 0.95, position = "identity", alpha = if (fill == "source") 0.6 else 0.9) +
+      ggplot2::scale_fill_manual(values = vals) +
+      ggplot2::facet_grid(year ~ Season) +
+      ggplot2::labs(x = "Length (cm)", y = "Proportion of the season's sample", fill = NULL,
+                    title = species, subtitle = sub) +
+      ggplot2::theme_bw() + ggplot2::theme(legend.position = if (fill == "source") "bottom" else "none",
+                                           strip.text.y = ggplot2::element_text(angle = 0))
+    if (!is.null(lh)) {
+      ma <- do.call(rbind, lapply(seq_len(S), function(s) {
+        ages <- 0:lh$tmax
+        data.frame(Season = factor(paste("Season", s), levels = levels(d$Season)),
+                   L = lh$linf * (1 - exp(-lh$k * (ages + (s - 0.5) / S - lh$t0))))
+      }))
+      ma <- ma[ma$L >= min(d$L) & ma$L <= max(d$L), ]
+      g <- g + ggplot2::geom_vline(data = ma, ggplot2::aes(xintercept = .data$L),
+                                   colour = "grey55", linewidth = 0.25, linetype = 3) +
+        ggplot2::labs(caption = "Dotted: mean length of each age class at the middle of the season")
+    }
+    return(g)
+  }
+  d$time <- d$year + (d$season - 0.5) / S
+  if (type == "ridge") {
+    d$dens <- d$p / stats::ave(d$p, d$year, d$season, d$source, FUN = max) * 0.9 / S
+    d$grp <- interaction(d$source, d$year, d$season)
+    d <- d[order(d$source, d$time, d$L), ]
+    g <- ggplot2::ggplot(d) +
+      ggplot2::geom_ribbon(ggplot2::aes(x = .data$L, ymin = .data$time - 0.5 / S,
+                                        ymax = .data$time - 0.5 / S + .data$dens,
+                                        group = .data$grp, fill = .data$Season), alpha = 0.85, colour = NA) +
+      ggplot2::scale_fill_manual(values = scol, name = NULL) +
+      ggplot2::coord_flip() + ggplot2::facet_wrap(~source, ncol = 1) +
+      ggplot2::labs(x = "Length (cm)", y = "Year", title = species, subtitle = sub) +
+      ggplot2::theme_bw() + ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                                           legend.position = "bottom")
+  } else {
+    g <- ggplot2::ggplot(d, ggplot2::aes(.data$L, .data$time)) +
+      ggplot2::geom_point(ggplot2::aes(size = .data$p, colour = .data$Season), alpha = 0.6) +
+      ggplot2::scale_size_area(max_size = 3.5, guide = "none") +
+      ggplot2::scale_colour_manual(values = scol, name = NULL) +
+      ggplot2::facet_wrap(~source) +
+      ggplot2::labs(x = "Length (cm)", y = "Year (seasons stacked)", title = species, subtitle = sub) +
+      ggplot2::theme_bw() + ggplot2::theme(legend.position = "bottom")
+  }
+  if (!is.null(lh)) {
+    yr <- range(d$year) + c(0, 1)
+    ages <- seq(0, lh$tmax + 1, by = 0.05)
+    co <- do.call(rbind, lapply(seq(floor(yr[1]) - lh$tmax - 1, ceiling(yr[2])), function(cy)
+      data.frame(t = cy + ages, L = lh$linf * (1 - exp(-lh$k * (ages - lh$t0))), cohort = cy)))
+    co <- co[co$t >= yr[1] & co$t <= yr[2] & co$L >= min(d$L) & co$L <= max(d$L), ]
+    g <- g + if (type == "ridge")
+      ggplot2::geom_line(data = co, ggplot2::aes(x = .data$L, y = .data$t, group = .data$cohort),
+                         colour = "grey45", linetype = 2, linewidth = 0.3, inherit.aes = FALSE)
+    else ggplot2::geom_path(data = co, ggplot2::aes(.data$L, .data$t, group = .data$cohort),
+                            colour = "grey45", linewidth = 0.25, alpha = 0.7, inherit.aes = FALSE)
   }
   g
 }

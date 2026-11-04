@@ -63,3 +63,13 @@ test_that("gradual shift, sampling intensity and missing years", {
   expect_equal(as.numeric(n[c("2019", "2021")]), c(500, 100))
   expect_true("change in sampling intensity" %in% planted_artefacts(o)$artefact)
 })
+
+test_that("plot_lfd by season", {
+  skip_on_cran()
+  om <- build_om(load_species("lutjanus_bohar"), load_fishery(), nsim = 2, seed = 5)
+  d <- sample_data(om, reef_oem(), iters = 1)
+  for (ty in c("bars", "ridge", "bubble"))
+    expect_s3_class(plot_lfd(d, type = ty, source = "linefish", by_season = TRUE, cohorts = TRUE), "ggplot")
+  g <- plot_lfd(d, type = "bars", source = "linefish", years = 2024:2025, by_season = TRUE)
+  expect_equal(sort(unique(as.character(g$data$Season))), paste("Season", 1:4))
+})

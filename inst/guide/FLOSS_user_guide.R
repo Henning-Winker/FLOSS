@@ -251,6 +251,21 @@ plot_lfd(dat, "Lutjanus bohar", type = "bubble", cohorts = TRUE)
 plot_seasons(dat, "Lutjanus bohar")
 
 #' 
+#' With `by_season = TRUE` the length samples of each season are shown
+#' separately; here an imbalanced design where sampling shifts to the second
+#' half of the year from 2020 (set in `oem_settings(seasons = season_design(...))`,
+#' or in the app under Sampling, Seasons):
+#' 
+## ----seasonal-lfd, fig.height = 6.5, fig.width = 8----------------------------
+oem_shift <- reef_oem(seasons = season_design(share = c(0.6, 0.3, 0.05, 0.05),
+                                              shift = list(from = 2020, share = c(0.05, 0.05, 0.3, 0.6))))
+dat_shift <- sample_data(oms[["lutjanus_bohar"]], oem_shift, iters = 1)
+plot_lfd(dat_shift, "Lutjanus bohar", type = "ridge", source = "linefish",
+         years = 2016:2025, cohorts = TRUE, by_season = TRUE)
+plot_lfd(dat_shift, "Lutjanus bohar", type = "bars", source = "linefish",
+         years = 2018:2021, by_season = TRUE)
+
+#' 
 #' ## Biological samples
 #' 
 ## ----biological-samples, fig.height = 4---------------------------------------
