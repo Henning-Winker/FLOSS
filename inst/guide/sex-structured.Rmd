@@ -240,6 +240,28 @@ plot_spr(fits, ci = TRUE, ci_type = "ribbon") +
 
 The dashed line is the true female SPR (equilibrium at each year's F).
 
+**Selectivity.** The estimated selectivity at length against the true
+selectivity of the operating model (dashed):
+
+```{r sel-fits, fig.height = 4, eval = requireNamespace("FLicc", quietly = TRUE)}
+L <- seq(0, 80, by = 0.5)
+true_sel <- rbind(data.frame(L = L, sel = FLOSS:::sel_len_floss(sel$Trawl, L), gear = "Trawl"),
+                  data.frame(L = L, sel = FLOSS:::sel_len_floss(srv_sel, L), gear = "Survey"))
+plot_compare_sel(fits, colours = c("#D55E00", "#E69F00", "#0072B2")) +
+  geom_line(data = true_sel, aes(L, sel), inherit.aes = FALSE, linetype = 2, linewidth = 0.9)
+```
+
+Without the survey, both assessments estimate a trawl dome whose right side
+falls too steeply. Few large fish in the catch can mean high F or low
+selectivity of large fish, and the trawl data alone cannot tell them apart;
+the fits choose the narrow dome, so less of the missing large fish is put down
+to fishing and SPR is too high. The sex-structured model on unsexed data is
+the most optimistic, probably because part of the missing large fish is explained by the males,
+which never grow large, so even less is left for F. The sexed survey (logistic,
+seeing all sizes) shows how many large females there are, which pins down the
+right side of the trawl dome and with it F. Here it errs the other way (the
+dome is too wide), but SPR is close to the truth.
+
 **Across the ensemble.** As in the alfonsino validation, the combined-sex and
 the sex-structured assessments are repeated for the first 10 iterations and
 compared with the true SPR:
