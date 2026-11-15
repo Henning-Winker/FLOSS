@@ -313,44 +313,119 @@ expand_years_sex <- function(stk, years) {
 
 #' Build a sex-structured operating model
 #'
-#' Starts from the equilibrium at the first year's apical F and projects the
-#' stock with FLasher under apical F (`effort`) with lognormal (optionally
-#' AR1) recruitment deviations. Recruits are split equally between the
-#' sexes; spawning biomass is female.
+#' Starts each iteration from the equilibrium at its first-year apical F and
+#' projects the stock with FLasher under apical F (`effort`) and lognormal
+#' recruitment deviations. Recruits are split equally between the sexes;
+#' spawning biomass is female. The F trajectories can come from
+#' [FLRef::fudc()] (see [fapic_fudc()]) and the deviations from
+#' [FLCore::rlnormar1()], as in the FLicc MSE operating models.
 #'
 #' @param stk sex-structured `FLStock` from [stock_sex()].
 #' @param sr stock-recruitment from [sr_sex()].
-#' @param fapic apical F by year (numeric vector over `years`, or `FLQuant`).
+#' @param fapic apical F by year: a numeric vector over `years` (same for all
+#'   iterations) or an `FLQuant` with years (and iterations), e.g. from
+#'   [fapic_fudc()].
 #' @param years years (default the stock's years).
-#' @param nsim iterations.
+#' @param nsim iterations (default the iterations of `fapic` or
+#'   `deviances`, else 1).
+#' @param deviances optional `FLQuant` of recruitment deviations (multipliers,
+#'   e.g. from [FLCore::rlnormar1()]); otherwise generated from `sigR`, `rho`.
 #' @param sigR recruitment SD (log scale).
 #' @param rho recruitment autocorrelation.
-#' @param seed random seed.
-#' @return a list of class `floss_om_sex`: `stock` (`FLStock` with units F,
-#'   M), `sr`, `refpts` ([refpts_sex()]), `fapic` and `truth` (by year and
-#'   iteration: apical F, F/Fmsy, female SSB, SSB/B0, SSB/Bmsy, female SPR
-#'   at the year's F, catch).
+#' @param seed random seed (for generated deviations).
+#' @return a list of class `floss_om_sex`: `stock` (`FLStockR` with units F,
+#'   M and `refpts`), `sr`, `refpts` ([refpts_sex()]), `fapic` (`FLQuant`,
+#'   year x iter), `lh`, `lens`, `sel`, `sel_fleet` (for [lfd_sex()]) and `truth` (by year and iteration: apical F, F/Fmsy,
+#'   female SSB, SSB/B0, SSB/Bmsy, female SPR at the year's F, catch,
+#'   recruits).
 #' @export
 om_sex <- function(stk, sr, fapic, years = as.numeric(dimnames(stk)$year),
-                   nsim = 1, sigR = 0.5, rho = 0, seed = 1) {
-  fapic <- as.numeric(fapic)
-  if (length(fapic) != length(years)) stop("fapic needs one value per year.")
-  st <- init_stock_sex(stk, sr, F = max(fapic[1], 1e-3), years = years)
-  st <- propagate(st, nsim)
-  set.seed(seed)
-  ny <- length(years) - 1
-  e <- matrix(stats::rnorm(ny * nsim, 0, sigR), ny, nsim)
-  if (rho > 0) for (i in 2:ny) e[i, ] <- rho * e[i - 1, ] + sqrt(1 - rho^2) * e[i, ]
-  devs <- FLQuant(c(exp(e - sigR^2 / 2)), dimnames = list(age = 0, year = years[-1], iter = seq_len(nsim)))
-  om <- FLasher::fwd(st, sr = sr, deviances = devs,
-                     control = FLasher::fwdControl(year = years[-1], quant = "effort", value = fapic[-1]))
+                   nsim = NULL, deviances = NULL, sigR = 0.5, rho = 0, seed = 1) {
+  if (is.null(nsim))
+    nsim <- max(if (is(fapic, "FLQuant")) dim(fapic)[6] else 1,
+                if (!is.null(deviances)) dim(deviances)[6] else 1)
+  # apical F as FLQuant year x iter
+  fq <- FLQuant(NA_real_, dimnames = list(age = "all", year = years, iter = seq_len(nsim)), units = "f")
+  if (is(fapic, "FLQuant")) {
+    fv <- fapic[, ac(years)]
+    if (dim(fv)[2] != length(years)) stop("fapic must cover all years.")
+    fq[] <- if (dim(fv)[6] == 1) rep(c(fv), nsim) else c(fv[, , , , , seq_len(nsim)])
+  } else {
+    if (length(fapic) != length(years)) stop("fapic needs one value per year.")
+    fq[] <- rep(as.numeric(fapic), nsim)
+  }
+  fq[] <- pmax(c(fq), 1e-4)
+  # recruitment deviations
+  if (is.null(deviances)) {
+    set.seed(seed)
+    ny <- length(years) - 1
+    e <- matrix(stats::rnorm(ny * nsim, 0, sigR), ny, nsim)
+    if (rho > 0) for (i in 2:ny) e[i, ] <- rho * e[i - 1, ] + sqrt(1 - rho^2) * e[i, ]
+    deviances <- FLQuant(c(exp(e - sigR^2 / 2)),
+                         dimnames = list(age = 0, year = years[-1], iter = seq_len(nsim)))
+  } else {
+    deviances <- deviances[, ac(years[-1])]
+    dimnames(deviances)$age <- "0"
+    if (dim(deviances)[6] == 1 && nsim > 1) deviances <- propagate(deviances, nsim)
+  }
+  # start: equilibrium at each iteration's first-year F
+  st <- propagate(init_stock_sex(stk, sr, F = c(fq[, 1, , , , 1]), years = years), nsim)
+  x <- eq_inputs_sex(stk)
+  for (i in seq_len(nsim)) {
+    f1 <- c(fq[, 1, , , , i]); e1 <- eq_sex(stk, sr, F = f1)
+    for (s in c("F", "M"))
+      stock.n(st)[, 1, s, , , i] <- 0.5 * e1$rec * pr_sex1(f1, x$m[, s], x$sel[, s], x$cwt[, s])$n
+    harvest(st)[, 1, , , , i] <- f1 * harvest(stk)[, 1] / max(harvest(stk)[, 1])
+  }
+  om <- FLasher::fwd(st, sr = sr, deviances = deviances,
+                     control = FLasher::fwdControl(year = years[-1], quant = "effort",
+                                                   value = fq[, ac(years[-1])]))
   landings.n(om) <- catch.n(om); landings(om) <- computeLandings(om)
   discards(om) <- computeDiscards(om); catch(om) <- computeCatch(om)
   rp <- refpts_sex(stk, sr)
-  out <- structure(list(stock = om, sr = sr, refpts = rp, fapic = fapic, years = years),
+  om <- FLStockR(om)
+  om@refpts <- FLPar(Fmsy = an(rp["Fmsy"]), Bmsy = an(rp["Bmsy"]), MSY = an(rp["MSY"]),
+                     B0 = an(rp["B0"]), Fspr40 = an(rp["Fspr40"]))
+  # biology and fleet selectivity kept here (FLasher drops object attributes)
+  out <- structure(list(stock = om, sr = sr, refpts = rp, fapic = fq, years = years,
+                        lh = attr(stk, "lh"), lens = attr(stk, "lens"),
+                        sel = attr(stk, "sel"), sel_fleet = attr(stk, "sel_fleet")),
                    class = "floss_om_sex")
   out$truth <- truth_sex(out)
   out
+}
+
+#' Apical F trajectories for a sex-structured operating model with fudc()
+#'
+#' Up-down-constant F trajectories of [FLRef::fudc()] on the scale of the
+#' apical F (relative to `fref`, e.g. Fmsy from [refpts_sex()]), with
+#' optional extra lognormal spread between iterations (as in the FLicc MSE
+#' operating models).
+#'
+#' @param years years.
+#' @param nsim iterations.
+#' @param fref reference F (e.g. `refpts_sex(stk, sr)["Fmsy"]`).
+#' @param f0 F in the first year, relative to `fref`.
+#' @param fhi,flo high and final F relative to `fref`.
+#' @param sigmaF lognormal SD of yearly variation.
+#' @param breaks relative positions of the peak and of the start of the
+#'   constant phase.
+#' @param spread lognormal SD of a multiplier per iteration (0 for none).
+#' @param seed random seed.
+#' @return `FLQuant` (year x iter) of apical F.
+#' @export
+fapic_fudc <- function(years, nsim = 1, fref, f0 = 0.1, fhi = 2, flo = 1, sigmaF = 0.15,
+                       breaks = c(0.6, 0.8), spread = 0, seed = 1) {
+  set.seed(seed)
+  fref <- an(fref)
+  tmp <- FLStock(harvest = FLQuant(f0 * fref, dimnames = list(age = 1, year = years, iter = seq_len(nsim)),
+                                   units = "f"))
+  range(tmp, c("minfbar", "maxfbar")) <- c(1, 1)
+  f <- FLRef::fudc(tmp, fref = fref, fhi = fhi, flo = flo, sigmaF = sigmaF, breaks = breaks)
+  if (spread > 0) f <- f %*% rlnorm(yearMeans(f), 0, spread)   # FLCore rlnorm(FLQuant)
+  dimnames(f)$age <- "all"
+  units(f) <- "f"
+  f
 }
 
 #' True status of a sex-structured operating model
@@ -362,13 +437,16 @@ om_sex <- function(stk, sr, fapic, years = as.numeric(dimnames(stk)$year),
 #' @export
 truth_sex <- function(om) {
   st <- om$stock; rp <- om$refpts
-  sprF <- eq_sex(st, NULL, F = om$fapic, nyears = 1)$spr
   ssbq <- unitSums(ssb(st))
   it <- dimnames(st)$iter
+  # female SPR at apical F: interpolated from a fine grid (fast for many iterations)
+  fg <- seq(0, max(c(om$fapic), na.rm = TRUE) * 1.01 + 1e-6, length.out = 400)
+  sg <- eq_sex(st, NULL, F = fg, nyears = 1)$spr
   do.call(rbind, lapply(seq_along(it), function(i) {
-    s <- c(ssbq[, , , , , i])
-    data.frame(year = om$years, iter = it[i], F = om$fapic, F_Fmsy = om$fapic / an(rp["Fmsy"]),
-               ssb = s, ssb_B0 = s / an(rp["B0"]), ssb_Bmsy = s / an(rp["Bmsy"]), spr = sprF,
+    f <- c(om$fapic[, , , , , i]); s <- c(ssbq[, , , , , i])
+    data.frame(year = om$years, iter = it[i], F = f, F_Fmsy = f / an(rp["Fmsy"]),
+               ssb = s, ssb_B0 = s / an(rp["B0"]), ssb_Bmsy = s / an(rp["Bmsy"]),
+               spr = stats::approx(fg, sg, f)$y,
                catch = c(unitSums(catch(st))[, , , , , i]),
                rec = c(unitSums(stock.n(st)[1])[, , , , , i]))
   }))
@@ -397,13 +475,13 @@ truth_sex <- function(om) {
 #' @export
 lfd_sex <- function(om, fleet = NULL, survey_sel = NULL, n = 400, sexed = FALSE,
                     years = om$years, timing = 0.5, iter = 1) {
-  st <- om$stock; lh <- attr(st, "lh"); lens <- attr(st, "lens")
+  st <- om$stock; lh <- om$lh; lens <- om$lens
   ages <- as.numeric(dimnames(st)$age); mid <- lens + diff(lens[1:2]) / 2
   yy <- ac(years)
   ex <- lapply(c(F = "F", M = "M"), function(s) {
     if (!is.null(fleet)) {
-      sf <- attr(st, "sel_fleet")[[fleet]][, 1, s, , , 1, drop = TRUE]
-      f_fl <- outer(c(sf), om$fapic[match(years, om$years)])
+      sf <- om$sel_fleet[[fleet]][, 1, s, , , 1, drop = TRUE]
+      f_fl <- outer(c(sf), c(om$fapic[, yy, , , , iter]))
       fz <- f_fl / (harvest(st)[, yy, s, , , iter, drop = TRUE] + m(st)[, yy, s, , , iter, drop = TRUE])
       z <- harvest(st)[, yy, s, , , iter, drop = TRUE] + m(st)[, yy, s, , , iter, drop = TRUE]
       ca <- stock.n(st)[, yy, s, , , iter, drop = TRUE] * fz * (1 - exp(-z))
@@ -440,4 +518,37 @@ lhpar_flicc_sex <- function(lh) {
   a <- array(c(unlist(lh$F[p]), unlist(lh$M[p])), dim = c(length(p), 2, 1),
              dimnames = list(params = p, unit = c("F", "M"), iter = 1))
   FLPar(a)
+}
+
+#' Plot a sex-structured operating model
+#'
+#' Medians and 90% ranges over iterations of F/Fmsy (apical F), female
+#' SSB/Bmsy, female SPR (equilibrium at the year's F), recruits and catch
+#' (both sexes), with a few iterations as thin lines.
+#'
+#' @param om [om_sex()] result.
+#' @param iters iterations drawn as thin lines.
+#' @return a `ggplot`.
+#' @export
+plot_om_sex <- function(om, iters = 1:3) {
+  tr <- om$truth
+  vars <- c(F_Fmsy = "F/Fmsy", ssb_Bmsy = "SSB/Bmsy (female)", spr = "SPR (female)",
+            rec = "Recruits", catch = "Catch (both sexes)")
+  long <- do.call(rbind, lapply(names(vars), function(v)
+    data.frame(year = tr$year, iter = tr$iter, value = tr[[v]], what = vars[[v]])))
+  long$what <- factor(long$what, levels = vars)
+  q <- stats::aggregate(value ~ year + what, long, function(x)
+    stats::quantile(x, c(0.05, 0.5, 0.95), na.rm = TRUE))
+  q <- data.frame(year = q$year, what = q$what, lo = q$value[, 1], med = q$value[, 2], hi = q$value[, 3])
+  ref <- data.frame(what = factor(vars[c("F_Fmsy", "ssb_Bmsy", "spr")], levels = vars),
+                    y = c(1, 1, an(om$refpts["SPRmsy"])))
+  th <- long[long$iter %in% as.character(iters), ]
+  ggplot2::ggplot(q, ggplot2::aes(.data$year)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = .data$lo, ymax = .data$hi), fill = "grey80") +
+    ggplot2::geom_line(data = th, ggplot2::aes(y = .data$value, group = .data$iter),
+                       linewidth = 0.3, colour = "grey40") +
+    ggplot2::geom_line(ggplot2::aes(y = .data$med), linewidth = 0.9) +
+    ggplot2::geom_hline(data = ref, ggplot2::aes(yintercept = .data$y), linetype = 2, colour = "darkgreen") +
+    ggplot2::facet_wrap(~what, scales = "free_y", ncol = 3) +
+    ggplot2::expand_limits(y = 0) + ggplot2::labs(x = NULL, y = NULL) + ggplot2::theme_bw()
 }

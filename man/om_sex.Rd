@@ -9,7 +9,8 @@ om_sex(
   sr,
   fapic,
   years = as.numeric(dimnames(stk)$year),
-  nsim = 1,
+  nsim = NULL,
+  deviances = NULL,
   sigR = 0.5,
   rho = 0,
   seed = 1
@@ -20,27 +21,36 @@ om_sex(
 
 \item{sr}{stock-recruitment from \code{\link[=sr_sex]{sr_sex()}}.}
 
-\item{fapic}{apical F by year (numeric vector over \code{years}, or \code{FLQuant}).}
+\item{fapic}{apical F by year: a numeric vector over \code{years} (same for all
+iterations) or an \code{FLQuant} with years (and iterations), e.g. from
+\code{\link[=fapic_fudc]{fapic_fudc()}}.}
 
 \item{years}{years (default the stock's years).}
 
-\item{nsim}{iterations.}
+\item{nsim}{iterations (default the iterations of \code{fapic} or
+\code{deviances}, else 1).}
+
+\item{deviances}{optional \code{FLQuant} of recruitment deviations (multipliers,
+e.g. from \code{\link[FLCore:rlnormar1]{FLCore::rlnormar1()}}); otherwise generated from \code{sigR}, \code{rho}.}
 
 \item{sigR}{recruitment SD (log scale).}
 
 \item{rho}{recruitment autocorrelation.}
 
-\item{seed}{random seed.}
+\item{seed}{random seed (for generated deviations).}
 }
 \value{
-a list of class \code{floss_om_sex}: \code{stock} (\code{FLStock} with units F,
-M), \code{sr}, \code{refpts} (\code{\link[=refpts_sex]{refpts_sex()}}), \code{fapic} and \code{truth} (by year and
-iteration: apical F, F/Fmsy, female SSB, SSB/B0, SSB/Bmsy, female SPR
-at the year's F, catch).
+a list of class \code{floss_om_sex}: \code{stock} (\code{FLStockR} with units F,
+M and \code{refpts}), \code{sr}, \code{refpts} (\code{\link[=refpts_sex]{refpts_sex()}}), \code{fapic} (\code{FLQuant},
+year x iter), \code{lh}, \code{lens}, \code{sel}, \code{sel_fleet} (for \code{\link[=lfd_sex]{lfd_sex()}}) and \code{truth} (by year and iteration: apical F, F/Fmsy,
+female SSB, SSB/B0, SSB/Bmsy, female SPR at the year's F, catch,
+recruits).
 }
 \description{
-Starts from the equilibrium at the first year's apical F and projects the
-stock with FLasher under apical F (\code{effort}) with lognormal (optionally
-AR1) recruitment deviations. Recruits are split equally between the
-sexes; spawning biomass is female.
+Starts each iteration from the equilibrium at its first-year apical F and
+projects the stock with FLasher under apical F (\code{effort}) and lognormal
+recruitment deviations. Recruits are split equally between the sexes;
+spawning biomass is female. The F trajectories can come from
+\code{\link[FLRef:fudc]{FLRef::fudc()}} (see \code{\link[=fapic_fudc]{fapic_fudc()}}) and the deviations from
+\code{\link[FLCore:rlnormar1]{FLCore::rlnormar1()}}, as in the FLicc MSE operating models.
 }

@@ -36,6 +36,20 @@ library(FLBRP)     # brp(), for the one-sex check
 library(ggplot2)
 
 #' 
+#' # General settings
+#' 
+#' As in the FLicc MSE operating models (e.g. splendid alfonsino): historical
+#' years, iterations, recruitment variability and the years with length samples.
+#' 
+## ----settings-----------------------------------------------------------------
+set.seed(1234)
+hist_years <- 1976:2025
+nsim <- 50
+rho <- 0.30            # recruitment autocorrelation
+sigR <- 0.50           # recruitment SD (log scale)
+lfd_years <- 2006:2025 # years with length samples
+
+#' 
 #' NOTE:
 #' **How the sexes work in FLR.** FLasher projects an `FLStock` with units:
 #' recruitment follows the summed spawning output of all units and recruits are
@@ -68,8 +82,7 @@ str(lh$M)
 #' 
 ## ----stock--------------------------------------------------------------------
 sel <- list(Trawl = selectivity("dnormal", Lpeak = 34, sd_left = 6, sd_right = 20))
-yrs <- 1991:2025
-stk <- stock_sex(lh, sel, tmax = 20, years = yrs)
+stk <- stock_sex(lh, sel, tmax = 20, years = hist_years)
 stk
 
 #' 
@@ -147,38 +160,37 @@ rbind(refpts_sex = c(refpts_sex(stk1, sr1)[c("Fmsy", "Bmsy", "MSY")]),
                 2 * an(refpts(b1)["msy", "yield"])))
 
 #' 
-#' # The operating model
+#' # Historical operating model
 #' 
-#' `om_sex()` starts the stock in equilibrium at the first year's F and projects
-#' it with FLasher under apical F (`effort`) and lognormal recruitment
-#' deviations. Here F is at half Fmsy for 20 years and then rises to about
-#' 1.8 Fmsy.
+#' The historical apical F follows the up-down-constant pattern of
+#' `FLRef::fudc()` relative to Fmsy, with yearly variation (`sigmaF`) and an
+#' extra lognormal spread between iterations; recruitment deviations are AR1
+#' lognormal (`rlnormar1()`). `fapic_fudc()` wraps `fudc()` on the scale of the
+#' apical F. `om_sex()` starts each iteration in equilibrium at its first-year F
+#' and projects it with FLasher under apical F (`effort`).
 #' 
 ## ----om-----------------------------------------------------------------------
-fm <- an(rp["Fmsy"])
-fap <- c(rep(0.5 * fm, 20), 0.5 * fm + 1.3 * fm * plogis(seq(-3, 3, length.out = 15)))
-om <- om_sex(stk, sr, fapic = fap, nsim = 1, sigR = 0.4, seed = 11)
-round(tail(om$truth[, c("year", "F", "F_Fmsy", "ssb_B0", "ssb_Bmsy", "spr")], 5), 3)
+fmsy <- rp["Fmsy"]
+f_hist <- fapic_fudc(hist_years, nsim, fref = fmsy, f0 = 0.1, fhi = 2.5, flo = 1.5,
+                     sigmaF = 0.15, breaks = c(0.6, 0.8), spread = 0.2)
+rec_devs <- rlnormar1(rho = rho, years = hist_years, n = nsim, meanlog = 0, sdlog = sigR)
+om <- om_sex(stk, sr, fapic = f_hist, deviances = rec_devs)
+om$stock@refpts
 
 #' 
-## ----om-plot, fig.height = 3.8------------------------------------------------
-tl <- with(om$truth, rbind(data.frame(year, value = F_Fmsy, what = "F/Fmsy"),
-                           data.frame(year, value = ssb_Bmsy, what = "SSB/Bmsy (female)"),
-                           data.frame(year, value = spr, what = "SPR (female, equilibrium at F)"),
-                           data.frame(year, value = rec / 1e6, what = "Recruits (millions)")))
-ggplot(tl, aes(year, value)) + geom_line(linewidth = 0.8) + geom_point(size = 1) +
-  facet_wrap(~what, scales = "free_y", ncol = 4) + expand_limits(y = 0) +
-  labs(x = NULL, y = NULL) + theme_bw()
+## ----om-plot, fig.height = 5.5------------------------------------------------
+plot_om_sex(om)
 
 #' 
-#' `om$stock` is an `FLStock` with units F and M; catch, landings and SSB are by
-#' sex (`unitSums()` gives the totals). Any FLasher target works on it; for
-#' example a catch advice from a harvest control rule:
+#' `om$stock` is an `FLStockR` with units F and M and the reference points;
+#' catch, landings and SSB are by sex (`unitSums()` gives the totals). Any
+#' FLasher target works on it; for example a catch advice from a harvest
+#' control rule:
 #' 
 ## ----catch-target-------------------------------------------------------------
-adv <- 0.8 * c(unitSums(catch(om$stock))[, "2025"])
+adv <- 0.8 * unitSums(catch(om$stock))[, "2025"]
 pr <- fwd(om$stock, sr = om$sr, control = fwdControl(year = 2025, quant = "catch", value = adv))
-c(advice = adv, realised = c(unitSums(catch(pr))[, "2025"]))
+summary(c(unitSums(catch(pr))[, "2025"] / adv))
 
 #' 
 #' # Length data by sex
@@ -188,14 +200,19 @@ c(advice = adv, realised = c(unitSums(catch(pr))[, "2025"]))
 #' (numbers at age at the survey time times the survey's selectivity at length).
 #' Sexed samples are drawn jointly over length and sex, so the sex ratio at
 #' length is in the data; unsexed samples sum the sexes. The result is in the
-#' format of FLicc (`unit` F, M or U).
+#' format of FLicc (`unit` F, M or U). Here: 400 unsexed trawl fish a year and
+#' 250 sexed survey fish a year from 2016.
 #' 
 ## ----lfd----------------------------------------------------------------------
-lfd <- FLQuants(
-  Trawl = lfd_sex(om, "Trawl", n = 400, years = 2011:2025),
-  Survey = lfd_sex(om, survey_sel = selectivity("logistic", L50 = 12, L95 = 16),
-                   n = 250, sexed = TRUE, years = 2011:2025))
-lfd$Survey[, ac(2011:2015)] <- 0      # survey sexed from 2016
+srv_sel <- selectivity("logistic", L50 = 12, L95 = 16)
+lfd_iter <- function(i) {
+  l <- FLQuants(Trawl = lfd_sex(om, "Trawl", n = 400, years = lfd_years, iter = i),
+                Survey = lfd_sex(om, survey_sel = srv_sel, n = 250, sexed = TRUE,
+                                 years = lfd_years, iter = i))
+  l$Survey[, ac(lfd_years[lfd_years < 2016])] <- 0
+  l
+}
+lfd <- lfd_iter(1)
 
 #' 
 ## ----lfd-plot, fig.height = 6, eval = requireNamespace("FLicc", quietly = TRUE)----
@@ -205,7 +222,7 @@ FLicc::plot_lfd(FLQuants(lapply(lfd, function(q) q[, ac(2021:2025)])), type = "p
 #' # Assessment with FLicc
 #' 
 #' `lhpar_flicc_sex()` gives the life history in the format of
-#' `FLicc::stocklen_sex()`. Three assessments of the same data: a combined-sex
+#' `FLicc::stocklen_sex()`. Three assessments of iteration 1: a combined-sex
 #' model with female life history, the sex-structured model on the unsexed trawl
 #' samples, and the sex-structured model with the sexed survey.
 #' 
@@ -213,55 +230,85 @@ FLicc::plot_lfd(FLQuants(lapply(lfd, function(q) q[, ac(2021:2025)])), type = "p
 library(FLicc)
 lhp <- lhpar_flicc_sex(lh)
 lhF <- FLPar(lhp@.Data[, "F", 1], params = dimnames(lhp)$params)
-trU <- FLQuants(Trawl = lfd$Trawl)
-fits <- list(
-  "Combined sex (female LH)" = fiticc(trU, stocklen(trU, lhF, m_model = "constant"),
-                                      sel_fun = "dsnormal", catch_by_gear = 1,
-                                      settings = list(obs_model = "mn")),
-  "Two-sex, unsexed data" = fiticc(trU, stocklen_sex(trU, lhp, m_model = "constant"),
-                                   sel_fun = "dsnormal", catch_by_gear = 1,
-                                   settings = list(obs_model = "mn")),
-  "Two-sex, + sexed survey" = fiticc(lfd, stocklen_sex(lfd, lhp, m_model = "constant"),
-                                     sel_fun = c("dsnormal", "logistic"), catch_by_gear = 1,
-                                     settings = list(obs_model = "mn", surveys = "Survey")))
-tr <- om$truth[om$truth$year >= 2011, ]
+fit_one <- function(l) fiticc(FLQuants(Trawl = l$Trawl),
+                              stocklen(FLQuants(Trawl = l$Trawl), lhF, m_model = "constant"),
+                              sel_fun = "dsnormal", catch_by_gear = 1, settings = list(obs_model = "mn"))
+fit_twoU <- function(l) fiticc(FLQuants(Trawl = l$Trawl),
+                               stocklen_sex(FLQuants(Trawl = l$Trawl), lhp, m_model = "constant"),
+                               sel_fun = "dsnormal", catch_by_gear = 1, settings = list(obs_model = "mn"))
+fit_two <- function(l) fiticc(l, stocklen_sex(l, lhp, m_model = "constant"),
+                              sel_fun = c("dsnormal", "logistic"), catch_by_gear = 1,
+                              settings = list(obs_model = "mn", surveys = "Survey"))
+fits <- list("Combined sex (female LH)" = fit_one(lfd), "Two-sex, unsexed data" = fit_twoU(lfd),
+             "Two-sex, + sexed survey" = fit_two(lfd))
+tr1 <- om$truth[om$truth$iter == "1" & om$truth$year %in% lfd_years, ]
 plot_spr(fits, ci = TRUE, ci_type = "ribbon") +
-  geom_line(data = tr, aes(x = year, y = spr), inherit.aes = FALSE, linetype = 2, linewidth = 0.8)
+  geom_line(data = tr1, aes(x = year, y = spr), inherit.aes = FALSE, linetype = 2, linewidth = 0.8)
 
 #' 
-#' The dashed line is the true female SPR (equilibrium at each year's F). Unlike
-#' a simulation from FLicc's own model, the operating model has recruitment
-#' variability and a rising F, and FLicc's equilibrium assumption shows: the
-#' length compositions still carry fish from years of lower F, so SPR is
-#' overestimated while F rises.
+#' The dashed line is the true female SPR (equilibrium at each year's F).
+#' 
+#' **Across the ensemble.** As in the alfonsino validation, the combined-sex and
+#' the sex-structured assessments are repeated for the first 10 iterations and
+#' compared with the true SPR:
+#' 
+## ----ensemble, fig.height = 3.8, eval = requireNamespace("FLicc", quietly = TRUE)----
+ens <- do.call(rbind, lapply(1:10, function(i) {
+  l <- lfd_iter(i)
+  tri <- om$truth[om$truth$iter == ac(i) & om$truth$year %in% lfd_years, ]
+  rbind(data.frame(iter = i, year = lfd_years, model = "Combined sex (female LH)",
+                   err = c(fit_one(l)$report$spr) / tri$spr - 1),
+        data.frame(iter = i, year = lfd_years, model = "Two-sex, + sexed survey",
+                   err = c(fit_two(l)$report$spr) / tri$spr - 1))
+}))
+eq <- aggregate(err ~ year + model, ens, function(x) quantile(x, c(0.1, 0.5, 0.9)))
+eq <- data.frame(year = eq$year, model = eq$model, lo = eq$err[, 1], med = eq$err[, 2], hi = eq$err[, 3])
+ggplot(eq, aes(year, med, colour = model, fill = model)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.2, colour = NA) + geom_line(linewidth = 0.9) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = NULL, y = "Relative error of SPR", colour = NULL, fill = NULL) +
+  theme_bw() + theme(legend.position = "bottom")
+aggregate(err ~ model, ens, function(x) round(median(x), 3))
+
+#' 
+#' In this operating model the combined-sex model overestimates SPR by about
+#' half. A likely reason: with female growth, the many small males in the trawl catch can only be read as
+#' young females that are not yet fully selected, which biases the selectivity and F
+#' downwards. The sex-structured model with the sexed survey is close to unbiased
+#' over the ensemble; the direction and size of the bias of a combined-sex
+#' model depend on the stock, the selectivity and the exploitation history.
 #' 
 #' **Where the differences come from.** Each assessment below uses the expected
-#' compositions (no sampling noise) of the sex-structured model with the survey:
+#' compositions (no sampling noise) of the sex-structured model with the survey
+#' for one deterministic F trajectory:
 #' 
 ## ----bias, eval = requireNamespace("FLicc", quietly = TRUE)-------------------
 bias_run <- function(fap, sigR) {
   o <- om_sex(stk, sr, fapic = fap, sigR = sigR, seed = 11)
-  l <- FLQuants(Trawl = 1000 * lfd_sex(o, "Trawl", n = Inf, years = 2011:2025),
-                Survey = 1000 * lfd_sex(o, survey_sel = selectivity("logistic", L50 = 12, L95 = 16),
-                                        n = Inf, sexed = TRUE, years = 2011:2025))
+  l <- FLQuants(Trawl = 1000 * lfd_sex(o, "Trawl", n = Inf, years = lfd_years),
+                Survey = 1000 * lfd_sex(o, survey_sel = srv_sel, n = Inf, sexed = TRUE, years = lfd_years))
   f <- fiticc(l, stocklen_sex(l, lhp, m_model = "constant"), sel_fun = c("dsnormal", "logistic"),
               catch_by_gear = 1, settings = list(obs_model = "mn", surveys = "Survey", tail_warning = FALSE))
-  r <- c(f$report$spr) / o$truth$spr[o$truth$year >= 2011] - 1
-  round(c("2011-2015" = mean(r[1:5]), "2021-2025" = mean(r[11:15])), 3)
+  r <- c(f$report$spr) / o$truth$spr[o$truth$year %in% lfd_years] - 1
+  n <- length(r)
+  round(c("first 5 years" = mean(r[1:5]), "last 5 years" = mean(r[(n - 4):n])), 3)
 }
-rbind("constant F, no recruitment deviations" = bias_run(rep(1.2 * fm, 35), 0),
-      "rising F, no recruitment deviations" = bias_run(fap, 0),
-      "constant F, recruitment deviations" = bias_run(rep(1.2 * fm, 35), 0.4))
+f_det <- fapic_fudc(hist_years, 1, fref = fmsy, f0 = 0.1, fhi = 2.5, flo = 1.5, sigmaF = 0)
+f_const <- rep(1.5 * an(fmsy), length(hist_years))
+rbind("constant F, no recruitment deviations" = bias_run(f_const, 0),
+      "fudc F, no recruitment deviations" = bias_run(f_det, 0),
+      "constant F, recruitment deviations" = bias_run(f_const, sigR))
 
 #' 
 #' At equilibrium FLicc recovers the operating model's SPR within a few percent
-#' (the age-based growth of the operating model differs from FLicc's growth-type
-#' groups); the larger differences come from the rising F and from recruitment
-#' pulses. These are the effects an MSE needs to test.
+#' (the age-based growth of the operating model differs from FLicc's
+#' growth-type groups). Changes in F (the length compositions still carry fish
+#' from years of different F) and recruitment pulses give errors of 20-30% in
+#' some periods. These are the effects an MSE needs to test.
 #' 
 #' # For the MSE
 #' 
-#' * `om$stock` (`FLStock`, units F and M), `om$sr` and `om$refpts` define the
+#' * `om$stock` (`FLStockR`, units F and M), `om$sr` and `om$refpts` define the
 #'   operating model; `nsim` gives iterations with independent recruitment
 #'   deviations.
 #' * Reference points (`Fmsy`, `Bmsy`, `MSY`, `B0`, `Fspr40`, ...) are on the
