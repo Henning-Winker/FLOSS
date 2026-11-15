@@ -34,7 +34,8 @@ Suggests:
     writexl,
     shiny,
     shinydashboard,
-    commonmark
+    commonmark,
+    FLicc
 Additional_repositories: https://flr.r-universe.dev
 URL: https://henning-winker.github.io/FLOSS/, https://github.com/Henning-Winker/FLOSS
 BugReports: https://github.com/Henning-Winker/FLOSS/issues

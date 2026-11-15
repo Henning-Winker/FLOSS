@@ -1,0 +1,13 @@
+---
+title: "A sex-structured operating model with reference points"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{A sex-structured operating model with reference points}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, child = "../inst/guide/sex-structured.Rmd"}
+```

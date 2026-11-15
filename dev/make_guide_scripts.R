@@ -28,7 +28,13 @@ guides <- list(
        title = "FLOSS training example as an R script: summed effort and nominal CPUE",
        about = c("Blacktip reef shark in the three-fleet reef fishery: why nominal CPUE from effort summed over",
                  "fleets hides the decline, catchability per fishing day, effective effort and a standardised index."),
-       needs = "FLOSS and its FLR dependencies."))
+       needs = "FLOSS and its FLR dependencies."),
+  list(src = "inst/guide/sex-structured.Rmd", out = "inst/guide/FLOSS_sex_structured.R",
+       title = "FLOSS sex-structured operating model as an R script",
+       about = c("A dimorphic stock as an FLStock with the sexes in the unit dimension: life history by sex,",
+                 "stock-recruitment on female SSB, reference points of both sexes (checked against deterministic",
+                 "projections and FLBRP), the FLasher operating model, length samples by sex and FLicc assessments."),
+       needs = "FLOSS and its FLR dependencies; FLicc for the assessments."))
 
 for (g in guides) {
   tmp <- tempfile(fileext = ".R")

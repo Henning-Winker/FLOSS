@@ -25,6 +25,8 @@ navbar:
         href: articles/floss-04-cpue-aggregation.html
       - text: "Appendix: methods and equations"
         href: articles/floss-05-methods.html
+      - text: A sex-structured operating model with reference points
+        href: articles/floss-06-sex-structured.html
       - text: A reef operating model from saved specs
         href: articles/floss-01-reef-om.html
 
@@ -36,6 +38,7 @@ articles:
   - floss-03-teaching
   - floss-04-cpue-aggregation
   - floss-05-methods
+  - floss-06-sex-structured
   - floss-01-reef-om
 
 reference:
