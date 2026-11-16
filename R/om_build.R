@@ -223,6 +223,18 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
                      Blim = 0.25 * bmsy,
                      MSY = an(FLBRP::refpts(eq)["msy", "yield"]),
                      B0 = an(FLBRP::refpts(eq)["virgin", "ssb"]))
+  gtg_rp <- NULL
+  if (!is.null(G)) {
+    # reference points of the morph equilibrium at the realised fleet F pattern (last three years, median)
+    ly <- tail(keep, 3)
+    pat <- vapply(fishery$fleets, function(f) stats::median(c(apply(fapic[[f]][, ly], 6, mean))), 0)
+    pat <- pat / sum(pat)
+    rng <- range(om)
+    gtg_rp <- gtg_refpts(G, an(params(sr)["a"]), an(params(sr)["b"]), pat,
+                         fbar_ages = rng[["minfbar"]]:rng[["maxfbar"]])
+    om@refpts <- FLPar(Fmsy = gtg_rp[["Fmsy"]], Bmsy = gtg_rp[["Bmsy"]], Bthr = 0.5 * gtg_rp[["Bmsy"]],
+                       Blim = 0.25 * gtg_rp[["Bmsy"]], MSY = gtg_rp[["MSY"]], B0 = gtg_rp[["B0"]])
+  }
   name(om) <- sp$species
   desc(om) <- paste("FLOSS OM:", sp$species, "|", fishery$name)
 
@@ -232,7 +244,9 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
     spr <- fapic[[1]] %=% NA_real_
     for (i in seq_len(nsim)) for (y in keep)
       spr[, y, , , , i] <- gtg_spr(G, sapply(fishery$fleets, function(f) c(fapic[[f]][, y, , , , i])))
-    gtg_out <- list(G = G, spr = spr, fapic_full = fapic_full, years_full = yrs,
+    gtg_out <- list(G = G, spr = spr, fapic_full = fapic_full, years_full = yrs, refpts = gtg_rp,
+                    refpts_flbrp = FLPar(Fmsy = an(pts[1]), Bmsy = bmsy, MSY = an(FLBRP::refpts(eq)["msy", "yield"]),
+                                         B0 = an(FLBRP::refpts(eq)["virgin", "ssb"])),
                     cwt = FLQuants(lapply(gtg_cwt, function(x) x[, keep])))
   }
 

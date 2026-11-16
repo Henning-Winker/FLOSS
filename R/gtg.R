@@ -128,3 +128,31 @@ gtg_key <- function(G, cn_f, y, t, lens, bin, fleet) {
   }
   key
 }
+
+# equilibrium per recruit at constant fleet F: spawning biomass, yield (weight) and effective F at age
+gtg_eq <- function(G, Ff) {
+  pr <- gtg_pr(G, Ff); l <- pr$l; Z <- pr$Z
+  ypr <- sum(vapply(names(Ff), function(f)
+    sum(l * G$sel[[f]] * Ff[[f]] / Z * (1 - exp(-Z)) * G$w_mid), 0))
+  N <- colSums(l); surv <- colSums(l * exp(-Z))
+  list(phi = sum(l * G$w_beg * G$mat_beg), ypr = ypr, Feff = pmax(-log(surv / N) - G$M, 0))
+}
+
+# reference points of the growth-morph equilibrium for a fleet F pattern p (apical F by fleet), with the OM's
+# Beverton-Holt SRR (rec = a S / (b + S)): weight, maturity and selectivity at age change with F as the morph
+# composition changes, which FLBRP on a fixed (fished) pattern does not capture. F on the fbar scale of the FLStock
+# (effective F averaged over the fbar ages).
+gtg_refpts <- function(G, a, b, p, fbar_ages, spr_ref = 0.4) {
+  eqx <- function(x) gtg_eq(G, x * p)
+  fb <- function(e) mean(e$Feff[match(fbar_ages, G$ages)])
+  phi0 <- eqx(0)$phi
+  ssb <- function(e) max(a * e$phi - b, 0)
+  Y <- function(x) { e <- eqx(x); s <- ssb(e); if (s <= 0) 0 else s / e$phi * e$ypr }
+  xup <- 1; while (ssb(eqx(xup)) > 0 && xup < 1e3) xup <- xup * 2
+  xmsy <- stats::optimize(Y, c(0, xup), maximum = TRUE)$maximum
+  em <- eqx(xmsy)
+  xr <- stats::uniroot(function(x) eqx(x)$phi / phi0 - spr_ref, c(0, xup))$root
+  er <- eqx(xr)
+  c(Fmsy = fb(em), Bmsy = ssb(em), MSY = Y(xmsy), B0 = a * phi0 - b,
+    Fspr = fb(er), Bspr = ssb(er), SPRmsy = em$phi / phi0)
+}
