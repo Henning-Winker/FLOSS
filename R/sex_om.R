@@ -368,6 +368,13 @@ om_sex <- function(stk, sr, fapic, years = as.numeric(dimnames(stk)$year),
     dimnames(deviances)$age <- "0"
     if (dim(deviances)[6] == 1 && nsim > 1) deviances <- propagate(deviances, nsim)
   }
+  # the same deviation for both sexes (FLasher applies deviances by unit;
+  # without a unit dimension the sexes get different deviations and the sex
+  # ratio of recruits varies at random)
+  du <- FLQuant(NA_real_, dimnames = c(dimnames(deviances)[1:2], list(unit = c("F", "M")),
+                                       dimnames(deviances)[4:6]))
+  du[, , "F"] <- deviances; du[, , "M"] <- deviances
+  deviances <- du
   # start: equilibrium at each iteration's first-year F
   st <- propagate(init_stock_sex(stk, sr, F = c(fq[, 1, , , , 1]), years = years), nsim)
   x <- eq_inputs_sex(stk)
@@ -552,3 +559,24 @@ plot_om_sex <- function(om, iters = 1:3) {
     ggplot2::facet_wrap(~what, scales = "free_y", ncol = 3) +
     ggplot2::expand_limits(y = 0) + ggplot2::labs(x = NULL, y = NULL) + ggplot2::theme_bw()
 }
+
+#' Sex-structured operating model example (dimorphic stock)
+#'
+#' A sex-structured operating model built with [om_sex()] (script
+#' `dev/make_dimorph_om.R`): females Linf 60 cm, k 0.15, L50 35 cm; males
+#' Linf 45 cm, k 0.25, L50 28 cm; M = 0.3; Beverton-Holt steepness 0.7;
+#' 1976-2025, 10 iterations, F history from [fapic_fudc()] (up to 2.5 Fmsy,
+#' then 1.5 Fmsy), AR1 recruitment deviations (sigR 0.5, rho 0.3). A trawl
+#' fishery (dome-shaped selectivity, mode 34 cm) and a survey (logistic, 50%
+#' at 12 cm) with the life history and sampling of FLicc's `data(dimorph)`.
+#'
+#' @format A list with `om` ([om_sex()] result), `lh` ([lh_sex()]), `sel`
+#'   (trawl selectivity), `survey_sel`, `lfd` (`FLQuants` of iteration 1:
+#'   Trawl 400 unsexed fish a year and Survey 250 sexed fish a year from
+#'   2016, 2011-2025), `lhpar` (life history for `FLicc::stocklen_sex()`) and
+#'   `truth` (true status of iteration 1).
+#' @usage data(dimorph_om)
+#' @name dimorph_om
+#' @docType data
+#' @keywords datasets
+NULL

@@ -25,4 +25,8 @@ test_that("sex-structured equilibrium matches FLBRP for identical sexes and FLas
   l <- lfd_sex(om, survey_sel = selectivity("logistic", L50 = 12, L95 = 16), n = 100, sexed = TRUE)
   expect_equal(dimnames(l)$unit, c("F", "M"))
   expect_true(all(apply(l, 2, sum) == 100))
+  # recruits split equally between the sexes with recruitment deviations
+  om2 <- om_sex(stk, sr, fapic = rep(0.2, 3), sigR = 0.5, nsim = 3, seed = 2)
+  r <- stock.n(om2$stock)[1]
+  expect_equal(c(r[, , "F"]), c(r[, , "M"]), tolerance = 1e-5)
 })

@@ -1,0 +1,13 @@
+---
+title: "Building an operating model with FLife and FLRef"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Building an operating model with FLife and FLRef}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, child = "../inst/guide/om-flife-flref.Rmd"}
+```

@@ -34,7 +34,13 @@ guides <- list(
        about = c("A dimorphic stock as an FLStock with the sexes in the unit dimension: life history by sex,",
                  "stock-recruitment on female SSB, reference points of both sexes (checked against deterministic",
                  "projections and FLBRP), the FLasher operating model, length samples by sex and FLicc assessments."),
-       needs = "FLOSS and its FLR dependencies; FLicc for the assessments."))
+       needs = "FLOSS and its FLR dependencies; FLicc for the assessments."),
+  list(src = "inst/guide/om-flife-flref.Rmd", out = "inst/guide/FLOSS_om_flife_flref.R",
+       title = "FLOSS: building an operating model with FLife and FLRef, as an R script",
+       about = c("Mahsena emperor, traps and linefish: life history with FLife, gear selectivity at length,",
+                 "reference points, fudc() F history and catch by gear with FLRef, FLasher projection, two-stage",
+                 "length samples; then a sex-structured population with a trawl fishery and a survey (data(dimorph_om))."),
+       needs = "FLOSS, FLife, FLRef, FLBRP, FLasher; FLicc for the plots and the assessment."))
 
 for (g in guides) {
   tmp <- tempfile(fileext = ".R")
