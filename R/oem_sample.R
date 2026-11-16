@@ -163,8 +163,9 @@ sample_lfd <- function(om, oem, iters = 1:10) {
       if (!length(yy)) return(NULL)
       g <- if (identical(p$sel, om$species$sel[[f]])) gears[[f]] else
         gear_for(om, oem, f, p$sel)
+      key_fun <- if (!is.null(om$gtg)) gtg_key_fun(om, g, f, iters) else NULL
       seasonal_lfd(x, z_all, g, des, yy, iters, om$species$species, f,
-                   oem$lfd$ess_age[[f]], oem$lfd$ess_len[[f]])
+                   oem$lfd$ess_age[[f]], oem$lfd$ess_len[[f]], key_fun = key_fun)
     }))
   })
   sv <- oem$survey
@@ -190,7 +191,7 @@ survey_season <- function(oem) {
 # stage 1 draws clusters (ages) from the season's catch-at-age, stage 2 draws
 # lengths from the age-length key at the season's mid-point.
 seasonal_lfd <- function(x, z_all, g, des, yy, iters, species, source,
-                         ess_age, ess_len) {
+                         ess_age, ess_len, key_fun = NULL) {
   S <- des$n
   keys <- if (S == 1) list(g$condALK) else lapply(season_mid(S), function(t) cond_alk_at(g, t))
   lens <- round(as.numeric(colnames(keys[[1]])) * 10)
@@ -209,7 +210,9 @@ seasonal_lfd <- function(x, z_all, g, des, yy, iters, species, source,
         pa <- ca * fr[, s]
         if (sum(pa) <= 0) next
         an <- stats::rmultinom(1, max(ea[s], 1), pa)
-        pl <- as.numeric((an[, 1] / sum(an)) %*% keys[[s]])
+        K <- if (is.null(key_fun)) keys[[s]] else
+          key_fun(j, y, if (S == 1) 0.5 else season_mid(S)[s])
+        pl <- as.numeric((an[, 1] / sum(an)) %*% K)
         if (sum(pl) <= 0) next
         ln <- stats::rmultinom(1, el[s], pl)[, 1]
         k <- ln > 0
@@ -445,4 +448,21 @@ lfd_df <- function(x, species, source) {
              year = as.integer(as.character(d$year)), source = source,
              len_mm = round(as.numeric(as.character(d$len)) * 10),
              n = as.integer(round(d$data)))
+}
+
+# age-length keys of a fleet's catch from the growth morphs (one iteration at a time, cached)
+gtg_key_fun <- function(om, g, fleet, iters) {
+  G <- om$gtg$G
+  lens <- as.numeric(colnames(g$condALK))
+  bin <- if (length(lens) > 1) diff(lens)[1] else 1
+  cache <- new.env()
+  function(j, y, t) {
+    key <- as.character(iters[j])
+    if (is.null(cache[[key]])) {
+      Fy <- sapply(G$fleets, function(f) c(om$gtg$fapic_full[[f]][, , , , , iters[j]]))
+      cache[[key]] <- gtg_aggregate(G, matrix(Fy, ncol = length(G$fleets), dimnames = list(NULL, G$fleets)))$cn[[fleet]]
+    }
+    yi <- match(as.character(y), as.character(om$gtg$years_full))
+    gtg_key(G, cache[[key]], yi, t, lens, bin, fleet)
+  }
 }

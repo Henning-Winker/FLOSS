@@ -97,7 +97,10 @@ calibrate_msy <- function(sp, sels = NULL) {
 #'   `settings`.
 #' @export
 build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
-                     ar1 = FALSE, seed = fishery$seed, treatment = NULL) {
+                     ar1 = FALSE, seed = fishery$seed, treatment = NULL,
+                     gtg = NULL) {
+  if (!is.null(gtg) && length(treatment$selectivity))
+    stop("selectivity treatments are not yet supported with growth morphs (gtg)")
   sp <- validate_species(sp, fishery)
   yrs <- fishery_years(fishery)
   ny <- length(yrs)
@@ -159,6 +162,37 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
         years = yrs, nsim = nsim, units = "f")
   }))
   names(f_fleet) <- fishery$fleets
+  # growth morphs: effective F, weight and maturity at age from the morph dynamics (see gtg.R)
+  G <- NULL
+  if (!is.null(gtg)) {
+    if (isTRUE(gtg)) gtg <- gtg_settings()
+    gtg <- utils::modifyList(gtg_settings(), gtg)
+    lh0 <- sp$lh
+    vb0 <- function(t) lh0$linf * (1 - exp(-lh0$k * (t - lh0$t0)))
+    a1 <- which(as.numeric(ages) >= 1)
+    wscale <- sum(c(stock.wt(stk)[a1, 1, , , , 1])) / sum(lh0$a * vb0(as.numeric(ages)[a1])^lh0$b)
+    G <- gtg_setup(sp, fishery$fleets, gtg, wscale = wscale)
+    fapic_full <- fapic
+    fl <- fishery$fleets
+    arr <- function() array(0, c(length(ages), ny, nsim))
+    Feff <- wt_a <- mat_a <- cwt_a <- arr()
+    shr <- lapply(fl, function(f) arr()); names(shr) <- fl
+    cwf <- shr
+    for (i in seq_len(nsim)) {
+      Fy <- sapply(fl, function(f) c(fapic[[f]][, , , , , i]))
+      ag <- gtg_aggregate(G, matrix(Fy, ny, dimnames = list(NULL, fl)))
+      Feff[, , i] <- ag$Feff; wt_a[, , i] <- ag$wt; mat_a[, , i] <- ag$mat; cwt_a[, , i] <- ag$cwt_tot
+      for (f in fl) { shr[[f]][, , i] <- ag$share[[f]]; cwf[[f]][, , i] <- ag$cwt[[f]] }
+    }
+    q_of <- function(x, u) flq(c(x), age = ages, years = yrs, nsim = nsim, units = u)
+    f_fleet <- FLQuants(lapply(fl, function(f) q_of(Feff * shr[[f]], "f")))
+    names(f_fleet) <- fl
+    stock.wt(stk)[] <- c(wt_a); mat(stk)[] <- c(mat_a)
+    catch.wt(stk)[] <- c(cwt_a); landings.wt(stk)[] <- c(cwt_a); discards.wt(stk)[] <- c(cwt_a)
+    gtg_cwt <- FLQuants(lapply(fl, function(f) q_of(cwf[[f]], units(catch.wt(stk)))))
+    names(gtg_cwt) <- fl
+  }
+
   ftot <- Reduce(`+`, f_fleet)
   harvest(stk)[, -1] <- ftot[, -1]
   units(harvest(stk)) <- "f"
@@ -192,8 +226,18 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
   name(om) <- sp$species
   desc(om) <- paste("FLOSS OM:", sp$species, "|", fishery$name)
 
+  gtg_out <- NULL
+  if (!is.null(G)) {
+    # true equilibrium SPR by year from the morphs at each year's fleet F
+    spr <- fapic[[1]] %=% NA_real_
+    for (i in seq_len(nsim)) for (y in keep)
+      spr[, y, , , , i] <- gtg_spr(G, sapply(fishery$fleets, function(f) c(fapic[[f]][, y, , , , i])))
+    gtg_out <- list(G = G, spr = spr, fapic_full = fapic_full, years_full = yrs,
+                    cwt = FLQuants(lapply(gtg_cwt, function(x) x[, keep])))
+  }
+
   structure(list(
-    stock = om, sr = sr, brp = eql, brp_realised = eq, sel = sels,
+    stock = om, sr = sr, brp = eql, brp_realised = eq, sel = sels, gtg = gtg_out,
     fapic = fapic, f_fleet = f_fleet,
     effort = FLQuants(lapply(effort$effort, function(x) x[, keep])),
     efficiency = FLQuants(lapply(effort$efficiency, function(x) x[, keep])),
@@ -250,10 +294,14 @@ catch_fleet <- function(om, type = c("wt", "n")) {
   stk <- om$stock
   z <- harvest(stk) + m(stk)
   surv <- stock.n(stk) * (1 - exp(-z)) / z
-  out <- lapply(om$f_fleet, function(f) {
-    cn <- surv * f
-    if (type == "n") cn else quantSums(cn * catch.wt(stk))
+  fl <- names(om$f_fleet)
+  out <- lapply(fl, function(f) {
+    cn <- surv * om$f_fleet[[f]]
+    if (type == "n") return(cn)
+    cw <- if (!is.null(om$gtg)) om$gtg$cwt[[f]] else catch.wt(stk)
+    quantSums(cn * cw)
   })
+  names(out) <- fl
   FLQuants(out)
 }
 
