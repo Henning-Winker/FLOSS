@@ -344,9 +344,13 @@ refpts_table <- function(om) {
 
 lh_table <- function(sp) {
   lh <- sp$lh
+  # maturity used by the OM: logistic at age, 50% at tm and 95% one year later (FLife ato95 = 1), as lengths
+  # at those ages (also the length-based maturity of the growth-morph OM); lm_cm is the species' reported
+  # length at maturity, which the OM does not use
+  vb <- function(t) lh$linf * (1 - exp(-lh$k * (t - lh$t0)))
   data.frame(species = sp$species, linf_cm = lh$linf, k = lh$k, t0 = lh$t0,
-             a = lh$a, b = lh$b, lm_cm = lh$lm, tmax = lh$tmax, M = lh$M,
-             steepness = lh$s)
+             a = lh$a, b = lh$b, lm_cm = lh$lm, l50_cm = vb(lh$tm), l95_cm = vb(lh$tm + 1),
+             tmax = lh$tmax, M = lh$M, steepness = lh$s)
 }
 
 # ---- helpers ----------------------------------------------------------------
