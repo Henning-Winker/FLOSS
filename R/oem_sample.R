@@ -267,6 +267,8 @@ sample_bio <- function(om, oem, iters = 1:10) {
     }
     if (nfish <= 0) return(NULL)
     S <- des$n
+    # growth morphs: age-length keys from the morphs in the fleet's catch at age (as for the length samples)
+    kf <- if (!is.null(om$gtg) && s != "survey") gtg_key_fun(om, gears[[s]], s, iters) else NULL
     K0 <- gears[[s]]$condALK
     lens <- as.numeric(colnames(K0))
     bw <- gears[[s]]$grid$bin
@@ -277,7 +279,8 @@ sample_bio <- function(om, oem, iters = 1:10) {
       do.call(rbind, lapply(yrs, function(y) {
         p <- c(x[, y, , , , j])
         if (sum(p) <= 0 || nm[[y]] <= 0) return(NULL)
-        keys <- keys_for(y)
+        keys <- if (is.null(kf)) keys_for(y) else
+          lapply(if (S == 1) 0.5 else season_mid(S), function(t) kf(j, y, t))
         fr <- if (S == 1) matrix(1, length(p), 1) else season_catch_frac(c(z_all[, y, , , , j]), S)
         ns <- split_n(scale_n(nfish, nm[[y]]), sh[y, ])
         a <- integer(0); l <- numeric(0); sea <- integer(0)
