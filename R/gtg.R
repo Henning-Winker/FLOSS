@@ -116,6 +116,7 @@ gtg_aggregate <- function(G, Fy, tr = gtg_track(G, Fy)) {
 # age-length keys of one fleet's catch (age x length x year x time), from the morphs in the catch at age.
 # Within a morph, length at time t in the year is normal around the morph's VB length (SD cv_res x length), and
 # the gear selects on that length; cn_f is the morph catch (morph x age x year) from gtg_aggregate().
+# Building catch at length from morph numbers follows genLF() in M. Taylor's FLR platoon code.
 gtg_keys <- function(G, cn_f, tt, lens, bin, fleet) {
   na <- length(G$ages); ny <- dim(cn_f)[3]; nl <- length(lens)
   sl <- G$sel_fun[[fleet]](lens + bin / 2)

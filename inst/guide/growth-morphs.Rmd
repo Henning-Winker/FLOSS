@@ -258,7 +258,8 @@ plot_seasons(dat, iter = 1)
 
 **Truth against samples.** `gtg_lfq()` gives the true catch-at-length by
 fleet, year and season: the composition the samples are drawn from, without
-sampling error (Appendix A9). `plot_gtg_lfq()` shows it with the samples (here
+sampling error (Appendix A9; the approach follows M. Taylor's FLR platoon code).
+`plot_gtg_lfq()` shows it with the samples (here
 with the seasons weighted equally, as the samples are; see below):
 
 ```{r gtg-lfq, fig.height = 4.6}
@@ -611,7 +612,9 @@ C^{L}_{f,l,y,s} = \sum_a \varphi_{a,s}\,C_{f,a,y}\,K_{f,a,l,y}(t_s)
 $$
 
 (`gtg_lfq()`). Summed over lengths it equals the fleet's catch at age within
-the length range.
+the length range. Building the catch at length from the numbers by morph, with
+lengths read at the time of the catch, follows the `genLF()` function of
+M. Taylor's FLR platoon code.
 
 ## A10 SPR and reference points of the morph equilibrium
 
@@ -671,6 +674,12 @@ $$
 | $\varphi_{a,s}$ | share of the annual catch at age in season $s$ | `season_catch_frac()` |
 | $K_{f,a,l,y}(t)$ | age-length key of fleet $f$'s catch | `gtg_keys()` |
 | $C^L_{f,l,y,s}$ | true catch at length | `gtg_lfq()` |
+
+## Acknowledgements
+
+We thank Mark Taylor for sharing his FLR code for growth platoons, which
+shaped the split of the CV of Linf (A1), the computation of catch at length
+from morph numbers (A7, A9) and the design of `plot_gtg_linf()`.
 
 ## References
 

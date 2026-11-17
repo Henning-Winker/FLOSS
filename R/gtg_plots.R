@@ -3,6 +3,10 @@
 #' Catch numbers by length, year and season for each fleet, from the growth morphs in the catch at age
 #' (the same keys the length sampler uses). This is the length composition the samples are drawn from,
 #' without sampling error: use it to check samples, or as a true `FLStockLen` input for length-based methods.
+#'
+#' Building the length composition of the catch from the numbers by growth morph, with lengths at the time
+#' of the catch, follows the `genLF()` function of M. Taylor's FLR platoon code. We thank Mark Taylor for
+#' sharing it.
 #' @param om a `floss_om` built with `gtg`.
 #' @param oem optional [oem_settings()], for the length bins (default `oem_settings(om$fishery)`).
 #' @param fleets fleets (default all).
