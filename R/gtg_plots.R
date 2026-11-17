@@ -53,9 +53,6 @@ gtg_lfq <- function(om, oem = NULL, fleets = NULL, seasons = 12, iters = 1, year
 
 #' Plots of the growth-morph structure of an operating model
 #'
-#' * `plot_gtg_linf()`: asymptotic length and recruitment share of each morph, the spread of lengths
-#'   within a morph (bars, +/- 2 SD), and the target normal distribution with the total CV (scaled to the
-#'   grid spacing).
 #' * `plot_gtg_growth()`: growth curves of the morphs (line width by recruitment share) and the mean VB curve.
 #' * `plot_gtg_selectivity()`: effective selectivity at age by fleet (fleet F at age / apical F) in the
 #'   first and last years, against the selectivity at age of the age-based OM (`FLRef::sel_la`).
@@ -76,25 +73,36 @@ gtg_lfq <- function(om, oem = NULL, fleets = NULL, seasons = 12, iters = 1, year
 #' @name plot_gtg
 NULL
 
-#' @rdname plot_gtg
+#' Plot the distribution of asymptotic length among growth morphs
+#'
+#' Each morph's lengths are normal around its Linf (SD `cv_res` x Linf). The morph distributions are drawn
+#' with their peaks on the target distribution of Linf among fish (normal, total CV `cv`), so the morphs
+#' show both their spread and how they tile the target distribution. Shading runs from slow to fast growers.
+#' @param om a `floss_om` built with `gtg`, or a morph structure from `gtg_setup()`.
+#' @return a `ggplot`.
+#' @author Mark Taylor (design), Henning Winker
 #' @export
 plot_gtg_linf <- function(om) {
   G <- gtg_G(om); st <- G$settings; linf <- sum(G$recP * G$linf_g)
-  dL <- diff(G$linf_g)[1]
-  d <- data.frame(L = G$linf_g, p = G$recP, lo = G$linf_g * (1 - 2 * st$cv_res),
-                  hi = G$linf_g * (1 + 2 * st$cv_res))
-  x <- seq(linf * (1 - 3.5 * st$cv), linf * (1 + 3.5 * st$cv), length.out = 300)
-  tgt <- data.frame(L = x, p = stats::dnorm(x, linf, st$cv * linf) * dL)   # density x grid spacing
-  ggplot2::ggplot(d, ggplot2::aes(L, p)) +
-    ggplot2::geom_line(data = tgt, colour = "grey55", linewidth = 0.8) +
-    ggplot2::geom_segment(ggplot2::aes(xend = L, yend = 0), colour = "#08519c", linewidth = 0.7) +
-    ggplot2::geom_errorbarh(ggplot2::aes(xmin = lo, xmax = hi), height = 0, colour = "#6BAED6",
-                            linewidth = 0.5, alpha = 0.8) +
-    ggplot2::geom_point(colour = "#08519c", size = 2) +
-    ggplot2::geom_vline(xintercept = linf, linetype = 3) +
-    ggplot2::labs(x = expression(L[infinity] ~ "(cm)"), y = "Share of recruits",
-                  subtitle = sprintf(paste("%d morphs (points); bars: \u00b12 SD within a morph (CV %.3f);",
-                                           "line: target normal, CV %.2f"), length(G$linf_g), st$cv_res, st$cv)) +
+  sd_t <- st$cv * linf
+  x <- seq(linf - 4 * sd_t, linf + 4 * sd_t, length.out = 500)
+  tgt <- data.frame(x = x, y = stats::dnorm(x, linf, sd_t))
+  comp <- do.call(rbind, lapply(seq_along(G$linf_g), function(g) {
+    sdg <- st$cv_res * G$linf_g[g]
+    xx <- seq(G$linf_g[g] - 4 * sdg, G$linf_g[g] + 4 * sdg, length.out = 120)
+    # morph distribution scaled so its peak sits on the target distribution at the morph's Linf
+    data.frame(x = xx, morph = g,
+               y = stats::dnorm(xx, G$linf_g[g], sdg) / stats::dnorm(0, 0, sdg) *
+                 stats::dnorm(G$linf_g[g], linf, sd_t))
+  }))
+  ggplot2::ggplot(comp, ggplot2::aes(x, y)) +
+    ggplot2::geom_area(ggplot2::aes(group = morph, fill = factor(morph)), position = "identity",
+                       alpha = 0.45, colour = NA) +
+    ggplot2::geom_line(data = tgt, linewidth = 0.9, colour = "black") +
+    ggplot2::scale_fill_manual(values = grDevices::hcl.colors(length(G$linf_g), "viridis"), guide = "none") +
+    ggplot2::labs(x = expression(L[infinity] ~ "(cm)"), y = "Density",
+                  subtitle = sprintf("%d morphs, within-morph CV %.3f; line: Linf among fish, CV %.2f",
+                                     length(G$linf_g), st$cv_res, st$cv)) +
     ggplot2::theme_bw()
 }
 

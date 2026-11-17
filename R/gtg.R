@@ -14,9 +14,10 @@
 #'
 #' @param n number of growth morphs.
 #' @param maxsd range of the morphs in standard deviations of Linf.
-#' @param cv coefficient of variation of Linf (length-at-age variability).
-#' @param cv_res residual CV of length within a morph (smooths the sampled length compositions).
-#' @return a list for `build_om(gtg = )` / `build_oms(gtg = )`.
+#' @param cv total coefficient of variation of Linf among fish (length-at-age variability).
+#' @param cv_res CV of length within a morph; default `cv / sqrt(n)`. The between-morph CV is
+#'   `sqrt(cv^2 - cv_res^2)`, so the total spread equals `cv` (split after M. Taylor's FLR platoon code).
+#' @return a list for `build_om(gtg = )` / `build_oms(gtg = )`, with `cv_between` added.
 #' @export
 gtg_settings <- function(n = 15, maxsd = 2.5, cv = 0.1, cv_res = NULL) {
   cv_res <- cv_res %||% (cv / sqrt(n))

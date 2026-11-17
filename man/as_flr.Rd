@@ -36,7 +36,7 @@ survey, with the log-scale standard error (from the sampling CV) in
 limit, cm) x year, counts summed over seasons, as FLicc's \code{fiticc()} and
 \code{stocklen()} take them; \code{lfd_raised} the same raised to the catch
 (\code{\link[=lfd_aggregate]{lfd_aggregate()}});
-\item \code{lhpar}: \code{FLPar} with \code{linf}, \code{k}, \code{t0}, \code{M}, \code{L50}, \code{a}, \code{b}, \code{tmax}
+\item \code{lhpar}: \code{FLPar} with \code{linf}, \code{k}, \code{t0}, \code{M}, \code{L50}, \code{L95} (maturity used by the OM), \code{a}, \code{b}, \code{tmax}
 and \code{s} (steepness), with \code{a} converted so that weight is in kg (FLicc
 convention; FLOSS uses g);
 \item \code{catch_by_gear}: share of the catch by fleet over the years with length

@@ -6,7 +6,7 @@
 \usage{
 floss_guide(
   guide = c("user-guide", "teaching", "cpue-aggregation", "methods", "how-it-works",
-    "reef-om", "all"),
+    "reef-om", "growth-morphs", "all"),
   dir = ".",
   render = FALSE,
   script = TRUE,
@@ -16,7 +16,7 @@ floss_guide(
 }
 \arguments{
 \item{guide}{\code{"user-guide"}, \code{"teaching"}, \code{"cpue-aggregation"}, \code{"methods"} (appendix with the
-equations), \code{"how-it-works"}, \code{"reef-om"},
+equations), \code{"how-it-works"}, \code{"reef-om"}, \code{"growth-morphs"},
 or \code{"all"}.}
 
 \item{dir}{folder to write to (created).}
@@ -26,7 +26,7 @@ the code, which takes a few minutes for the user guide and the teaching
 scenarios).}
 
 \item{script}{also write the R script: the code with the guide text as
-\verb{#'} comments (\code{\link[knitr:knit]{knitr::purl()}} with \code{documentation = 2}). Fully
+\verb{#'} comments (\code{\link[knitr:purl]{knitr::purl()}} with \code{documentation = 2}). Fully
 commented scripts of the user guide and the teaching scenarios are also
 installed: \code{system.file("guide", "FLOSS_user_guide.R", package = "FLOSS")}.}
 

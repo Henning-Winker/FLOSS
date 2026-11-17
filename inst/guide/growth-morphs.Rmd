@@ -86,10 +86,10 @@ gs <- gtg_settings(n = 15, maxsd = 2.5, cv = 0.1)
 unlist(gs)
 ```
 
-`plot_gtg_linf()` shows each morph's Linf and share of the recruits, the
-spread of lengths within a morph (bars), and the target normal distribution of
-Linf with the total CV (line). It works on a morph structure before any OM is
-built:
+`plot_gtg_linf()` (design by M. Taylor) shows the distribution of lengths
+within each morph, with each peak placed on the target normal distribution of
+Linf among fish (line, total CV). It works on a morph structure before any OM
+is built:
 
 ```{r gtg-linf, fig.height = 3.6}
 G <- FLOSS:::gtg_setup(sp, fy$fleets, gs)
