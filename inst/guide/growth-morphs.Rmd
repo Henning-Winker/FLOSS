@@ -86,7 +86,7 @@ gs <- gtg_settings(n = 15, maxsd = 2.5, cv = 0.1)
 unlist(gs)
 ```
 
-`plot_gtg_linf()` (design by M. Taylor) shows the distribution of lengths
+`plot_gtg_linf()` shows the distribution of lengths
 within each morph, with each peak placed on the target normal distribution of
 Linf among fish (line, total CV). It works on a morph structure before any OM
 is built:
@@ -95,6 +95,8 @@ is built:
 G <- FLOSS:::gtg_setup(sp, fy$fleets, gs)
 plot_gtg_linf(G) + ggtitle(sp$species)
 ```
+
+<p style="text-align:center; font-size:90%; margin-top:-0.5em;">(after Mark Taylor)</p>
 
 **Choosing `n` and `cv`.** A CV of 0.1 is the usual default in GTG-LBSPR and
 FLicc. Values of 0.05–0.15 cover most teleosts. SPR converges as `n` grows:
