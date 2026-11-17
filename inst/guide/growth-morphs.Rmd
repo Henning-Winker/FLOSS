@@ -141,6 +141,20 @@ The two sets of reference points differ. In the morph equilibrium, weight,
 maturity and effective selectivity at age change with F. FLBRP holds the
 fished pattern fixed. `om$stock@refpts` uses the morph values.
 
+**Reference points from steepness and R0.** `gtg_brp()` computes the same
+morph-equilibrium reference points for any steepness $h$ and unfished
+recruitment $R_0$, from a species spec without building an OM, or from an OM
+(by default with its own stock-recruitment relationship). The fleet pattern sets
+how F is shared between gears. This shows how Fmsy and Bmsy depend on which
+gears fish:
+
+```{r gtg-brp}
+round(gtg_brp(sp, h = 0.7, R0 = 1000), 3)               # pattern = relq, B in t (R0 in thousands)
+round(gtg_brp(sp, h = 0.7, R0 = 1000,
+              pattern = c(traps = 0, gillnet = 0, linefish = 1)), 3)   # linefish only
+all.equal(c(gtg_brp(om)[c("Fmsy", "Bmsy")]), unname(om$gtg$refpts[c("Fmsy", "Bmsy")]))
+```
+
 # 5 Check the morphs
 
 **Growth curves.** Line width shows each morph's share of the recruits; the
@@ -640,7 +654,9 @@ with $c_{f,g,a} = \ell_{g,a}\,s_{f,g,a}F_f\,(1 - e^{-Z_{g,a}})/Z_{g,a}$, the
 equilibrium catch per recruit as in A5.
 
 The true SPR in year $y$ (`om$gtg$spr`) is $\text{SPR}(\mathbf{F}_y)$ at that
-year's fleet F. With the OM's Beverton–Holt relationship $R = aS/(b + S)$,
+year's fleet F. With a Beverton–Holt relationship $R = aS/(b + S)$ (the OM's own, or from
+steepness $h$ and unfished recruitment $R_0$ in `gtg_brp()`:
+$B_0 = R_0\,\psi(\mathbf{0})$, $a = 4hR_0/(5h - 1)$, $b = B_0(1 - h)/(5h - 1)$),
 equilibrium SSB and yield along the fleet F pattern $\mathbf{F} = x\,\mathbf{p}$
 (the median pattern of the last three years) are
 

@@ -165,5 +165,85 @@ gtg_refpts <- function(G, a, b, p, fbar_ages, spr_ref = 0.4) {
   xr <- stats::uniroot(function(x) eqx(x)$phi / phi0 - spr_ref, c(0, xup))$root
   er <- eqx(xr)
   c(Fmsy = fb(em), Bmsy = ssb(em), MSY = Y(xmsy), B0 = a * phi0 - b,
-    Fspr = fb(er), Bspr = ssb(er), SPRmsy = em$phi / phi0)
+    Fspr = fb(er), Bspr = ssb(er), SPRmsy = em$phi / phi0, Fmult_msy = xmsy, Fmult_spr = xr)
+}
+
+#' Reference points with growth morphs from steepness and unfished recruitment
+#'
+#' Fmsy, Bmsy, MSY and B0 of the growth-morph equilibrium, for a Beverton-Holt stock-recruitment relationship
+#' given by steepness `h` and unfished recruitment `R0`. Weight, maturity and effective selectivity at age
+#' change with F as fast growers are fished out, which equilibrium methods on a fixed selectivity at age miss
+#' (see [build_om()] with `gtg`).
+#'
+#' The relationship `R = a S / (b + S)` follows from `h` and `R0` with the unfished spawning biomass per
+#' recruit `phi0` of the morphs: `B0 = R0 phi0`, `a = 4 h R0 / (5 h - 1)`, `b = B0 (1 - h) / (5 h - 1)`.
+#' F is moved along the fleet pattern `p` (apical F by fleet, scaled to sum to 1): `F_f = x p_f`.
+#' @param x a species spec ([load_species()]) or a `floss_om` built with `gtg`.
+#' @param h steepness. Default: the species' `s`; for an OM, its own SRR when `h` and `R0` are both `NULL`.
+#' @param R0 unfished recruitment (default 1, so biomass is per recruit). For an OM with `h` given and
+#'   `R0 = NULL`, the OM's R0.
+#' @param pattern apical F by fleet (named vector; any scale). Default: the species' `relq` for a spec; the
+#'   median fleet F of the last three years for an OM.
+#' @param gtg morph settings ([gtg_settings()]), used for a species spec.
+#' @param fbar_ages ages over which effective F is averaged for Fmsy (default 1 to tmax - 1, as in FLOSS OMs;
+#'   for an OM, its fbar range).
+#' @param spr_ref SPR of the SPR-based proxy (default 0.4).
+#' @return an `FLPar` with `Fmsy` (on the fbar scale, effective F), `Bmsy`, `MSY`, `B0`, `BmsyB0`, `SPRmsy`,
+#'   `Fspr` and `Bspr` (at `spr_ref`), `h`, `R0`, and the apical F of each fleet at MSY (`Fmsy_<fleet>`).
+#'   For a species spec, weights are in kg (FLOSS specs give g), so biomass is in tonnes when `R0` is in
+#'   thousands.
+#' @examples
+#' \dontrun{
+#' sp <- load_species("siganus_sutor")
+#' gtg_brp(sp, h = 0.7, R0 = 1000)
+#' gtg_brp(sp, h = 0.7, pattern = c(traps = 1, gillnet = 0, linefish = 0))   # traps only
+#' }
+#' @export
+gtg_brp <- function(x, h = NULL, R0 = NULL, pattern = NULL, gtg = gtg_settings(), fbar_ages = NULL,
+                    spr_ref = 0.4) {
+  a <- b <- NULL                                          # set directly only for an OM's own SRR
+  if (inherits(x, "floss_om")) {
+    if (is.null(x$gtg)) stop("the OM was built without growth morphs (gtg)")
+    G <- x$gtg$G
+    if (is.null(pattern)) {
+      ly <- utils::tail(dimnames(x$stock)$year, 3)
+      pattern <- vapply(G$fleets, function(f) stats::median(c(apply(x$fapic[[f]][, ly], 6, mean))), 0)
+    }
+    rng <- range(x$stock)
+    fbar_ages <- fbar_ages %||% (rng[["minfbar"]]:rng[["maxfbar"]])
+    a0 <- an(params(x$sr)["a"]); b0 <- an(params(x$sr)["b"])
+    if (is.null(h) && is.null(R0)) { a <- a0; b <- b0 }
+    else {
+      p0 <- stats::setNames(rep(0, length(G$fleets)), G$fleets)
+      phi0 <- gtg_eq(G, p0)$phi
+      R0 <- R0 %||% ((a0 * phi0 - b0) / phi0)
+      h <- h %||% { B0 <- a0 * phi0 - b0; 0.2 * (b0 + B0) / (b0 + 0.2 * B0) }
+    }
+  } else {
+    sp <- x
+    fl <- names(pattern %||% sp$relq)
+    G <- gtg_setup(sp, fl, do.call(gtg_settings, gtg[intersect(names(gtg), c("n", "maxsd", "cv", "cv_res"))]),
+                   wscale = 1 / 1000)
+    pattern <- pattern %||% unlist(sp$relq)[fl]
+    fbar_ages <- fbar_ages %||% (1:(sp$lh$tmax - 1))
+    h <- h %||% sp$lh$s
+    R0 <- R0 %||% 1
+  }
+  pattern <- pattern[G$fleets]
+  if (any(!is.finite(pattern)) || sum(pattern) <= 0) stop("'pattern' needs positive F for at least one fleet")
+  p <- pattern / sum(pattern)
+  if (is.null(a)) {
+    if (h <= 0.2 || h > 1) stop("steepness must be in (0.2, 1]")
+    phi0 <- gtg_eq(G, p * 0)$phi
+    B0 <- R0 * phi0
+    a <- 4 * h * R0 / (5 * h - 1)
+    b <- B0 * (1 - h) / (5 * h - 1)
+  }
+  rp <- gtg_refpts(G, a, b, p, fbar_ages = fbar_ages, spr_ref = spr_ref)
+  B0 <- rp[["B0"]]
+  h_out <- 0.2 * (b + B0) / (b + 0.2 * B0)
+  R0_out <- a * B0 / (b + B0)
+  out <- c(rp[c("Fmsy", "Bmsy", "MSY", "B0")], BmsyB0 = rp[["Bmsy"]] / B0, rp[c("SPRmsy", "Fspr", "Bspr")],
+           h = h_out, R0 = R0_out, stats::setNames(rp[["Fmult_msy"]] * p, paste0("Fmsy_", names(p))))
+  do.call(FLPar, as.list(out))
 }

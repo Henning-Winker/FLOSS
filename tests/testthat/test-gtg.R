@@ -41,3 +41,20 @@ test_that("true catch-at-length matches the morph keys and catch at age", {
   for (f in fy$fleets)
     expect_equal(sum(lq[[f]][, y]), sum(cn[[f]][, y, , , , 2]), tolerance = 0.02)
 })
+
+test_that("gtg_brp reproduces the OM's morph reference points and responds to steepness", {
+  fy <- load_fishery("reef_3fleets")
+  sp <- load_species("lutjanus_bohar"); sp$lh$sigR <- 0.01
+  om <- build_om(sp, fy, nsim = 1, gtg = gtg_settings(n = 9))
+  r <- gtg_brp(om)
+  expect_equal(c(r["Fmsy"]), om$gtg$refpts[["Fmsy"]], tolerance = 1e-6)
+  expect_equal(c(r["Bmsy"]), om$gtg$refpts[["Bmsy"]], tolerance = 1e-6)
+  # same SRR expressed as h and R0
+  r2 <- gtg_brp(om, h = c(r["h"]), R0 = c(r["R0"]))
+  expect_equal(c(r2["Bmsy"]), c(r["Bmsy"]), tolerance = 1e-4)
+  # species spec: higher steepness -> higher Fmsy, lower Bmsy/B0; B scales with R0
+  lo <- gtg_brp(sp, h = 0.6); hi <- gtg_brp(sp, h = 0.9)
+  expect_gt(c(hi["Fmsy"]), c(lo["Fmsy"]))
+  expect_lt(c(hi["BmsyB0"]), c(lo["BmsyB0"]))
+  expect_equal(c(gtg_brp(sp, h = 0.6, R0 = 1000)["Bmsy"]), 1000 * c(lo["Bmsy"]), tolerance = 1e-6)
+})
