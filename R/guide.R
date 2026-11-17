@@ -64,7 +64,7 @@ floss_guide <- function(guide = c("user-guide", "teaching", "cpue-aggregation", 
   if (file.exists(rmd) && !overwrite)
     stop(rmd, " exists; use overwrite = TRUE to replace it")
   writeLines(c("---", paste0("title: \"", g$title, "\""),
-               "output:", "  html_document:", "    toc: true", "    toc_float: true", "---", "",
+               "output:", "  html_document:", "    toc: true", "    toc_float: true", "    math_method: mathml", "---", "",
                readLines(src, warn = FALSE)), rmd)
   out <- rmd
   if (script) {

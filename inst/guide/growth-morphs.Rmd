@@ -17,6 +17,10 @@ them.
   ->  9 Export and fit  ->  Appendix: equations
 ```
 
+```{css, echo = FALSE}
+span.math.display, math[display="block"] { display: block; max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+```
+
 ```{r gtg-packages}
 library(FLOSS)
 library(ggplot2)
@@ -82,9 +86,10 @@ gs <- gtg_settings(n = 15, maxsd = 2.5, cv = 0.1)
 unlist(gs)
 ```
 
-`plot_gtg_linf()` shows the morph components, their mixture (dashed) and the
-target normal distribution of Linf (solid). It works on a morph structure
-before any OM is built:
+`plot_gtg_linf()` shows each morph's Linf and share of the recruits, the
+spread of lengths within a morph (bars), and the target normal distribution of
+Linf with the total CV (line). It works on a morph structure before any OM is
+built:
 
 ```{r gtg-linf, fig.height = 3.6}
 G <- FLOSS:::gtg_setup(sp, fy$fleets, gs)
@@ -393,8 +398,11 @@ the CV set by the user.
 Grid and recruitment shares, for morph $g = 1, \dots, G$:
 
 $$
-z_g = -z_{max} + \frac{2 z_{max}\,(g-1)}{G-1}, \qquad
-p_g = \frac{\phi(z_g)}{\sum_h \phi(z_h)},
+z_g = -z_{max} + \frac{2 z_{max}\,(g-1)}{G-1}
+$$
+
+$$
+p_g = \frac{\phi(z_g)}{\sum_h \phi(z_h)}
 $$
 
 with $\phi$ the standard normal density and $z_{max}$ = `maxsd`. The grid is
@@ -406,20 +414,30 @@ Split of the total CV into a between-morph and a within-morph part (after
 M. Taylor's FLR platoon code):
 
 $$
-CV_w = \frac{CV}{\sqrt{G}}, \qquad CV_b = \sqrt{CV^2 - CV_w^2}, \qquad
+CV_w = \frac{CV}{\sqrt{G}}
+$$
+
+$$
+CV_b = \sqrt{CV^2 - CV_w^2}
+$$
+
+$$
 L_{\infty,g} = L_\infty\,(1 + CV_b\,\tilde z_g).
 $$
 
 The mixture of within-morph normals then has variance
-$\approx (CV\,L_\infty)^2$ (`plot_gtg_linf()`).
+$\approx (CV\,L_\infty)^2$.
 
 ## A2 Growth, weight and maturity by morph
 
 All morphs share $k$, $t_0$ and $M$:
 
 $$
-L_g(t) = L_{\infty,g}\left(1 - e^{-k(t - t_0)}\right),
-\qquad w_{g,a} = c\,\alpha\,L_g(a)^{\beta},
+L_g(t) = L_{\infty,g}\left(1 - e^{-k(t - t_0)}\right)
+$$
+
+$$
+w_{g,a} = c\,\alpha\,L_g(a)^{\beta}
 $$
 
 with $c$ a scaling that makes the mean weight at age equal that of the
@@ -428,8 +446,11 @@ uses the mid-year length $L_g(a + 0.5)$. Maturity is logistic in length, with
 $L_{50} = L(t_m)$ and $L_{95} = L(t_m + 1)$ from the mean VB curve:
 
 $$
-m_{g,a} = \left[1 + \exp\!\left(-\ln 19\,\frac{L_g(a) - L_{50}}{L_{95} - L_{50}}\right)\right]^{-1},
-\qquad m_{g,0} = 0 .
+m_{g,a} = \left[1 + \exp\!\left(-\ln 19\,\frac{L_g(a) - L_{50}}{L_{95} - L_{50}}\right)\right]^{-1}
+$$
+
+$$
+m_{g,0} = 0 .
 $$
 
 ## A3 Selectivity by morph
@@ -456,9 +477,15 @@ Z_{g,a,y} = M + \sum_f s_{f,g,a}\,F_{f,y},
 $$
 
 $$
-\ell_{g,0,y} = p_g, \qquad
-\ell_{g,a+1,y+1} = \ell_{g,a,y}\,e^{-Z_{g,a,y}}, \qquad
-\ell_{g,A,y+1} \mathrel{+}= \ell_{g,A,y}\,e^{-Z_{g,A,y}},
+\ell_{g,0,y} = p_g
+$$
+
+$$
+\ell_{g,a+1,y+1} = \ell_{g,a,y}\,e^{-Z_{g,a,y}}
+$$
+
+$$
+\ell_{g,A,y+1} \mathrel{+}= \ell_{g,A,y}\,e^{-Z_{g,A,y}}
 $$
 
 with $A$ the plus group. The first year starts at the equilibrium at its F:
@@ -475,7 +502,10 @@ Recruitment then scales everything.
 Numbers and survivors per recruit, effective F:
 
 $$
-N_{a,y} = \sum_g \ell_{g,a,y}, \qquad
+N_{a,y} = \sum_g \ell_{g,a,y}
+$$
+
+$$
 F^{e}_{a,y} = -\ln\!\left(\frac{\sum_g \ell_{g,a,y}\,e^{-Z_{g,a,y}}}{N_{a,y}}\right) - M .
 $$
 
@@ -483,17 +513,25 @@ Weight and maturity at age (maturity as a weight-weighted mean, so SSB
 matches):
 
 $$
-W_{a,y} = \frac{\sum_g \ell_{g,a,y}\,w_{g,a}}{N_{a,y}}, \qquad
+W_{a,y} = \frac{\sum_g \ell_{g,a,y}\,w_{g,a}}{N_{a,y}}
+$$
+
+$$
 \text{mat}_{a,y} = \frac{\sum_g \ell_{g,a,y}\,w_{g,a}\,m_{g,a}}{\sum_g \ell_{g,a,y}\,w_{g,a}} .
 $$
 
 Catch by fleet, catch shares and fleet F at age:
 
 $$
-C_{f,g,a,y} = \ell_{g,a,y}\,\frac{s_{f,g,a}F_{f,y}}{Z_{g,a,y}}\left(1 - e^{-Z_{g,a,y}}\right),
-\qquad
-\pi_{f,a,y} = \frac{\sum_g C_{f,g,a,y}}{\sum_{f'}\sum_g C_{f',g,a,y}},
-\qquad F_{f,a,y} = \pi_{f,a,y}\,F^{e}_{a,y}.
+C_{f,g,a,y} = \ell_{g,a,y}\,\frac{s_{f,g,a}F_{f,y}}{Z_{g,a,y}}\left(1 - e^{-Z_{g,a,y}}\right)
+$$
+
+$$
+\pi_{f,a,y} = \frac{\sum_g C_{f,g,a,y}}{\sum_{f'}\sum_g C_{f',g,a,y}}
+$$
+
+$$
+F_{f,a,y} = \pi_{f,a,y}\,F^{e}_{a,y}.
 $$
 
 Catch weight by fleet is $\sum_g C_{f,g,a,y}\,w_{g}(a+0.5) / \sum_g C_{f,g,a,y}$.
@@ -509,8 +547,11 @@ proportion to the numbers caught in each season under constant $Z$.
 For $S$ seasons with limits $t_{s-1} = (s-1)/S$ and $t_s = s/S$:
 
 $$
-\varphi_{a,s} = \frac{e^{-Z_{a,y}\,t_{s-1}} - e^{-Z_{a,y}\,t_s}}{1 - e^{-Z_{a,y}}},
-\qquad C_{f,a,y,s} = \varphi_{a,s}\,C_{f,a,y},
+\varphi_{a,s} = \frac{e^{-Z_{a,y}\,t_{s-1}} - e^{-Z_{a,y}\,t_s}}{1 - e^{-Z_{a,y}}}
+$$
+
+$$
+C_{f,a,y,s} = \varphi_{a,s}\,C_{f,a,y}
 $$
 
 with $Z_{a,y} = F^e_{a,y} + M$ from the FLStock and $\sum_s \varphi_{a,s} = 1$.
@@ -525,8 +566,11 @@ For length bin $[l, l + \Delta)$ at time $t$ in the year (the middle of the
 season):
 
 $$
-P_{g,a,l}(t) = \Phi\!\left(\frac{l + \Delta - L_g(a+t)}{CV_w\,L_g(a+t)}\right)
-             - \Phi\!\left(\frac{l - L_g(a+t)}{CV_w\,L_g(a+t)}\right),
+P_{g,a,l}(t) = \Phi\!\left(u_{g,a,l+\Delta}\right) - \Phi\!\left(u_{g,a,l}\right)
+$$
+
+$$
+u_{g,a,x} = \frac{x - L_g(a+t)}{CV_w\,L_g(a+t)}
 $$
 
 $$
@@ -548,9 +592,11 @@ The effective sample sizes are split over the seasons by the season shares
 $q_s$: $n^{a}_s = q_s\,n^{a}$ and $n^{L}_s = q_s\,n^{L}$. Then
 
 $$
-\mathbf{x}^{a}_s \sim \text{Mult}\!\left(n^a_s,\; C_{f,\cdot,y,s}\right),
-\qquad
-\mathbf{x}^{L}_s \sim \text{Mult}\!\left(n^L_s,\; \sum_a \frac{x^a_{a,s}}{n^a_s}\,K_{f,a,\cdot,y}(t_s)\right),
+\mathbf{x}^{a}_s \sim \text{Mult}\!\left(n^a_s,\; C_{f,\cdot,y,s}\right)
+$$
+
+$$
+\mathbf{x}^{L}_s \sim \text{Mult}\!\left(n^L_s,\; \sum_a \frac{x^a_{a,s}}{n^a_s}\,K_{f,a,\cdot,y}(t_s)\right)
 $$
 
 with $t_s$ the middle of season $s$. Fewer clusters give overdispersed length
@@ -574,14 +620,19 @@ $\ell_{g,a}(\mathbf{F})$ follow from A4. Spawning biomass per recruit, SPR
 and yield per recruit:
 
 $$
-\psi(\mathbf{F}) = \sum_{g,a} \ell_{g,a}\,w_{g,a}\,m_{g,a}, \qquad
-\text{SPR}(\mathbf{F}) = \frac{\psi(\mathbf{F})}{\psi(\mathbf{0})},
+\psi(\mathbf{F}) = \sum_{g,a} \ell_{g,a}\,w_{g,a}\,m_{g,a}
 $$
 
 $$
-\text{YPR}(\mathbf{F}) = \sum_f \sum_{g,a} \ell_{g,a}\,\frac{s_{f,g,a}F_f}{Z_{g,a}}
-\left(1 - e^{-Z_{g,a}}\right) w_g(a + 0.5).
+\text{SPR}(\mathbf{F}) = \frac{\psi(\mathbf{F})}{\psi(\mathbf{0})}
 $$
+
+$$
+\text{YPR}(\mathbf{F}) = \sum_f \sum_{g,a} c_{f,g,a}\,w_g(a + 0.5)
+$$
+
+with $c_{f,g,a} = \ell_{g,a}\,s_{f,g,a}F_f\,(1 - e^{-Z_{g,a}})/Z_{g,a}$, the
+equilibrium catch per recruit as in A5.
 
 The true SPR in year $y$ (`om$gtg$spr`) is $\text{SPR}(\mathbf{F}_y)$ at that
 year's fleet F. With the OM's Beverton–Holt relationship $R = aS/(b + S)$,
@@ -589,7 +640,11 @@ equilibrium SSB and yield along the fleet F pattern $\mathbf{F} = x\,\mathbf{p}$
 (the median pattern of the last three years) are
 
 $$
-S(x) = a\,\psi(x\mathbf{p}) - b, \qquad Y(x) = \frac{S(x)}{\psi(x\mathbf{p})}\,\text{YPR}(x\mathbf{p}),
+S(x) = a\,\psi(x\mathbf{p}) - b
+$$
+
+$$
+Y(x) = \frac{S(x)}{\psi(x\mathbf{p})}\,\text{YPR}(x\mathbf{p})
 $$
 
 $x_{MSY} = \arg\max_x Y(x)$, $B_{MSY} = S(x_{MSY})$, $B_0 = a\,\psi(\mathbf{0}) - b$
