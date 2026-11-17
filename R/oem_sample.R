@@ -457,19 +457,24 @@ lfd_df <- function(x, species, source) {
              n = as.integer(round(d$data)))
 }
 
-# age-length keys of a fleet's catch from the growth morphs (one iteration at a time, cached)
+# age-length keys of a fleet's catch from the growth morphs, cached by iteration and time in the year
 gtg_key_fun <- function(om, g, fleet, iters) {
   G <- om$gtg$G
   lens <- as.numeric(colnames(g$condALK))
   bin <- if (length(lens) > 1) diff(lens)[1] else 1
   cache <- new.env()
   function(j, y, t) {
-    key <- as.character(iters[j])
-    if (is.null(cache[[key]])) {
-      Fy <- sapply(G$fleets, function(f) c(om$gtg$fapic_full[[f]][, , , , , iters[j]]))
-      cache[[key]] <- gtg_aggregate(G, matrix(Fy, ncol = length(G$fleets), dimnames = list(NULL, G$fleets)))$cn[[fleet]]
-    }
-    yi <- match(as.character(y), as.character(om$gtg$years_full))
-    gtg_key(G, cache[[key]], yi, t, lens, bin, fleet)
+    key <- paste(iters[j], format(t, digits = 8))
+    ck <- paste0("cn", iters[j])
+    if (is.null(cache[[ck]])) cache[[ck]] <- gtg_catch_morph(om, iters[j])[[fleet]]
+    if (is.null(cache[[key]])) cache[[key]] <- gtg_keys(G, cache[[ck]], t, lens, bin, fleet)[, , , 1]
+    cache[[key]][, , match(as.character(y), as.character(om$gtg$years_full))]
   }
+}
+
+# morph catch numbers (morph x age x year, all OM years) by fleet for one iteration
+gtg_catch_morph <- function(om, i) {
+  G <- om$gtg$G
+  Fy <- sapply(G$fleets, function(f) c(om$gtg$fapic_full[[f]][, , , , , i]))
+  gtg_aggregate(G, matrix(Fy, ncol = length(G$fleets), dimnames = list(NULL, G$fleets)))$cn
 }

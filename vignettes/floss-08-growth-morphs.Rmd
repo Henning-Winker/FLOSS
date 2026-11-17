@@ -1,0 +1,11 @@
+---
+title: "FLOSS 8: growth morphs, seasonal length sampling and tuning"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FLOSS 8: growth morphs, seasonal length sampling and tuning}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, child = "../inst/guide/growth-morphs.Rmd"}
+```

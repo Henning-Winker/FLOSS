@@ -165,8 +165,8 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
   # growth morphs: effective F, weight and maturity at age from the morph dynamics (see gtg.R)
   G <- NULL
   if (!is.null(gtg)) {
-    if (isTRUE(gtg)) gtg <- gtg_settings()
-    gtg <- utils::modifyList(gtg_settings(), gtg)
+    if (isTRUE(gtg)) gtg <- list()
+    gtg <- do.call(gtg_settings, gtg[intersect(names(gtg), c("n", "maxsd", "cv", "cv_res"))])
     lh0 <- sp$lh
     vb0 <- function(t) lh0$linf * (1 - exp(-lh0$k * (t - lh0$t0)))
     a1 <- which(as.numeric(ages) >= 1)

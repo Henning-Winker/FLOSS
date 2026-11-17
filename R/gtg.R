@@ -18,8 +18,10 @@
 #' @param cv_res residual CV of length within a morph (smooths the sampled length compositions).
 #' @return a list for `build_om(gtg = )` / `build_oms(gtg = )`.
 #' @export
-gtg_settings <- function(n = 15, maxsd = 2.5, cv = 0.1, cv_res = 0.02) {
-  list(n = n, maxsd = maxsd, cv = cv, cv_res = cv_res)
+gtg_settings <- function(n = 15, maxsd = 2.5, cv = 0.1, cv_res = NULL) {
+  cv_res <- cv_res %||% (cv / sqrt(n))
+  if (cv_res >= cv) stop("cv_res must be smaller than cv (the total CV of Linf)")
+  list(n = n, maxsd = maxsd, cv = cv, cv_res = cv_res, cv_between = sqrt(cv^2 - cv_res^2))
 }
 
 # selectivity at length of a species' fleet spec (FLRef shapes), scaled to a maximum of 1
@@ -37,9 +39,11 @@ sel_len_spec <- function(s, L, Lmax) {
 gtg_setup <- function(sp, fleets, gtg, wscale = 1) {
   lh <- sp$lh
   ages <- 0:lh$tmax
+  gtg <- gtg_settings(gtg$n, gtg$maxsd, gtg$cv, gtg$cv_res)
   z <- seq(-gtg$maxsd, gtg$maxsd, length.out = gtg$n)
   recP <- stats::dnorm(z); recP <- recP / sum(recP)
-  linf_g <- lh$linf * (1 + gtg$cv * z)
+  z <- z / sqrt(sum(recP * z^2))                           # grid SD exactly 1 (truncation at maxsd)
+  linf_g <- lh$linf * (1 + gtg$cv_between * z)
   len <- function(t) pmax(outer(linf_g, 1 - exp(-lh$k * (t - lh$t0))), 1e-6)
   vb <- function(t) lh$linf * (1 - exp(-lh$k * (t - lh$t0)))
   L50 <- vb(lh$tm); L95 <- vb(lh$tm + 1)
@@ -108,26 +112,31 @@ gtg_aggregate <- function(G, Fy, tr = gtg_track(G, Fy)) {
        cwt_tot = ifelse(ctot > 0, Reduce(`+`, cw_f) / ctot, 0), cn = cn)
 }
 
-# age-length key of one fleet's catch in one year and season (age x length), from the morphs in the catch at age
-gtg_key <- function(G, cn_f, y, t, lens, bin, fleet) {
-  na <- length(G$ages)
-  Lm <- G$len(G$ages + t)                                  # morph x age, length at time t in the year
-  up <- lens + bin
-  mids <- lens + bin / 2
-  sl <- G$sel_fun[[fleet]](mids)
-  q <- cn_f[, , y]
-  key <- matrix(0, na, length(lens))
-  for (a in seq_len(na)) {
-    w <- q[, a]
-    if (sum(w) <= 0) next
-    sd <- pmax(G$cv_res * Lm[, a], 1e-3)
-    p <- stats::pnorm(outer(Lm[, a], up, function(m, u) (u - m)) / sd) -
-         stats::pnorm(outer(Lm[, a], lens, function(m, u) (u - m)) / sd)
-    k <- as.numeric(w %*% p) * sl
-    if (sum(k) > 0) key[a, ] <- k / sum(k)
+# age-length keys of one fleet's catch (age x length x year x time), from the morphs in the catch at age.
+# Within a morph, length at time t in the year is normal around the morph's VB length (SD cv_res x length), and
+# the gear selects on that length; cn_f is the morph catch (morph x age x year) from gtg_aggregate().
+gtg_keys <- function(G, cn_f, tt, lens, bin, fleet) {
+  na <- length(G$ages); ny <- dim(cn_f)[3]; nl <- length(lens)
+  sl <- G$sel_fun[[fleet]](lens + bin / 2)
+  out <- array(0, c(na, nl, ny, length(tt)))
+  for (k in seq_along(tt)) {
+    Lm <- G$len(G$ages + tt[k])                            # morph x age
+    sd <- pmax(G$cv_res * Lm, 1e-3)
+    for (a in seq_len(na)) {
+      P <- stats::pnorm(outer(Lm[, a], lens + bin, "-") / -sd[, a]) -
+           stats::pnorm(outer(Lm[, a], lens, "-") / -sd[, a])       # morph x length
+      K <- crossprod(matrix(cn_f[, a, ], ncol = ny), P)             # year x length
+      K <- sweep(K, 2, sl, `*`)
+      s <- rowSums(K)
+      K <- K / ifelse(s > 0, s, 1)
+      out[a, , , k] <- t(K)
+    }
   }
-  key
+  out
 }
+
+gtg_key <- function(G, cn_f, y, t, lens, bin, fleet)
+  gtg_keys(G, cn_f[, , y, drop = FALSE], t, lens, bin, fleet)[, , 1, 1]
 
 # equilibrium per recruit at constant fleet F: spawning biomass, yield (weight) and effective F at age
 gtg_eq <- function(G, Ff) {

@@ -14,7 +14,9 @@ floss_guides <- list(
   `how-it-works` = list(file = "how-it-works.md", out = "floss-00-how-it-works",
                         title = "How FLOSS works"),
   `reef-om`      = list(file = "reef-om.Rmd", out = "floss-01-reef-om",
-                        title = "FLOSS 1: a multi-fleet reef operating model from saved specs"))
+                        title = "FLOSS 1: a multi-fleet reef operating model from saved specs"),
+  `growth-morphs` = list(file = "growth-morphs.Rmd", out = "floss-08-growth-morphs",
+                        title = "FLOSS 8: growth morphs, seasonal length sampling and tuning"))
 
 #' Copy, and optionally render, a FLOSS guide
 #'
@@ -24,7 +26,7 @@ floss_guides <- list(
 #' with its code, and with `render = TRUE` renders it to HTML.
 #'
 #' @param guide `"user-guide"`, `"teaching"`, `"cpue-aggregation"`, `"methods"` (appendix with the
-#'   equations), `"how-it-works"`, `"reef-om"`,
+#'   equations), `"how-it-works"`, `"reef-om"`, `"growth-morphs"`,
 #'   or `"all"`.
 #' @param dir folder to write to (created).
 #' @param render also render to HTML (needs 'rmarkdown' and pandoc; runs all
@@ -44,7 +46,7 @@ floss_guides <- list(
 #' floss_guide("all", dir = "guides", render = TRUE)
 #' }
 floss_guide <- function(guide = c("user-guide", "teaching", "cpue-aggregation", "methods", "how-it-works",
-                                  "reef-om", "all"),
+                                  "reef-om", "growth-morphs", "all"),
                         dir = ".", render = FALSE, script = TRUE, open = interactive(),
                         overwrite = FALSE) {
   guide <- match.arg(guide)
