@@ -84,6 +84,9 @@ calibrate_msy <- function(sp, sels = NULL) {
 #'   when building several species so they share one effort realisation; by
 #'   default it is regenerated from the fishery seed, which gives the same).
 #' @param sigmaQ lognormal SD of species-specific catchability noise.
+#' @param sigmaFiter lognormal SD of a multiplier on the whole F history of each iteration (all fleets and
+#'   years; median 1). Spreads the depletion levels across iterations while keeping the shape of the history
+#'   and the catch shares between fleets. Default 0 (none).
 #' @param ar1 use the species' `rho` for AR1 recruitment deviations.
 #' @param seed base seed for recruitment (and `sigmaQ`) deviations; combined
 #'   with the species id so species differ but are reproducible.
@@ -96,7 +99,7 @@ calibrate_msy <- function(sp, sels = NULL) {
 #'   F-at-age by fleet), `effort`, `efficiency`, `species`, `fishery` and
 #'   `settings`.
 #' @export
-build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
+build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0, sigmaFiter = 0,
                      ar1 = FALSE, seed = fishery$seed, treatment = NULL,
                      gtg = NULL) {
   if (!is.null(gtg) && length(treatment$selectivity))
@@ -143,6 +146,10 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
     devs <- rlnormar1(n = nsim, meanlog = 0, sdlog = sp$lh$sigR,
                              rho = rho, years = yrs[-1], bias.correct = TRUE)
     devs <- devs * rec_multiplier(treatment, yrs[-1])
+    if (sigmaFiter > 0) {                                  # drawn last: other draws unchanged
+      fmult <- stats::rlnorm(nsim, 0, sigmaFiter)
+      fapic <- lapply(fapic, function(x) { x[] <- c(x) * rep(fmult, each = ny); x })
+    }
     list(fapic = fapic, devs = devs)
   })
   fapic <- FLQuants(stats::setNames(res$fapic, fishery$fleets))
