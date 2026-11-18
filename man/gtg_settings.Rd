@@ -4,7 +4,7 @@
 \alias{gtg_settings}
 \title{Settings for growth-type groups in the operating model}
 \usage{
-gtg_settings(n = 15, maxsd = 2.5, cv = 0.1, cv_res = NULL)
+gtg_settings(n = 15, maxsd = 2.5, cv = 0.1, cv_res = NULL, nsub = 12)
 }
 \arguments{
 \item{n}{number of growth morphs.}
@@ -15,6 +15,11 @@ gtg_settings(n = 15, maxsd = 2.5, cv = 0.1, cv_res = NULL)
 
 \item{cv_res}{CV of length within a morph; default \code{cv / sqrt(n)}. The between-morph CV is
 \code{sqrt(cv^2 - cv_res^2)}, so the total spread equals \code{cv} (split after M. Taylor's FLR platoon code).}
+
+\item{nsub}{number of sub-annual steps of the morph dynamics (default 12, monthly): within the year each fleet
+selects on the length each morph has in that step, so fishing follows growth through the year (as in a
+continuous-time length-based model); the FLStock stays annual. Seasons of the sampler group these steps
+(12, 4 or 1 seasons with nsub = 12).}
 }
 \value{
 a list for \code{build_om(gtg = )} / \code{build_oms(gtg = )}, with \code{cv_between} added.

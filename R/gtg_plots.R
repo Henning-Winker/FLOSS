@@ -29,18 +29,17 @@ gtg_lfq <- function(om, oem = NULL, fleets = NULL, seasons = 12, iters = 1, year
   years <- as.character(years %||% dimnames(stk)$year)
   yi <- match(years, as.character(om$gtg$years_full))
   cn <- catch_fleet(om, "n")
-  tt <- season_mid(seasons)
   out <- lapply(fleets, function(f) {
     lens <- as.numeric(colnames(gears[[f]]$condALK))
     bin <- if (length(lens) > 1) diff(lens)[1] else 1
+    ld <- gtg_len_dist(G, lens, bin, f)
     arr <- array(0, c(length(lens), length(years), 1, seasons, 1, length(iters)))
     for (j in seq_along(iters)) {
-      K <- gtg_keys(G, gtg_catch_morph(om, iters[j])[[f]], tt, lens, bin, f)   # age x len x year x season
+      cs <- gtg_catch_morph(om, iters[j], sub = TRUE)[[f]]           # morph x age x year x step
       for (y in seq_along(years)) {
         ca <- c(cn[[f]][, years[y], , , , iters[j]])
-        z <- c(harvest(stk)[, years[y], , , , iters[j]] + m(stk)[, years[y], , , , iters[j]])
-        fr <- season_catch_frac(z, seasons)
-        for (s in seq_len(seasons)) arr[, y, 1, s, 1, j] <- crossprod(K[, , yi[y], s], ca * fr[, s])
+        sk <- gtg_season_keys(G, array(cs[, , yi[y], ], dim(cs)[c(1, 2, 4)]), seasons, ld)
+        for (s in seq_len(seasons)) arr[, y, 1, s, 1, j] <- crossprod(sk$keys[[s]], ca * sk$fr[, s])
         if (!identical(season_weights, "catch")) {
           w <- if (identical(season_weights, "equal")) rep(1, seasons) else season_weights
           tot <- colSums(matrix(arr[, y, 1, , 1, j], ncol = seasons))

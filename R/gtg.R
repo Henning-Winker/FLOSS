@@ -17,12 +17,17 @@
 #' @param cv total coefficient of variation of Linf among fish (length-at-age variability).
 #' @param cv_res CV of length within a morph; default `cv / sqrt(n)`. The between-morph CV is
 #'   `sqrt(cv^2 - cv_res^2)`, so the total spread equals `cv` (split after M. Taylor's FLR platoon code).
+#' @param nsub number of sub-annual steps of the morph dynamics (default 12, monthly): within the year each fleet
+#'   selects on the length each morph has in that step, so fishing follows growth through the year (as in a
+#'   continuous-time length-based model); the FLStock stays annual. Seasons of the sampler group these steps
+#'   (12, 4 or 1 seasons with nsub = 12).
 #' @return a list for `build_om(gtg = )` / `build_oms(gtg = )`, with `cv_between` added.
 #' @export
-gtg_settings <- function(n = 15, maxsd = 2.5, cv = 0.1, cv_res = NULL) {
+gtg_settings <- function(n = 15, maxsd = 2.5, cv = 0.1, cv_res = NULL, nsub = 12) {
   cv_res <- cv_res %||% (cv / sqrt(n))
   if (cv_res >= cv) stop("cv_res must be smaller than cv (the total CV of Linf)")
-  list(n = n, maxsd = maxsd, cv = cv, cv_res = cv_res, cv_between = sqrt(cv^2 - cv_res^2))
+  if (nsub < 1) stop("nsub must be >= 1")
+  list(n = n, maxsd = maxsd, cv = cv, cv_res = cv_res, cv_between = sqrt(cv^2 - cv_res^2), nsub = as.integer(nsub))
 }
 
 # selectivity at length of a species' fleet spec (FLRef shapes), scaled to a maximum of 1
@@ -40,7 +45,7 @@ sel_len_spec <- function(s, L, Lmax) {
 gtg_setup <- function(sp, fleets, gtg, wscale = 1) {
   lh <- sp$lh
   ages <- 0:lh$tmax
-  gtg <- gtg_settings(gtg$n, gtg$maxsd, gtg$cv, gtg$cv_res)
+  gtg <- gtg_settings(gtg$n, gtg$maxsd, gtg$cv, gtg$cv_res, gtg$nsub %||% 12)
   z <- seq(-gtg$maxsd, gtg$maxsd, length.out = gtg$n)
   recP <- stats::dnorm(z); recP <- recP / sum(recP)
   z <- z / sqrt(sum(recP * z^2))                           # grid SD exactly 1 (truncation at maxsd)
@@ -50,13 +55,35 @@ gtg_setup <- function(sp, fleets, gtg, wscale = 1) {
   L50 <- vb(lh$tm); L95 <- vb(lh$tm + 1)
   L_beg <- len(ages); L_mid <- len(ages + 0.5)
   Lmax <- 1.5 * max(linf_g)
+  nsub <- gtg$nsub; tsub <- (seq_len(nsub) - 0.5) / nsub    # sub-annual steps (middle of each)
+  L_sub <- array(vapply(tsub, function(t) len(ages + t), L_beg), c(dim(L_beg), nsub))
+  sel_sub <- lapply(sp$sel[fleets], function(s) array(sel_len_spec(s, L_sub, Lmax), dim(L_sub)))
   list(ages = ages, recP = recP, linf_g = linf_g, len = len, M = lh$M, cv_res = gtg$cv_res,
        L50 = L50, L95 = L95, fleets = fleets,
        w_beg = wscale * lh$a * L_beg^lh$b, w_mid = wscale * lh$a * L_mid^lh$b,
+       w_sub = wscale * lh$a * L_sub^lh$b, nsub = nsub, tsub = tsub, L_sub = L_sub,
        mat_beg = cbind(0, (1 / (1 + exp(-log(19) * (L_beg - L50) / (L95 - L50))))[, -1, drop = FALSE]),  # age 0 immature (FLasher ignores age-0 SSB)
-       sel = lapply(sp$sel[fleets], function(s) matrix(sel_len_spec(s, L_mid, Lmax), nrow(L_mid))),
+       sel_sub = sel_sub,                                    # morph x age x sub-step, at the length in that step
+       sel = lapply(sel_sub, function(x) apply(x, c(1, 2), mean)),   # mean over the year: annual Z and survival
        sel_fun = lapply(sp$sel[fleets], function(s) function(L) sel_len_spec(s, L, Lmax)),
        settings = gtg)
+}
+
+# catch numbers by fleet, morph, age and sub-annual step for numbers l (morph x age) at the start of the year:
+# within the year, each fleet selects on the length of each morph in that step. Survival over the year equals
+# exp(-Z) with Z from the mean selectivity (G$sel), as in gtg_track().
+gtg_catch_sub <- function(G, l, Ff) {
+  fl <- names(Ff); dt <- 1 / G$nsub
+  N <- l
+  out <- lapply(fl, function(f) array(0, c(dim(l), G$nsub))); names(out) <- fl
+  for (s in seq_len(G$nsub)) {
+    Fs <- lapply(fl, function(f) G$sel_sub[[f]][, , s] * Ff[[f]])
+    Zs <- G$M + Reduce(`+`, Fs)
+    D <- N * (1 - exp(-Zs * dt)) / Zs
+    for (i in seq_along(fl)) out[[i]][, , s] <- D * Fs[[i]]
+    N <- N * exp(-Zs * dt)
+  }
+  out
 }
 
 # per-recruit numbers by morph and age at constant fleet F (named vector by fleet)
@@ -92,59 +119,75 @@ gtg_track <- function(G, Fy) {
 
 # aggregates by age and year for one iteration: effective F (survival-equivalent), weight and maturity at age,
 # catch numbers, catch shares and catch weight by fleet
-gtg_aggregate <- function(G, Fy, tr = gtg_track(G, Fy)) {
+gtg_aggregate <- function(G, Fy, tr = gtg_track(G, Fy), keep_sub = FALSE) {
   l <- tr$l; Z <- tr$Z; fl <- colnames(Fy); ny <- nrow(Fy)
   N <- apply(l, c(2, 3), sum)
   surv <- apply(l * exp(-Z), c(2, 3), sum)
   Feff <- pmax(-log(surv / N) - G$M, 0)
-  wb <- array(G$w_beg, dim(l)); mb <- array(G$mat_beg, dim(l)); wm <- array(G$w_mid, dim(l))
+  wb <- array(G$w_beg, dim(l)); mb <- array(G$mat_beg, dim(l))
   wt <- apply(l * wb, c(2, 3), sum) / N
   mat <- apply(l * wb * mb, c(2, 3), sum) / apply(l * wb, c(2, 3), sum)
-  cn <- lapply(fl, function(f) {
-    Ff <- aperm(array(Fy[, f], c(ny, dim(l)[1:2])), c(2, 3, 1))
-    l * array(G$sel[[f]], dim(l)) * Ff / Z * (1 - exp(-Z))
-  })
-  names(cn) <- fl
-  c_f <- lapply(cn, function(x) apply(x, c(2, 3), sum))
-  cw_f <- lapply(cn, function(x) apply(x * wm, c(2, 3), sum))
-  ctot <- Reduce(`+`, c_f)
-  list(Feff = Feff, wt = wt, mat = mat, share = lapply(c_f, function(x) ifelse(ctot > 0, x / ctot, 0)),
-       cwt = lapply(fl, function(f) ifelse(c_f[[f]] > 0, cw_f[[f]] / c_f[[f]], 0)) |> stats::setNames(fl),
-       cwt_tot = ifelse(ctot > 0, Reduce(`+`, cw_f) / ctot, 0), cn = cn)
-}
-
-# age-length keys of one fleet's catch (age x length x year x time), from the morphs in the catch at age.
-# Within a morph, length at time t in the year is normal around the morph's VB length (SD cv_res x length), and
-# the gear selects on that length; cn_f is the morph catch (morph x age x year) from gtg_aggregate().
-# Building catch at length from morph numbers follows genLF() in M. Taylor's FLR platoon code.
-gtg_keys <- function(G, cn_f, tt, lens, bin, fleet) {
-  na <- length(G$ages); ny <- dim(cn_f)[3]; nl <- length(lens)
-  sl <- G$sel_fun[[fleet]](lens + bin / 2)
-  out <- array(0, c(na, nl, ny, length(tt)))
-  for (k in seq_along(tt)) {
-    Lm <- G$len(G$ages + tt[k])                            # morph x age
-    sd <- pmax(G$cv_res * Lm, 1e-3)
-    for (a in seq_len(na)) {
-      P <- stats::pnorm(outer(Lm[, a], lens + bin, "-") / -sd[, a]) -
-           stats::pnorm(outer(Lm[, a], lens, "-") / -sd[, a])       # morph x length
-      K <- crossprod(matrix(cn_f[, a, ], ncol = ny), P)             # year x length
-      K <- sweep(K, 2, sl, `*`)
-      s <- rowSums(K)
-      K <- K / ifelse(s > 0, s, 1)
-      out[a, , , k] <- t(K)
+  csub <- lapply(fl, function(f) array(0, c(dim(l), G$nsub))); names(csub) <- fl
+  cn <- lapply(fl, function(f) array(0, dim(l))); names(cn) <- fl
+  cw <- lapply(fl, function(f) matrix(0, dim(l)[2], ny)); names(cw) <- fl
+  for (y in seq_len(ny)) {
+    cy <- gtg_catch_sub(G, l[, , y], stats::setNames(Fy[y, ], fl))
+    for (f in fl) {
+      if (keep_sub) csub[[f]][, , y, ] <- cy[[f]]
+      cn[[f]][, , y] <- apply(cy[[f]], c(1, 2), sum)
+      cw[[f]][, y] <- colSums(apply(cy[[f]] * G$w_sub, c(1, 2), sum))
     }
   }
-  out
+  c_f <- lapply(cn, function(x) apply(x, c(2, 3), sum))
+  ctot <- Reduce(`+`, c_f)
+  list(Feff = Feff, wt = wt, mat = mat, share = lapply(c_f, function(x) ifelse(ctot > 0, x / ctot, 0)),
+       cwt = lapply(fl, function(f) ifelse(c_f[[f]] > 0, cw[[f]] / c_f[[f]], 0)) |> stats::setNames(fl),
+       cwt_tot = ifelse(ctot > 0, Reduce(`+`, cw) / ctot, 0), cn = cn, csub = if (keep_sub) csub)
 }
 
-gtg_key <- function(G, cn_f, y, t, lens, bin, fleet)
-  gtg_keys(G, cn_f[, , y, drop = FALSE], t, lens, bin, fleet)[, , 1, 1]
+# within-morph length distributions in each sub-annual step, weighted by the gear's selectivity at length and
+# normalised within each morph: list over steps of lists over ages of morph x length matrices. Within a morph,
+# length is normal around the morph's VB length in that step (SD cv_res x length).
+gtg_len_dist <- function(G, lens, bin, fleet) {
+  sl <- G$sel_fun[[fleet]](lens + bin / 2)
+  lapply(seq_len(G$nsub), function(s) {
+    Lm <- G$L_sub[, , s]; sd <- pmax(G$cv_res * Lm, 1e-3)
+    lapply(seq_along(G$ages), function(a) {
+      P <- stats::pnorm(outer(Lm[, a], lens + bin, "-") / -sd[, a]) -
+           stats::pnorm(outer(Lm[, a], lens, "-") / -sd[, a])
+      P <- sweep(P, 2, sl, `*`)
+      P / pmax(rowSums(P), 1e-300)
+    })
+  })
+}
+
+# seasonal catch fractions at age (age x season) and age-length keys (list over seasons of age x length) of one
+# fleet in one year, from its catch by morph, age and sub-annual step (csub_y: morph x age x step). Seasons group
+# the sub-annual steps (nsub = 12 and 12, 4 or 1 seasons: months, quarters, year).
+# Building catch at length from morph numbers follows genLF() in M. Taylor's FLR platoon code.
+gtg_season_keys <- function(G, csub_y, S, ld) {
+  na <- length(G$ages); nl <- ncol(ld[[1]][[1]])
+  if (S <= G$nsub) {                                       # seasons group the steps
+    grp <- split(seq_len(G$nsub), ceiling(seq_len(G$nsub) * S / G$nsub)); share <- rep(1, S)
+  } else {                                                 # more seasons than steps: each season in its step
+    st <- ceiling(season_mid(S) * G$nsub); grp <- as.list(st); share <- 1 / tabulate(st, G$nsub)[st]
+  }
+  ca <- apply(csub_y, 2, sum)
+  fr <- sapply(seq_along(grp), function(q) share[q] * apply(csub_y[, , grp[[q]], drop = FALSE], 2, sum))
+  fr <- matrix(fr, na); fr <- fr / ifelse(ca > 0, ca, 1)
+  keys <- lapply(grp, function(ss) {
+    K <- matrix(0, na, nl)
+    for (a in seq_len(na)) for (s in ss) K[a, ] <- K[a, ] + as.numeric(csub_y[, a, s] %*% ld[[s]][[a]])
+    K / ifelse(rowSums(K) > 0, rowSums(K), 1)
+  })
+  list(fr = fr, keys = keys)
+}
 
 # equilibrium per recruit at constant fleet F: spawning biomass, yield (weight) and effective F at age
 gtg_eq <- function(G, Ff) {
   pr <- gtg_pr(G, Ff); l <- pr$l; Z <- pr$Z
-  ypr <- sum(vapply(names(Ff), function(f)
-    sum(l * G$sel[[f]] * Ff[[f]] / Z * (1 - exp(-Z)) * G$w_mid), 0))
+  cs <- gtg_catch_sub(G, l, Ff)
+  ypr <- sum(vapply(cs, function(x) sum(x * G$w_sub), 0))
   N <- colSums(l); surv <- colSums(l * exp(-Z))
   list(phi = sum(l * G$w_beg * G$mat_beg), ypr = ypr, Feff = pmax(-log(surv / N) - G$M, 0))
 }
@@ -222,7 +265,7 @@ gtg_brp <- function(x, h = NULL, R0 = NULL, pattern = NULL, gtg = gtg_settings()
   } else {
     sp <- x
     fl <- names(pattern %||% sp$relq)
-    G <- gtg_setup(sp, fl, do.call(gtg_settings, gtg[intersect(names(gtg), c("n", "maxsd", "cv", "cv_res"))]),
+    G <- gtg_setup(sp, fl, do.call(gtg_settings, gtg[intersect(names(gtg), c("n", "maxsd", "cv", "cv_res", "nsub"))]),
                    wscale = 1 / 1000)
     pattern <- pattern %||% unlist(sp$relq)[fl]
     fbar_ages <- fbar_ages %||% (1:(sp$lh$tmax - 1))

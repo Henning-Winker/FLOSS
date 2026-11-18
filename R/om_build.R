@@ -166,7 +166,7 @@ build_om <- function(sp, fishery, nsim = 100, effort = NULL, sigmaQ = 0,
   G <- NULL
   if (!is.null(gtg)) {
     if (isTRUE(gtg)) gtg <- list()
-    gtg <- do.call(gtg_settings, gtg[intersect(names(gtg), c("n", "maxsd", "cv", "cv_res"))])
+    gtg <- do.call(gtg_settings, gtg[intersect(names(gtg), c("n", "maxsd", "cv", "cv_res", "nsub"))])
     lh0 <- sp$lh
     vb0 <- function(t) lh0$linf * (1 - exp(-lh0$k * (t - lh0$t0)))
     a1 <- which(as.numeric(ages) >= 1)
