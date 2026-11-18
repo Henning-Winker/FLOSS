@@ -53,13 +53,13 @@ Escale_cv: 0.25
 management:
 - fleet: gillnet
   mult: 0.7071067812
-  from: 2008
+  from: 1998
 - fleet: gillnet
   mult: 0.7071067812
-  from: 2012
+  from: 2002
 - fleet: linefish
   mult: 0.7416198487
-  from: 2008
+  from: 1998
 - fleet: linefish
   mult: 0.7416198487
-  from: 2012
+  from: 2002

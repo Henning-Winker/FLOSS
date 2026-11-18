@@ -11,7 +11,7 @@
   management changes (effort steps by fleet and year).
 * New defaults (reproduce earlier OMs with FLOSS 0.5.8):
   - `reef_3fleets`: `Escale_cv = 0.25`; management change cutting gillnet and linefish effort to 50% and 55% in two
-    steps (2008, 2012).
+    steps (1998, 2002).
   - Rabbitfish relq traps 1.39, gillnet 0.42. Emperor relq gillnet 1.2; traps peak at 22 cm (sd_left 6, sd_right 15);
     linefish L50 38, L95 48 cm. Snapper relq gillnet 0.7, linefish 0.9; traps peak at 22 cm (sd_left 6).
     Recruitment variability (sigmaR) unchanged.

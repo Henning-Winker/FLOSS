@@ -135,7 +135,7 @@ fishery_years <- function(x) seq(x$years[1], x$years[2])
 #'
 #' Traps, gillnet and linefish, 1969-2025, with the effort trends of the
 #' multi-gear reef operating model (Winker, FLsim multigear reef example), a management change (gillnet and
-#' linefish effort cut to 50% and 55% in two steps, 2008 and 2012) and a lognormal effort scale per iteration
+#' linefish effort cut to 50% and 55% in two steps, 1998 and 2002) and a lognormal effort scale per iteration
 #' (`Escale_cv` 0.25).
 #'
 #' @inheritParams fishery
@@ -159,8 +159,8 @@ reef_fishery <- function(sigmaE = 0.15, creep = 0, seed = 123, Escale_cv = 0.25,
 #' @rdname reef_fishery
 #' @export
 reef_management <- function() list(
-  list(fleet = "gillnet", mult = sqrt(0.5), from = 2008), list(fleet = "gillnet", mult = sqrt(0.5), from = 2012),
-  list(fleet = "linefish", mult = sqrt(0.55), from = 2008), list(fleet = "linefish", mult = sqrt(0.55), from = 2012))
+  list(fleet = "gillnet", mult = sqrt(0.5), from = 1998), list(fleet = "gillnet", mult = sqrt(0.5), from = 2002),
+  list(fleet = "linefish", mult = sqrt(0.55), from = 1998), list(fleet = "linefish", mult = sqrt(0.55), from = 2002))
 
 #' @exportS3Method base::print
 print.floss_fishery <- function(x, ...) {

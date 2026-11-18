@@ -37,7 +37,7 @@ a \code{floss_fishery}.
 \description{
 Traps, gillnet and linefish, 1969-2025, with the effort trends of the
 multi-gear reef operating model (Winker, FLsim multigear reef example), a management change (gillnet and
-linefish effort cut to 50\% and 55\% in two steps, 2008 and 2012) and a lognormal effort scale per iteration
+linefish effort cut to 50\% and 55\% in two steps, 1998 and 2002) and a lognormal effort scale per iteration
 (\code{Escale_cv} 0.25).
 }
 \examples{
