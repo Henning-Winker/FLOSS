@@ -10,7 +10,6 @@ build_om(
   nsim = 100,
   effort = NULL,
   sigmaQ = 0,
-  sigmaFiter = 0,
   ar1 = FALSE,
   seed = fishery$seed,
   treatment = NULL,
@@ -29,10 +28,6 @@ when building several species so they share one effort realisation; by
 default it is regenerated from the fishery seed, which gives the same).}
 
 \item{sigmaQ}{lognormal SD of species-specific catchability noise.}
-
-\item{sigmaFiter}{lognormal SD of a multiplier on the whole F history of each iteration (all fleets and
-years; median 1). Spreads the depletion levels across iterations while keeping the shape of the history
-and the catch shares between fleets. Default 0 (none).}
 
 \item{ar1}{use the species' \code{rho} for AR1 recruitment deviations.}
 
