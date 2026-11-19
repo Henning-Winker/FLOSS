@@ -33,6 +33,6 @@ sel:
     L50: 28.0
     L95: 32.0
 relq:
-  traps: 1.0
-  gillnet: 0.3
+  traps: 1.39
+  gillnet: 0.42
   linefish: 0.05

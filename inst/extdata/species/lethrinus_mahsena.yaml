@@ -21,18 +21,18 @@ msy: 1000.0
 sel:
   traps:
     type: dnormal
-    Lpeak: 27.0
-    sd_left: 8.0
-    sd_right: 19.6
+    Lpeak: 22.0
+    sd_left: 6.0
+    sd_right: 15.0
   gillnet:
     type: normal
     Lpeak: 35.0
     sd: 10.5
   linefish:
     type: logistic
-    L50: 35.0
-    L95: 50.0
+    L50: 38.0
+    L95: 48.0
 relq:
   traps: 0.3
-  gillnet: 0.7
+  gillnet: 1.2
   linefish: 1.0

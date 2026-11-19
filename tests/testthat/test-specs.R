@@ -16,7 +16,7 @@ test_that("species and fishery survive a YAML round trip", {
 
   fy <- reef_fishery(creep = c(traps = 0, gillnet = 0.01, linefish = 0.02))
   write_spec(fy, f)
-  expect_identical(unclass_deep(read_spec(f)), unclass_deep(fy))
+  expect_equal(unclass_deep(read_spec(f)), unclass_deep(fy), tolerance = 1e-9)   # yaml keeps ~10 digits (sqrt multipliers)
 })
 
 test_that("user species are saved, override examples and can be deleted", {

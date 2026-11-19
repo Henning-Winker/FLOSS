@@ -163,8 +163,9 @@ sample_lfd <- function(om, oem, iters = 1:10) {
       if (!length(yy)) return(NULL)
       g <- if (identical(p$sel, om$species$sel[[f]])) gears[[f]] else
         gear_for(om, oem, f, p$sel)
+      key_fun <- if (!is.null(om$gtg)) gtg_season_fun(om, g, f, iters, des$n) else NULL
       seasonal_lfd(x, z_all, g, des, yy, iters, om$species$species, f,
-                   oem$lfd$ess_age[[f]], oem$lfd$ess_len[[f]])
+                   oem$lfd$ess_age[[f]], oem$lfd$ess_len[[f]], key_fun = key_fun)
     }))
   })
   sv <- oem$survey
@@ -190,7 +191,7 @@ survey_season <- function(oem) {
 # stage 1 draws clusters (ages) from the season's catch-at-age, stage 2 draws
 # lengths from the age-length key at the season's mid-point.
 seasonal_lfd <- function(x, z_all, g, des, yy, iters, species, source,
-                         ess_age, ess_len) {
+                         ess_age, ess_len, key_fun = NULL) {
   S <- des$n
   keys <- if (S == 1) list(g$condALK) else lapply(season_mid(S), function(t) cond_alk_at(g, t))
   lens <- round(as.numeric(colnames(keys[[1]])) * 10)
@@ -201,7 +202,9 @@ seasonal_lfd <- function(x, z_all, g, des, yy, iters, species, source,
     for (y in yy) {
       ca <- c(x[, y, , , , j])
       if (sum(ca) <= 0 || nm[[y]] <= 0) next
-      fr <- if (S == 1) matrix(1, length(ca), 1) else season_catch_frac(c(z_all[, y, , , , j]), S)
+      sk <- if (!is.null(key_fun)) key_fun(j, y)
+      fr <- if (!is.null(sk)) sk$fr else if (S == 1) matrix(1, length(ca), 1) else
+        season_catch_frac(c(z_all[, y, , , , j]), S)
       ea <- split_n(scale_n(ess_age, nm[[y]]), sh[y, ])
       el <- split_n(scale_n(ess_len, nm[[y]]), sh[y, ])
       for (s in seq_len(S)) {
@@ -209,7 +212,8 @@ seasonal_lfd <- function(x, z_all, g, des, yy, iters, species, source,
         pa <- ca * fr[, s]
         if (sum(pa) <= 0) next
         an <- stats::rmultinom(1, max(ea[s], 1), pa)
-        pl <- as.numeric((an[, 1] / sum(an)) %*% keys[[s]])
+        K <- if (is.null(sk)) keys[[s]] else sk$keys[[s]]
+        pl <- as.numeric((an[, 1] / sum(an)) %*% K)
         if (sum(pl) <= 0) next
         ln <- stats::rmultinom(1, el[s], pl)[, 1]
         k <- ln > 0
@@ -264,6 +268,8 @@ sample_bio <- function(om, oem, iters = 1:10) {
     }
     if (nfish <= 0) return(NULL)
     S <- des$n
+    # growth morphs: age-length keys from the morphs in the fleet's catch at age (as for the length samples)
+    kf <- if (!is.null(om$gtg) && s != "survey") gtg_season_fun(om, gears[[s]], s, iters, des$n) else NULL
     K0 <- gears[[s]]$condALK
     lens <- as.numeric(colnames(K0))
     bw <- gears[[s]]$grid$bin
@@ -274,8 +280,10 @@ sample_bio <- function(om, oem, iters = 1:10) {
       do.call(rbind, lapply(yrs, function(y) {
         p <- c(x[, y, , , , j])
         if (sum(p) <= 0 || nm[[y]] <= 0) return(NULL)
-        keys <- keys_for(y)
-        fr <- if (S == 1) matrix(1, length(p), 1) else season_catch_frac(c(z_all[, y, , , , j]), S)
+        sk <- if (!is.null(kf)) kf(j, y)
+        keys <- if (is.null(sk)) keys_for(y) else sk$keys
+        fr <- if (!is.null(sk)) sk$fr else if (S == 1) matrix(1, length(p), 1) else
+          season_catch_frac(c(z_all[, y, , , , j]), S)
         ns <- split_n(scale_n(nfish, nm[[y]]), sh[y, ])
         a <- integer(0); l <- numeric(0); sea <- integer(0)
         for (q in seq_len(S)) {
@@ -341,9 +349,13 @@ refpts_table <- function(om) {
 
 lh_table <- function(sp) {
   lh <- sp$lh
+  # maturity used by the OM: logistic at age, 50% at tm and 95% one year later (FLife ato95 = 1), as lengths
+  # at those ages (also the length-based maturity of the growth-morph OM); lm_cm is the species' reported
+  # length at maturity, which the OM does not use
+  vb <- function(t) lh$linf * (1 - exp(-lh$k * (t - lh$t0)))
   data.frame(species = sp$species, linf_cm = lh$linf, k = lh$k, t0 = lh$t0,
-             a = lh$a, b = lh$b, lm_cm = lh$lm, tmax = lh$tmax, M = lh$M,
-             steepness = lh$s)
+             a = lh$a, b = lh$b, lm_cm = lh$lm, l50_cm = vb(lh$tm), l95_cm = vb(lh$tm + 1),
+             tmax = lh$tmax, M = lh$M, steepness = lh$s)
 }
 
 # ---- helpers ----------------------------------------------------------------
@@ -445,4 +457,34 @@ lfd_df <- function(x, species, source) {
              year = as.integer(as.character(d$year)), source = source,
              len_mm = round(as.numeric(as.character(d$len)) * 10),
              n = as.integer(round(d$data)))
+}
+
+# seasonal catch fractions at age and age-length keys of a fleet's catch from the growth morphs (sub-annual
+# steps), cached by iteration and year: function(j, y) -> list(fr = age x S, keys = list of S age x length)
+gtg_season_fun <- function(om, g, fleet, iters, S) {
+  G <- om$gtg$G
+  lens <- as.numeric(colnames(g$condALK))
+  bin <- if (length(lens) > 1) diff(lens)[1] else 1
+  ld <- gtg_len_dist(G, lens, bin, fleet)
+  cache <- new.env()
+  function(j, y) {
+    ck <- paste0("c", iters[j])
+    if (is.null(cache[[ck]])) cache[[ck]] <- gtg_catch_morph(om, iters[j], sub = TRUE)[[fleet]]
+    key <- paste(iters[j], y)
+    if (is.null(cache[[key]])) {
+      yi <- match(as.character(y), as.character(om$gtg$years_full))
+      cc <- cache[[ck]]
+      cache[[key]] <- gtg_season_keys(G, array(cc[, , yi, ], dim(cc)[c(1, 2, 4)]), S, ld)
+    }
+    cache[[key]]
+  }
+}
+
+# morph catch numbers by fleet for one iteration (all OM years): morph x age x year, or with sub = TRUE
+# morph x age x year x sub-annual step
+gtg_catch_morph <- function(om, i, sub = FALSE) {
+  G <- om$gtg$G
+  Fy <- sapply(G$fleets, function(f) c(om$gtg$fapic_full[[f]][, , , , , i]))
+  a <- gtg_aggregate(G, matrix(Fy, ncol = length(G$fleets), dimnames = list(NULL, G$fleets)), keep_sub = sub)
+  if (sub) a$csub else a$cn
 }

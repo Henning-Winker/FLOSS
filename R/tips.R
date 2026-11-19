@@ -6,6 +6,7 @@ floss_tips_list <- list(
   fleets = "Fleets share effort across all species they catch.",
   effort_trend = "Nominal effort over time: start level, peak, later level and the years of the changes.",
   sigmaE = "Year-to-year noise on effort, the same for every species caught by the fleet.",
+  Escale_cv = "Spread of the overall effort level between iterations (lognormal SD, median 1): each iteration has its own effort scale, shared by all gears and species, so iterations differ in how hard the stock was fished.",
   creep = "Annual increase in fishing efficiency. It raises F but is not visible in the nominal effort index.",
   # species
   linf = "Asymptotic length (cm) of the von Bertalanffy growth curve.",

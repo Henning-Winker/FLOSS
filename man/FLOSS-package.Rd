@@ -27,5 +27,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Henning Winker \email{henning.winker@gmail.com}
 
+Authors:
+\itemize{
+  \item Henning Winker \email{henning.winker@gmail.com}
+}
+
 }
 \keyword{internal}

@@ -64,8 +64,18 @@ effort_sim <- function(fishery, nsim = 100, seed = fishery$seed) {
       list(E = E, eta = flq(rep(eta, nsim), years = yrs, nsim = nsim,
                             units = "relative"))
     })
+    cv <- fishery$Escale_cv %||% 0                       # drawn last: earlier draws unchanged
+    if (cv > 0) {
+      sc <- stats::rlnorm(nsim, 0, cv)
+      eff <- lapply(eff, function(e) { e$E[] <- c(e$E) * rep(sc, each = ny); e })
+    }
+    eff
   })
   names(eff) <- fishery$fleets
+  for (m in fishery$management) {                        # management changes (effort steps)
+    yy <- as.character(yrs[yrs >= m$from])
+    eff[[m$fleet]]$E[, yy] <- eff[[m$fleet]]$E[, yy] * m$mult
+  }
   list(effort = FLQuants(lapply(eff, `[[`, "E")),
        efficiency = FLQuants(lapply(eff, `[[`, "eta")))
 }

@@ -2,9 +2,18 @@
 % Please edit documentation in R/spec_fishery.R
 \name{reef_fishery}
 \alias{reef_fishery}
+\alias{reef_management}
 \title{The three-fleet reef fishery used in the examples}
 \usage{
-reef_fishery(sigmaE = 0.15, creep = 0, seed = 123)
+reef_fishery(
+  sigmaE = 0.15,
+  creep = 0,
+  seed = 123,
+  Escale_cv = 0.25,
+  management = reef_management()
+)
+
+reef_management()
 }
 \arguments{
 \item{sigmaE}{lognormal SD of the effort process noise (shared across
@@ -14,13 +23,22 @@ species); scalar or one value per fleet.}
 
 \item{seed}{seed for the effort realisation; every species built with this
 fishery sees the same effort.}
+
+\item{Escale_cv}{lognormal SD (median 1) of a multiplier on the whole effort history of each iteration,
+common to all fleets (and so to all species built with this effort): spreads exploitation and depletion
+levels across iterations while keeping the shape of the history and the shares between fleets.}
+
+\item{management}{optional list of effort changes, each \code{list(fleet, mult, from)}: effort of \code{fleet} is
+multiplied by \code{mult} from year \code{from} on (steps multiply), e.g. a management change shared by all species.}
 }
 \value{
 a \code{floss_fishery}.
 }
 \description{
 Traps, gillnet and linefish, 1969-2025, with the effort trends of the
-multi-gear reef operating model (Winker, FLsim multigear reef example).
+multi-gear reef operating model (Winker, FLsim multigear reef example), a management change (gillnet and
+linefish effort cut to 50\% and 55\% in two steps, 1998 and 2002) and a lognormal effort scale per iteration
+(\code{Escale_cv} 0.25).
 }
 \examples{
 reef_fishery()

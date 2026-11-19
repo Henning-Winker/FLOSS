@@ -14,7 +14,9 @@ fishery(
   creep = 0,
   creep_start = NULL,
   name = "fishery",
-  seed = 123
+  seed = 123,
+  Escale_cv = 0,
+  management = NULL
 )
 
 validate_fishery(x)
@@ -39,6 +41,13 @@ species); scalar or one value per fleet.}
 
 \item{seed}{seed for the effort realisation; every species built with this
 fishery sees the same effort.}
+
+\item{Escale_cv}{lognormal SD (median 1) of a multiplier on the whole effort history of each iteration,
+common to all fleets (and so to all species built with this effort): spreads exploitation and depletion
+levels across iterations while keeping the shape of the history and the shares between fleets.}
+
+\item{management}{optional list of effort changes, each \code{list(fleet, mult, from)}: effort of \code{fleet} is
+multiplied by \code{mult} from year \code{from} on (steps multiply), e.g. a management change shared by all species.}
 
 \item{x}{a \code{floss_fishery}.}
 }

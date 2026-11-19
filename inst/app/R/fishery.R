@@ -14,6 +14,8 @@ fishery_ui <- function() {
                                 value = c(1969, 2025), step = 1, sep = "")),
           column(2, numericInput("fish_seed", "Seed", value = 123, min = 1, step = 1)),
           column(2, numericInput("fish_sigmaE", lab("Effort noise", "sigmaE"), value = 0.15,
+                                 min = 0, max = 1, step = 0.05)),
+          column(2, numericInput("fish_Escale", lab("Effort scale between iterations", "Escale_cv"), value = 0.25,
                                  min = 0, max = 1, step = 0.05))),
         conditionalPanel("input.fish_preset == 'custom'",
           div(class = "infobox", tags$strong("New fishery. "),

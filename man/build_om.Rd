@@ -12,7 +12,8 @@ build_om(
   sigmaQ = 0,
   ar1 = FALSE,
   seed = fishery$seed,
-  treatment = NULL
+  treatment = NULL,
+  gtg = NULL
 )
 }
 \arguments{
@@ -51,7 +52,7 @@ Apical fishing mortality of fleet \eqn{f} is
 \eqn{\eta} from \code{\link[=effort_sim]{effort_sim()}} (shared by all species), and optional
 species-specific catchability noise \eqn{\delta} (\code{sigmaQ}). Fleet F-at-age
 is apical F times the fleet's selectivity-at-age; total F-at-age is the sum
-over fleets. The stock is projected with \code{\link[=ffwd]{ffwd()}} under Fbar
+over fleets. The stock is projected with \code{\link[FLCore:ffwd]{ffwd()}} under Fbar
 control and lognormal (optionally AR1) recruitment deviations. The first
 two years are dropped as burn-in, as in the reef example.
 }

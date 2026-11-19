@@ -17,7 +17,7 @@
 #'   limit, cm) x year, counts summed over seasons, as FLicc's `fiticc()` and
 #'   `stocklen()` take them; `lfd_raised` the same raised to the catch
 #'   ([lfd_aggregate()]);
-#' * `lhpar`: `FLPar` with `linf`, `k`, `t0`, `M`, `L50`, `a`, `b`, `tmax`
+#' * `lhpar`: `FLPar` with `linf`, `k`, `t0`, `M`, `L50`, `L95` (maturity used by the OM), `a`, `b`, `tmax`
 #'   and `s` (steepness), with `a` converted so that weight is in kg (FLicc
 #'   convention; FLOSS uses g);
 #' * `catch_by_gear`: share of the catch by fleet over the years with length
@@ -88,7 +88,10 @@ as_flr <- function(data, species = NULL, iter = 1, all = FALSE) {
   l_s <- pick(lfd_annual(data$lfd), species, iter)
   l_r <- pick(lfd_aggregate(data, species, "fleet", "catch"), species, iter)
   lh <- data$lhpars[data$lhpars$species == species, ]
-  lhpar <- FLPar(linf = lh$linf_cm, k = lh$k, t0 = lh$t0, M = lh$M, L50 = lh$lm_cm,
+  # maturity as used by the OM (L50, L95 at tm and tm + 1); data from older FLOSS versions only have lm_cm
+  L50 <- if (!is.null(lh$l50_cm)) lh$l50_cm else lh$lm_cm
+  L95 <- if (!is.null(lh$l95_cm)) lh$l95_cm else NA_real_
+  lhpar <- FLPar(linf = lh$linf_cm, k = lh$k, t0 = lh$t0, M = lh$M, L50 = L50, L95 = L95,
                  a = lh$a / 1000, b = lh$b, tmax = lh$tmax, s = lh$steepness)
   ly <- unique(l_s$year[l_s$source != "survey"])
   sh <- stats::aggregate(catch_t ~ fleet, ct[ct$year %in% ly, ], sum)
