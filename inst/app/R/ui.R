@@ -1,5 +1,7 @@
 # The layout: left panel (steps, Hide truth, Build/Sample block) and the page
 # for each step. Same structure and style as the FLicc app.
+# Step order (revised): 1 Fishery, 2 Species, 3 Operating model, 4 Sampling,
+# 5 Treatments (optional), 6 Export, 7 True status.
 
 app_sidebar <- function() {
   dashboardSidebar(
@@ -10,8 +12,8 @@ app_sidebar <- function() {
       menuItem("1  Fishery *", tabName = "fishery", selected = TRUE),
       menuItem("2  Species *", tabName = "species"),
       menuItem("3  Operating model *", tabName = "om"),
-      menuItem("4  Treatments", tabName = "treat"),
-      menuItem("5  Sampling *", tabName = "sampling"),
+      menuItem("4  Sampling *", tabName = "sampling"),
+      menuItem("5  Treatments", tabName = "treat"),
       menuItem("6  Export *", tabName = "export"),
       menuItemOutput("truth_item")
     ),
@@ -59,20 +61,29 @@ app_css <- "
   .guide table { border-collapse: collapse; margin: 8px 0; }
   .guide th, .guide td { border: 1px solid #d8dee2; padding: 4px 8px; font-size: 13px; }
   .guide pre { background: #f6f8fa; border: none; }
+  .guide h3 { font-size: 17px; margin-top: 18px; }
+  .workflow img { width: 100%; max-width: 1100px; height: auto; display: block; margin: 4px auto 0; }
 "
 
 app_body <- function() {
   dashboardBody(
     tags$head(tags$style(HTML(app_css))),
-    div(style = "display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:14px; margin-bottom:6px;",
-        uiOutput("species_selector"), uiOutput("iter_selector"), uiOutput("status_pill")),
+    # Top bar: hidden on the Guide page; the species and iteration selectors
+    # are also hidden on the Fishery page (not species-specific). Later steps
+    # move these selectors into their own tabs.
+    conditionalPanel("input.step != 'guide'",
+      div(style = "display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:14px; margin-bottom:6px;",
+          conditionalPanel("input.step != 'fishery'",
+            div(style = "display:flex; flex-wrap:wrap; align-items:center; gap:14px;",
+                uiOutput("species_selector"), uiOutput("iter_selector"))),
+          uiOutput("status_pill"))),
     tabItems(
       tabItem("guide", guide_ui()),
       tabItem("fishery", fishery_ui()),
       tabItem("species", species_ui()),
       tabItem("om", om_ui()),
-      tabItem("treat", treat_ui()),
       tabItem("sampling", sampling_ui()),
+      tabItem("treat", treat_ui()),
       tabItem("export", export_ui()),
       tabItem("truth", truth_ui())
     )

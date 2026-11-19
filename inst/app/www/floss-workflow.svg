@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="80 250 1460 470" width="1460" height="470" role="img" aria-label="How the FLOSS steps connect: 1 Fishery, 2 Species, and 3 Operating model lead to 4 Sampling and 6 Export; 5 Treatments is an optional branch from the operating model that uses the sampling settings; 7 True status shows the answer key." font-family="'Times New Roman', Times, serif">
+<defs><marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#5b6b7a"/></marker></defs>
+<rect x="80" y="250" width="1460" height="470" fill="#ffffff"/>
+<polyline points="296,408 386,408" fill="none" stroke="#5b6b7a" stroke-width="2" marker-end="url(#h)"/>
+<polyline points="592,408 682,408" fill="none" stroke="#5b6b7a" stroke-width="2" marker-end="url(#h)"/>
+<polyline points="888,424 955,424 955,499 1016,499" fill="none" stroke="#5b6b7a" stroke-width="2" marker-end="url(#h)"/>
+<polyline points="888,392 955,392 955,317 1016,317" fill="none" stroke="#5b6b7a" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#h)"/>
+<polyline points="1122,451 1122,375" fill="none" stroke="#5b6b7a" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#h)"/>
+<polyline points="1222,499 1312,499" fill="none" stroke="#5b6b7a" stroke-width="2" marker-end="url(#h)"/>
+<polyline points="788,456 788,554" fill="none" stroke="#5b6b7a" stroke-width="2" marker-end="url(#h)"/>
+<rect x="96" y="360" width="200" height="96" rx="10" fill="#eaf2f6" stroke="#b9c3cc"/>
+<text text-anchor="middle" font-size="16" fill="#1d2733"><tspan x="196" y="402.5" font-weight="700">1 Fishery</tspan><tspan x="196" y="423.5">fleets, years, and effort</tspan></text>
+<rect x="392" y="360" width="200" height="96" rx="10" fill="#eaf2f6" stroke="#b9c3cc"/>
+<text text-anchor="middle" font-size="16" fill="#1d2733"><tspan x="492" y="392.0" font-weight="700">2 Species</tspan><tspan x="492" y="413.0">biology, selectivity,</tspan><tspan x="492" y="434.0">and catchability</tspan></text>
+<rect x="688" y="360" width="200" height="96" rx="10" fill="#eaf2f6" stroke="#b9c3cc"/>
+<text text-anchor="middle" font-size="16" fill="#1d2733"><tspan x="788" y="402.5" font-weight="700">3 Operating model</tspan><tspan x="788" y="423.5">builds the true stock</tspan></text>
+<rect x="1022" y="451" width="200" height="96" rx="10" fill="#eaf2f6" stroke="#b9c3cc"/>
+<text text-anchor="middle" font-size="16" fill="#1d2733"><tspan x="1122" y="493.5" font-weight="700">4 Sampling</tspan><tspan x="1122" y="514.5">observer data, with errors</tspan></text>
+<rect x="1318" y="451" width="200" height="96" rx="10" fill="#eaf2f6" stroke="#b9c3cc"/>
+<text text-anchor="middle" font-size="16" fill="#1d2733"><tspan x="1418" y="493.5" font-weight="700">6 Export</tspan><tspan x="1418" y="514.5">datasets to download</tspan></text>
+<rect x="688" y="560" width="200" height="96" rx="10" fill="#f2f2f2" stroke="#8a96a3" stroke-dasharray="6 4"/>
+<text text-anchor="middle" font-size="16" fill="#1d2733"><tspan x="788" y="602.5" font-weight="700">7 True status</tspan><tspan x="788" y="623.5">answer key, for trainers</tspan></text>
+<rect x="1022" y="265" width="496" height="104" rx="10" fill="#fdf1e2" stroke="#e2b77a"/>
+<text text-anchor="middle" font-size="16" fill="#1d2733"><tspan x="1270" y="301.0" font-weight="700">5 Treatments (optional)</tspan><tspan x="1270" y="322.0">Build, Predict, and Reveal</tspan><tspan x="1270" y="343.0">up to 4 saved changes, compared within the app, not exported</tspan></text>
+<text x="988" y="302" text-anchor="middle" font-size="13" fill="#4a5866">optional</text>
+<text x="889" y="343" text-anchor="middle" font-size="13" fill="#4a5866">shares baseline</text>
+<text x="1214" y="415" text-anchor="middle" font-size="13" fill="#4a5866">uses sampling settings</text>
+<text x="844" y="512" text-anchor="middle" font-size="13" fill="#4a5866">answer key</text>
+<text x="96" y="700" font-size="14" fill="#4a5866">Solid arrows: the path through the app. Dashed arrows: settings or results one step borrows from another. Dashed box: shown only when Hide truth is unticked.</text>
+</svg>
