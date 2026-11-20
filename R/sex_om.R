@@ -133,7 +133,7 @@ stock_sex <- function(lh, sel, relq = NULL, tmax = 20, years = 2000:2025,
   discards.n(stk)[] <- 0; landings.n(stk)[] <- 1; catch.n(stk)[] <- 1
   range(stk, c("minfbar", "maxfbar")) <- range(ages[ages > 0 & ages < tmax])
   attr(stk, "sel_fleet") <- FLQuants(sfl)
-  attr(stk, "lh") <- lh; attr(stk, "lens") <- lens; attr(stk, "sel") <- sel
+  attr(stk, "lh") <- lh; attr(stk, "lens") <- lens; attr(stk, "sel") <- sel; attr(stk, "relq") <- relq
   stk
 }
 
@@ -205,11 +205,16 @@ eq_sex <- function(stk, sr = NULL, F = seq(0, 2, by = 0.01), nyears = 3) {
 #' @param s steepness.
 #' @param R0 unfished recruitment (both sexes); or give `B0`.
 #' @param B0 unfished female spawning biomass (alternative to `R0`).
+#' @param gtg growth morphs ([gtg_sex()] or [gtg_settings()]): B0 from the unfished spawning biomass per recruit of
+#'   the morphs, as needed for [om_sex()] with `gtg`.
 #' @return a `predictModel` (`bevholt`, `a`, `b`) for FLasher, with
 #'   attribute `pars` (`s`, `R0`, `B0`).
 #' @export
-sr_sex <- function(stk, s = 0.7, R0 = 1000, B0 = NULL) {
-  sbpr0 <- eq_sex(stk, F = 0)$sbpr
+sr_sex <- function(stk, s = 0.7, R0 = 1000, B0 = NULL, gtg = NULL) {
+  sbpr0 <- if (is.null(gtg)) eq_sex(stk, F = 0)$sbpr else {
+    Gs <- if (inherits(gtg, "floss_gtg_sex")) gtg else gtg_sex(stk, gtg)
+    eq_sex_gtg(Gs, F = 0)$sbpr                      # unfished spawning biomass per recruit of the morphs
+  }
   if (!is.null(B0)) R0 <- B0 / sbpr0
   v <- R0 * sbpr0
   a <- 4 * s * R0 / (5 * s - 1); b <- v * (1 - s) / (5 * s - 1)
@@ -307,7 +312,7 @@ expand_years_sex <- function(stk, years) {
   discards.n(st)[] <- 0; landings.n(st)[] <- 1; catch.n(st)[] <- 1
   units(harvest(st)) <- "f"
   range(st, c("minfbar", "maxfbar")) <- range(stk)[c("minfbar", "maxfbar")]
-  for (a in c("sel_fleet", "lh", "lens", "sel")) attr(st, a) <- attr(stk, a)
+  for (a in c("sel_fleet", "lh", "lens", "sel", "relq")) attr(st, a) <- attr(stk, a)
   st
 }
 
@@ -333,14 +338,20 @@ expand_years_sex <- function(stk, years) {
 #' @param sigR recruitment SD (log scale).
 #' @param rho recruitment autocorrelation.
 #' @param seed random seed (for generated deviations).
-#' @return a list of class `floss_om_sex`: `stock` (`FLStockR` with units F,
+#' @param gtg growth morphs: [gtg_settings()] (or a list of its arguments, or `TRUE`) or [gtg_sex()]. With
+#'   `gtg`, each sex's morphs are tracked through the apical F history (fleets select at length, so fast growers
+#'   are removed sooner), and the population is projected with the resulting effective F, weight and maturity
+#'   at age; reference points come from the morph equilibrium ([refpts_sex_gtg()]), true SPR and length samples
+#'   ([lfd_sex()]) from the morphs. Use [sr_sex()] with the same `gtg` so that B0 matches the morphs.
+#' @return a list of class `floss_om_sex` (with `gtg`: element `gtg` with the morph structures `G`, the per-recruit
+#'   morph tracks and recruitment): `stock` (`FLStockR` with units F,
 #'   M and `refpts`), `sr`, `refpts` ([refpts_sex()]), `fapic` (`FLQuant`,
 #'   year x iter), `lh`, `lens`, `sel`, `sel_fleet` (for [lfd_sex()]) and `truth` (by year and iteration: apical F, F/Fmsy,
 #'   female SSB, SSB/B0, SSB/Bmsy, female SPR at the year's F, catch,
 #'   recruits).
 #' @export
 om_sex <- function(stk, sr, fapic, years = as.numeric(dimnames(stk)$year),
-                   nsim = NULL, deviances = NULL, sigR = 0.5, rho = 0, seed = 1) {
+                   nsim = NULL, deviances = NULL, sigR = 0.5, rho = 0, seed = 1, gtg = NULL) {
   if (is.null(nsim))
     nsim <- max(if (is(fapic, "FLQuant")) dim(fapic)[6] else 1,
                 if (!is.null(deviances)) dim(deviances)[6] else 1)
@@ -375,6 +386,22 @@ om_sex <- function(stk, sr, fapic, years = as.numeric(dimnames(stk)$year),
                                        dimnames(deviances)[4:6]))
   du[, , "F"] <- deviances; du[, , "M"] <- deviances
   deviances <- du
+  if (!is.null(gtg)) {
+    # growth morphs of each sex: two-sex projection with effective F, weight and maturity at age
+    Gs <- if (inherits(gtg, "floss_gtg_sex")) gtg else gtg_sex(stk, gtg)
+    pr <- om_sex_gtg_project(stk, sr, Gs, fq, deviances, years)
+    rp <- refpts_sex_gtg(Gs, sr)
+    om <- FLStockR(pr$stock)
+    om@refpts <- FLPar(Fmsy = an(rp["Fmsy"]), Bmsy = an(rp["Bmsy"]), MSY = an(rp["MSY"]),
+                       B0 = an(rp["B0"]), Fspr40 = an(rp["Fspr40"]))
+    out <- structure(list(stock = om, sr = sr, refpts = rp, fapic = fq, years = years,
+                          lh = attr(stk, "lh"), lens = attr(stk, "lens"),
+                          sel = attr(stk, "sel"), sel_fleet = attr(stk, "sel_fleet"),
+                          gtg = list(G = Gs, tracks = pr$tracks, rec = pr$rec, settings = Gs$settings)),
+                     class = "floss_om_sex")
+    out$truth <- truth_sex(out)
+    return(out)
+  }
   # start: equilibrium at each iteration's first-year F
   st <- propagate(init_stock_sex(stk, sr, F = c(fq[, 1, , , , 1]), years = years), nsim)
   x <- eq_inputs_sex(stk)
@@ -447,8 +474,8 @@ truth_sex <- function(om) {
   ssbq <- unitSums(ssb(st))
   it <- dimnames(st)$iter
   # female SPR at apical F: interpolated from a fine grid (fast for many iterations)
-  fg <- seq(0, max(c(om$fapic), na.rm = TRUE) * 1.01 + 1e-6, length.out = 400)
-  sg <- eq_sex(st, NULL, F = fg, nyears = 1)$spr
+  fg <- seq(0, max(c(om$fapic), na.rm = TRUE) * 1.01 + 1e-6, length.out = if (is.null(om$gtg)) 400 else 150)
+  sg <- if (is.null(om$gtg)) eq_sex(st, NULL, F = fg, nyears = 1)$spr else eq_sex_gtg(om$gtg$G, NULL, F = fg)$spr
   do.call(rbind, lapply(seq_along(it), function(i) {
     f <- c(om$fapic[, , , , , i]); s <- c(ssbq[, , , , , i])
     data.frame(year = om$years, iter = it[i], F = f, F_Fmsy = f / an(rp["Fmsy"]),
@@ -486,6 +513,10 @@ lfd_sex <- function(om, fleet = NULL, survey_sel = NULL, n = 400, sexed = FALSE,
   ages <- as.numeric(dimnames(st)$age); mid <- lens + diff(lens[1:2]) / 2
   yy <- ac(years)
   ex <- lapply(c(F = "F", M = "M"), function(s) {
+    if (!is.null(om$gtg)) {                        # growth morphs: lengths from the morphs of each sex
+      return(sapply(yy, function(y) gtg_sex_len(om, s, y, iter, lens, fleet = fleet,
+                                                 survey_sel = survey_sel, timing = timing)))
+    }
     if (!is.null(fleet)) {
       sf <- om$sel_fleet[[fleet]][, 1, s, , , 1, drop = TRUE]
       f_fl <- outer(c(sf), c(om$fapic[, yy, , , , iter]))

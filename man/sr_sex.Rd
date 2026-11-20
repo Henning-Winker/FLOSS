@@ -4,7 +4,7 @@
 \alias{sr_sex}
 \title{Beverton-Holt stock-recruitment for a sex-structured stock}
 \usage{
-sr_sex(stk, s = 0.7, R0 = 1000, B0 = NULL)
+sr_sex(stk, s = 0.7, R0 = 1000, B0 = NULL, gtg = NULL)
 }
 \arguments{
 \item{stk}{sex-structured \code{FLStock}.}
@@ -14,6 +14,9 @@ sr_sex(stk, s = 0.7, R0 = 1000, B0 = NULL)
 \item{R0}{unfished recruitment (both sexes); or give \code{B0}.}
 
 \item{B0}{unfished female spawning biomass (alternative to \code{R0}).}
+
+\item{gtg}{growth morphs (\code{\link[=gtg_sex]{gtg_sex()}} or \code{\link[=gtg_settings]{gtg_settings()}}): B0 from the unfished spawning biomass per recruit of
+the morphs, as needed for \code{\link[=om_sex]{om_sex()}} with \code{gtg}.}
 }
 \value{
 a \code{predictModel} (\code{bevholt}, \code{a}, \code{b}) for FLasher, with
