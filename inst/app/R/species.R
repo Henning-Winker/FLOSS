@@ -4,7 +4,7 @@ lh_fields <- list(
   linf = list("Linf (cm) *", "linf"), k = list("k (per year) *", "k"),
   t0 = list("t0 (years)", NULL), M = list("M (per year) *", "M"),
   a = list("a (weight-length, g/cm) *", NULL), b = list("b (weight-length) *", NULL),
-  lm = list("Length at 50% maturity (cm) *", NULL), tm = list("Age at 50% maturity", NULL),
+  lm = list("Length at 50% maturity (cm) *", "lm"), tm = list("Age at 50% maturity (from length)", "amat"),
   tmax = list("Maximum age (plus group) *", NULL), s = list("Steepness *", "steepness"),
   sigR = list("Recruitment SD *", "sigR"), rho = list("Recruitment autocorrelation", "ar1"))
 
@@ -80,6 +80,7 @@ species_server <- function(input, output, session, rv, r) {
     base <- cur()
     lh <- lapply(stats::setNames(names(lh_fields), names(lh_fields)),
                  function(n) input[[paste0("lh_", n)]] %||% base$lh[[n]])
+    lh$tm <- amat_or_na(lh)                     # age at maturity always follows the length at maturity
     fl <- r$fleets()
     sel <- base$sel
     relq <- base$relq
@@ -184,6 +185,8 @@ species_server <- function(input, output, session, rv, r) {
     s <- cur()
     boxes <- lapply(names(lh_fields), function(n) {
       f <- lh_fields[[n]]
+      if (n == "tm") return(column(2, tags$div(class = "form-group shiny-input-container",
+        tags$label(lab(f[[1]], f[[2]])), uiOutput("lh_tm_out"))))
       column(2, numericInput(paste0("lh_", n), lab(f[[1]], f[[2]]), value = s$lh[[n]],
                              step = if (n %in% c("tmax")) 1 else NA))
     })
@@ -196,15 +199,23 @@ species_server <- function(input, output, session, rv, r) {
     s <- cur()
     v <- lapply(stats::setNames(names(lh_fields), names(lh_fields)),
                 function(n) input[[paste0("lh_", n)]] %||% s$lh[[n]])
+    v$tm <- amat_or_na(v)
     v
+  })
+
+  # age at 50% maturity, computed from the length at maturity and growth (read-only)
+  output$lh_tm_out <- renderUI({
+    a <- lh_now()$tm
+    tags$div(class = "form-control", style = "background:#f3f5f7; color:#333;",
+             if (is.na(a)) "Lm must be below Linf" else sprintf("%.2f", a))
   })
 
   output$lh_warn <- renderUI({
     lh <- lh_now()
     w <- character(0)
-    if (any(vapply(lh, function(v) is.null(v) || is.na(v), TRUE))) w <- c(w, "Some values are blank.")
+    if (any(vapply(lh[names(lh) != "tm"], function(v) is.null(v) || is.na(v), TRUE))) w <- c(w, "Some values are blank.")
     else {
-      if (lh$lm >= lh$linf) w <- c(w, "Length at maturity should be below Linf.")
+      if (lh$lm >= lh$linf) w <- c(w, "Length at maturity must be below Linf (age at maturity is computed from it).")
       if (lh$b < 2 || lh$b > 4) w <- c(w, "b is usually between 2.5 and 3.5. Check the value and its units.")
       if (lh$M / lh$k < 0.5 || lh$M / lh$k > 3) w <- c(w, paste0("M/k = ", round(lh$M / lh$k, 2), ", outside the usual 0.5 to 3. Check M and k."))
       if (lh$s <= 0.2 || lh$s > 1) w <- c(w, "Steepness must be above 0.2 and at most 1.")
@@ -314,4 +325,11 @@ species_server <- function(input, output, session, rv, r) {
   output$rq_onegear <- renderUI({
     if (r$one_gear()) div(class = "infobox", "One-gear fishery: catchability is set so that effort equals F/Fmsy. Set F/Fmsy with the effort trend in Fishery.")
   })
+}
+
+# age at 50% maturity from the length at maturity (NA while the inputs are incomplete or Lm >= Linf)
+amat_or_na <- function(lh) {
+  v <- c(lh$linf, lh$k, lh$t0, lh$lm)
+  if (length(v) < 4 || any(is.na(v)) || lh$lm >= lh$linf || lh$k <= 0) return(NA_real_)
+  FLOSS::amat_from_lm(lh$linf, lh$k, lh$t0, lh$lm)
 }

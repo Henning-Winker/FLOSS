@@ -12,6 +12,8 @@ floss_tips_list <- list(
   linf = "Asymptotic length (cm) of the von Bertalanffy growth curve.",
   k = "Growth rate (per year): how fast fish approach Linf.",
   M = "Natural mortality (per year).",
+  lm = "Length at which half the fish are mature (cm), e.g. from FishLife. The operating model matures fish at age; the age at maturity is computed from this length so that both agree.",
+  amat = "Computed: the age at which mean length reaches the length at 50% maturity, a = t0 - log(1 - Lm/Linf)/k. Changes with Linf, k, t0 and Lm.",
   steepness = "Share of unfished recruitment produced at 20% of unfished spawning biomass.",
   sigR = "Recruitment variability (lognormal SD).",
   msy = "Target MSY (t); the stock is scaled so that its equilibrium MSY equals this value.",

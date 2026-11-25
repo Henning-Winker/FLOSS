@@ -97,7 +97,7 @@ FLRef::plot_sel_la(species_sel(sp), age_by = 2, len_by = 10)
 ## ----2-species-3--------------------------------------------------------------
 gibbus <- species(
   "Lutjanus gibbus", common_name = "Humpback red snapper",
-  lh = modifyList(sp$lh, list(linf = 45, k = 0.3, lm = 25, tm = 2.5, tmax = 18,
+  lh = modifyList(sp$lh, list(linf = 45, k = 0.3, lm = 25, tm = NA, tmax = 18,   # tm = NA: age at maturity from lm
                               M = 0.35)),
   msy = 400, sel = sp$sel, relq = c(traps = 0.4, gillnet = 0.6, linefish = 0.8))
 save_species(gibbus)

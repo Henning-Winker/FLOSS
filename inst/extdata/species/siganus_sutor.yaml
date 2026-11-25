@@ -7,11 +7,11 @@ version: '0.1'
 lh:
   linf: 37.1516
   k: 0.7124
-  t0: -1.0
+  t0: -0.1
   a: 0.01
   b: 3.04
   lm: 25.7714
-  tm: 2.2209
+  tm: 1.5608
   tmax: 9
   M: 0.9751742272
   s: 0.599
@@ -33,6 +33,6 @@ sel:
     L50: 28.0
     L95: 32.0
 relq:
-  traps: 1.39
-  gillnet: 0.42
-  linefish: 0.05
+  traps: 0.58
+  gillnet: 0.18
+  linefish: 0.02
