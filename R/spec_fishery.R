@@ -57,6 +57,8 @@ effort_trend <- function(type = c("fudc", "values"), e0 = 0.05, fhi = 1,
 #' @param name a label.
 #' @param seed seed for the effort realisation; every species built with this
 #'   fishery sees the same effort.
+#' @param Escale overall effort multiplier (median of the effort scale), applied to every fleet and year:
+#'   raises or lowers the exploitation level of all species without changing the shape of the history.
 #' @param Escale_cv lognormal SD (median 1) of a multiplier on the whole effort history of each iteration,
 #'   common to all fleets (and so to all species built with this effort): spreads exploitation and depletion
 #'   levels across iterations while keeping the shape of the history and the shares between fleets.
@@ -70,7 +72,7 @@ effort_trend <- function(type = c("fudc", "values"), e0 = 0.05, fhi = 1,
 #'                       linefish = effort_trend(fhi = 2, flo = 1)))
 fishery <- function(fleets, years, trends, sigmaE = 0.15, creep = 0,
                     creep_start = NULL, name = "fishery", seed = 123, Escale_cv = 0,
-                    management = NULL) {
+                    management = NULL, Escale = 1) {
   fleets <- as.character(fleets)
   nf <- length(fleets)
   years <- as.integer(years)
@@ -93,7 +95,7 @@ fishery <- function(fleets, years, trends, sigmaE = 0.15, creep = 0,
     sigmaE = per_fleet(sigmaE, "sigmaE"),
     creep = per_fleet(creep, "creep"),
     creep_start = per_fleet(as.integer(creep_start), "creep_start"),
-    seed = as.integer(seed), Escale_cv = Escale_cv,
+    seed = as.integer(seed), Escale = as.numeric(Escale), Escale_cv = Escale_cv,
     management = lapply(management, function(m) list(fleet = as.character(m$fleet), mult = as.numeric(m$mult),
                                                       from = as.integer(m$from)))),
     class = "floss_fishery")
@@ -120,6 +122,7 @@ validate_fishery <- function(x) {
   }
   if (any(unlist(x$sigmaE) < 0)) stop("sigmaE must be >= 0")
   if (!is.null(x$Escale_cv) && x$Escale_cv < 0) stop("Escale_cv must be >= 0")
+  if (!is.null(x$Escale) && !(x$Escale > 0)) stop("Escale must be > 0")
   for (m in x$management) {
     if (!m$fleet %in% x$fleets) stop("management: unknown fleet '", m$fleet, "'")
     if (!is.finite(m$mult) || m$mult < 0) stop("management: 'mult' must be >= 0")
@@ -136,7 +139,7 @@ fishery_years <- function(x) seq(x$years[1], x$years[2])
 #' Traps, gillnet and linefish, 1969-2025, with the effort trends of the
 #' multi-gear reef operating model (Winker, FLsim multigear reef example), a management change (gillnet and
 #' linefish effort cut to 50% and 55% in two steps, 1998 and 2002) and a lognormal effort scale per iteration
-#' (`Escale_cv` 0.25).
+#' (`Escale_cv` 0.25), with overall effort `Escale` 1.1.
 #'
 #' @inheritParams fishery
 #' @return a `floss_fishery`.
@@ -144,7 +147,7 @@ fishery_years <- function(x) seq(x$years[1], x$years[2])
 #' @examples
 #' reef_fishery()
 reef_fishery <- function(sigmaE = 0.15, creep = 0, seed = 123, Escale_cv = 0.25,
-                         management = reef_management()) {
+                         management = reef_management(), Escale = 1.1) {
   fishery(
     name = "reef_3fleets",
     fleets = c("traps", "gillnet", "linefish"),
@@ -153,7 +156,7 @@ reef_fishery <- function(sigmaE = 0.15, creep = 0, seed = 123, Escale_cv = 0.25,
       traps    = effort_trend(fhi = 1.0, flo = 0.8, breaks = c(0.4, 0.6)),
       gillnet  = effort_trend(fhi = 0.5, flo = 1.5, breaks = c(0.5, 0.8)),
       linefish = effort_trend(fhi = 2.5, flo = 0.9, breaks = c(0.6, 0.8))),
-    sigmaE = sigmaE, creep = creep, seed = seed, Escale_cv = Escale_cv, management = management)
+    sigmaE = sigmaE, creep = creep, seed = seed, Escale_cv = Escale_cv, management = management, Escale = Escale)
 }
 
 #' @rdname reef_fishery
@@ -176,6 +179,7 @@ print.floss_fishery <- function(x, ...) {
   print(tab, row.names = FALSE)
   if (length(x$management)) for (m in x$management)
     cat("  management:", m$fleet, "effort x", round(m$mult, 3), "from", m$from, "\n")
+  if (isTRUE(x$Escale != 1)) cat("  overall effort multiplier:", x$Escale, "\n")
   if (isTRUE(x$Escale_cv > 0)) cat("  effort scale per iteration: lognormal SD", x$Escale_cv, "\n")
   invisible(x)
 }

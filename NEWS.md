@@ -12,6 +12,9 @@
   - Rabbitfish relq retuned (traps 0.58, gillnet 0.18, linefish 0.02; was 1.39, 0.42, 0.05) so that it stays just
     above Fmsy (F/Fmsy about 1.2 in 2025) as before; emperor and snapper trajectories are nearly unchanged.
   - Reproduce 0.6.0 OMs with the species files of FLOSS 0.6.0.
+* `fishery(Escale)`: overall effort multiplier (default 1), applied to every fleet and year; `reef_3fleets` and
+  `reef_fishery()` use 1.1, so all reef species are fished about 10% harder (2025 F/Fmsy: rabbitfish 1.29, emperor
+  1.24, snapper 0.84). App: "Overall effort level" next to the effort scale between iterations.
 
 # FLOSS 0.6.0
 

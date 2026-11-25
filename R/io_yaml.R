@@ -36,7 +36,8 @@ read_spec <- function(file) {
       fleets = unlist(y$fleets), years = seq(y$years[[1]], y$years[[2]]),
       trends = y$trends, sigmaE = unlist(y$sigmaE), creep = unlist(y$creep),
       creep_start = unlist(y$creep_start), name = y$name %||% "fishery",
-      seed = y$seed %||% 123L, Escale_cv = y$Escale_cv %||% 0, management = y$management),
+      seed = y$seed %||% 123L, Escale_cv = y$Escale_cv %||% 0, management = y$management,
+      Escale = y$Escale %||% 1),
     stop(file, " is not a FLOSS spec (missing 'floss: species|fishery')"))
 }
 

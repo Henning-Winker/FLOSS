@@ -10,7 +10,8 @@ reef_fishery(
   creep = 0,
   seed = 123,
   Escale_cv = 0.25,
-  management = reef_management()
+  management = reef_management(),
+  Escale = 1.1
 )
 
 reef_management()
@@ -30,6 +31,9 @@ levels across iterations while keeping the shape of the history and the shares b
 
 \item{management}{optional list of effort changes, each \code{list(fleet, mult, from)}: effort of \code{fleet} is
 multiplied by \code{mult} from year \code{from} on (steps multiply), e.g. a management change shared by all species.}
+
+\item{Escale}{overall effort multiplier (median of the effort scale), applied to every fleet and year:
+raises or lowers the exploitation level of all species without changing the shape of the history.}
 }
 \value{
 a \code{floss_fishery}.
@@ -38,7 +42,7 @@ a \code{floss_fishery}.
 Traps, gillnet and linefish, 1969-2025, with the effort trends of the
 multi-gear reef operating model (Winker, FLsim multigear reef example), a management change (gillnet and
 linefish effort cut to 50\% and 55\% in two steps, 1998 and 2002) and a lognormal effort scale per iteration
-(\code{Escale_cv} 0.25).
+(\code{Escale_cv} 0.25), with overall effort \code{Escale} 1.1.
 }
 \examples{
 reef_fishery()

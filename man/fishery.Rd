@@ -16,7 +16,8 @@ fishery(
   name = "fishery",
   seed = 123,
   Escale_cv = 0,
-  management = NULL
+  management = NULL,
+  Escale = 1
 )
 
 validate_fishery(x)
@@ -48,6 +49,9 @@ levels across iterations while keeping the shape of the history and the shares b
 
 \item{management}{optional list of effort changes, each \code{list(fleet, mult, from)}: effort of \code{fleet} is
 multiplied by \code{mult} from year \code{from} on (steps multiply), e.g. a management change shared by all species.}
+
+\item{Escale}{overall effort multiplier (median of the effort scale), applied to every fleet and year:
+raises or lowers the exploitation level of all species without changing the shape of the history.}
 
 \item{x}{a \code{floss_fishery}.}
 }
