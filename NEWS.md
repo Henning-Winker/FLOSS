@@ -15,6 +15,12 @@
 * `fishery(Escale)`: overall effort multiplier (default 1), applied to every fleet and year; `reef_3fleets` and
   `reef_fishery()` use 1.1, so all reef species are fished about 10% harder (2025 F/Fmsy: rabbitfish 1.29, emperor
   1.24, snapper 0.84). App: "Overall effort level" next to the effort scale between iterations.
+* Sex-structured OM with growth morphs: `om_sex(..., gtg = gtg_sex(stk, gtg_settings()))` tracks growth-type groups
+  separately for females and males (own Linf, k, maturity), with Beverton-Holt recruitment from female SSB split
+  50:50. Catch numbers come from the morph catch, so a projection at constant Fmsy returns Bmsy and MSY exactly.
+  `refpts_sex_gtg()` gives morph-equilibrium Fmsy, Bmsy, MSY, B0, R0, Fcrash and Fspr30/40; `eq_sex_gtg()` the
+  two-sex per-recruit and equilibrium values; `sr_sex(gtg = )` sets B0 from the morph SBPR0. `truth_sex()` (SPR) and
+  `lfd_sex()` (fleet catch and survey length samples by sex) use the morphs when present.
 
 # FLOSS 0.6.0
 

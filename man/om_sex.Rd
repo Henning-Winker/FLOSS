@@ -13,7 +13,8 @@ om_sex(
   deviances = NULL,
   sigR = 0.5,
   rho = 0,
-  seed = 1
+  seed = 1,
+  gtg = NULL
 )
 }
 \arguments{
@@ -38,9 +39,16 @@ e.g. from \code{\link[FLCore:rlnormar1]{FLCore::rlnormar1()}}); otherwise genera
 \item{rho}{recruitment autocorrelation.}
 
 \item{seed}{random seed (for generated deviations).}
+
+\item{gtg}{growth morphs: \code{\link[=gtg_settings]{gtg_settings()}} (or a list of its arguments, or \code{TRUE}) or \code{\link[=gtg_sex]{gtg_sex()}}. With
+\code{gtg}, each sex's morphs are tracked through the apical F history (fleets select at length, so fast growers
+are removed sooner), and the population is projected with the resulting effective F, weight and maturity
+at age; reference points come from the morph equilibrium (\code{\link[=refpts_sex_gtg]{refpts_sex_gtg()}}), true SPR and length samples
+(\code{\link[=lfd_sex]{lfd_sex()}}) from the morphs. Use \code{\link[=sr_sex]{sr_sex()}} with the same \code{gtg} so that B0 matches the morphs.}
 }
 \value{
-a list of class \code{floss_om_sex}: \code{stock} (\code{FLStockR} with units F,
+a list of class \code{floss_om_sex} (with \code{gtg}: element \code{gtg} with the morph structures \code{G}, the per-recruit
+morph tracks and recruitment): \code{stock} (\code{FLStockR} with units F,
 M and \code{refpts}), \code{sr}, \code{refpts} (\code{\link[=refpts_sex]{refpts_sex()}}), \code{fapic} (\code{FLQuant},
 year x iter), \code{lh}, \code{lens}, \code{sel}, \code{sel_fleet} (for \code{\link[=lfd_sex]{lfd_sex()}}) and \code{truth} (by year and iteration: apical F, F/Fmsy,
 female SSB, SSB/B0, SSB/Bmsy, female SPR at the year's F, catch,
