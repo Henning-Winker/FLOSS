@@ -45,7 +45,7 @@
 #' @param kappa Dirichlet concentration for random year-to-year shares; `Inf`
 #'   (default) = no random variation.
 #' @param n_mult optional list of `from`, `mult` and optionally `over`: the
-#'   annual sample size (clusters, fish measured, biological samples) is
+#'   annual sample size (sampled trips, fish measured, biological samples) is
 #'   multiplied by `mult` from `from` on (ramped over `over` years).
 #' @param p_missing probability that a year is not sampled at all.
 #' @param labels season names; default `"S1"`, `"S2"`, ...

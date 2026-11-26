@@ -55,7 +55,7 @@ samples, per fleet.}
 proportional, < 1 hyperstable (e.g. range contraction), > 1
 hyperdepletion.}
 
-\item{lfd_ess_age, lfd_ess_len}{stage-1 (clusters) and stage-2 (fish
+\item{lfd_ess_age, lfd_ess_len}{stage-1 (sampled trips) and stage-2 (fish
 measured) sample sizes.}
 
 \item{lfd_bin}{length bin (cm); \code{NULL} picks about Linf/40 per species.}
@@ -115,7 +115,7 @@ lognormal AR1 residuals,
 \eqn{\epsilon_y = \rho\,\epsilon_{y-1} + \sqrt{1-\rho^2}\,\delta_y}. Use
 \eqn{\rho > 0} for non-random (clustered) sampling of the fleet.
 \item \strong{Length frequencies}: the two-stage FLRef protocol
-(\code{\link[FLRef:lfd.sim]{FLRef::lfd.sim()}}): \code{lfd_ess_age} clusters drawn from the fleet's
+(\code{\link[FLRef:lfd.sim]{FLRef::lfd.sim()}}): \code{lfd_ess_age} sampled trips (or hauls) drawn from the fleet's
 catch-at-age, then \code{lfd_ess_len} fish measured through the gear's
 length key.
 \item \strong{Biological samples}: \code{bio_n} fish per fleet and year with length

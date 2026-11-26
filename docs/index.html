@@ -38,7 +38,7 @@
     
     <a class="navbar-brand me-2" href="index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,9 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item">
+  <a class="nav-link" href="concept.html">Concept</a>
+</li>
 <li class="nav-item">
   <a class="nav-link" href="articles/floss-00-how-it-works.html">How it works</a>
 </li>
@@ -58,11 +61,17 @@
     <a class="dropdown-item" href="articles/floss-03-teaching.html">Teaching scenarios</a>
     <a class="dropdown-item" href="articles/floss-04-cpue-aggregation.html">Training example: summed effort hides a shark decline</a>
     <a class="dropdown-item" href="articles/floss-05-methods.html">Appendix: methods and equations</a>
+    <a class="dropdown-item" href="articles/floss-06-sex-structured.html">A sex-structured operating model with reference points</a>
+    <a class="dropdown-item" href="articles/floss-07-om-flife-flref.html">Building an operating model with FLife and FLRef</a>
     <a class="dropdown-item" href="articles/floss-01-reef-om.html">A reef operating model from saved specs</a>
+    <a class="dropdown-item" href="articles/floss-08-growth-morphs.html">FLOSS 8: growth morphs, seasonal length sampling and tuning</a>
   </div>
 </li>
 <li class="nav-item">
   <a class="nav-link" href="reference/index.html">Reference</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="news/index.html">Changelog</a>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
@@ -84,7 +93,7 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="floss-">FLOSS <img src="https://img.shields.io/badge/status-v0.5.1%20prototype-orange" align="right"><a class="anchor" aria-label="anchor" href="#floss-"></a>
+<div class="page-header"><h1 id="floss-">FLOSS <img src="https://img.shields.io/badge/status-v0.6.1%20prototype-orange" align="right"><a class="anchor" aria-label="anchor" href="#floss-"></a>
 </h1></div>
 <p><strong>FL Operating model &amp; Sampling Simulator</strong></p>
 <p><strong>Guide and documentation: <a href="https://henning-winker.github.io/FLOSS/" class="uri">https://henning-winker.github.io/FLOSS/</a></strong> (<a href="https://henning-winker.github.io/FLOSS/articles/floss-00-how-it-works.html">How it works</a> · <a href="https://henning-winker.github.io/FLOSS/articles/floss-02-user-guide.html">User guide</a> · <a href="https://henning-winker.github.io/FLOSS/articles/floss-03-teaching.html">Teaching scenarios</a> · <a href="https://henning-winker.github.io/FLOSS/reference/index.html">Functions</a>)</p>
@@ -93,6 +102,7 @@
 <div class="section level2">
 <h2 id="concept">Concept<a class="anchor" aria-label="anchor" href="#concept"></a>
 </h2>
+<p>The <a href="https://henning-winker.github.io/FLOSS/concept.html">concept page</a> walks through the layers (fishery, species biology, species x gear, operating model, treatments, sampling, size and age, truth) with figures from the reef example.</p>
 <pre><code>1 FISHERY        -&gt;  2 SPECIES           -&gt;  3 OM                 -&gt;  4 SAMPLING      -&gt;  5 EXPORT
 fleets, years,       life history, MSY,      calibrate to MSY,        catch, effort,      pick species
 nominal effort,      selectivity and         nsim iterations,         CPUE, survey,       and iterations

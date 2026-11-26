@@ -6,9 +6,12 @@ template:
 
 navbar:
   structure:
-    left: [intro, guide, articles, reference, news]
+    left: [intro, concept, guide, articles, reference, news]
     right: [search, github]
   components:
+    concept:
+      text: Concept
+      href: concept.html
     guide:
       text: How it works
       href: articles/floss-00-how-it-works.html
@@ -31,6 +34,8 @@ navbar:
         href: articles/floss-07-om-flife-flref.html
       - text: A reef operating model from saved specs
         href: articles/floss-01-reef-om.html
+      - text: "FLOSS 8: growth morphs, seasonal length sampling and tuning"
+        href: articles/floss-08-growth-morphs.html
 
 articles:
 - title: Materials
@@ -43,6 +48,7 @@ articles:
   - floss-06-sex-structured
   - floss-07-om-flife-flref
   - floss-01-reef-om
+  - floss-08-growth-morphs
 
 reference:
 - title: App and guides
@@ -140,6 +146,33 @@ reference:
   - read_dataset
   - simulate_fishery
   - as_flr
+- title: Sex-structured models
+  contents:
+  - lh_sex
+  - lhpar_flicc_sex
+  - amat_from_lm
+  - stock_sex
+  - sr_sex
+  - om_sex
+  - dimorph_om
+  - eq_sex
+  - refpts_sex
+  - refpts_fwd_sex
+  - truth_sex
+  - lfd_sex
+  - plot_om_sex
+  - fapic_fudc
+- title: Growth-type groups
+  contents:
+  - gtg_settings
+  - gtg_sex
+  - gtg_brp
+  - gtg_lfq
+  - eq_sex_gtg
+  - refpts_sex_gtg
+  - alk_floss
+  - plot_gtg
+  - plot_gtg_linf
 - title: Colours
   contents:
   - floss.r4col

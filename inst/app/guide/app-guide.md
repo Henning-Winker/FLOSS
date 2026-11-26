@@ -32,14 +32,14 @@ Steps 1 to 3 form the first part of the app: they build the true stock, which in
 | Effort by fleet | the nominal effort, reported in fishing days, with random observation error; effort creep is never included | observation error (CV) and fishing days at a relative effort of 1 |
 | CPUE by fleet | follows the biomass vulnerable to the fleet, optionally falling more slowly than that biomass (hyperstability), rising with the fleet's efficiency when effort creep is carried into the index, and carrying random errors that can persist from year to year | observation error (CV), autocorrelation, proportionality, and catchability step |
 | Survey index (optional) | follows the biomass selected by the survey at the time of year the survey takes place, with random errors that can persist from year to year | survey timing, observation error (CV), autocorrelation, survey selectivity (set relative to Linf), and catchability step |
-| Length samples | drawn in two stages each season: clusters (trips or hauls) are sampled from the season's catch, and fish are then measured from those clusters at their mid-season length | clusters per year, fish measured per year, length bin, and seasonal design |
+| Length samples | drawn in two stages each season: trips (or hauls) are sampled from the season's catch, and fish are then measured from those sampled trips at their mid-season length | sampled trips per year, fish measured per year, length bin, and seasonal design |
 | Biological samples | one record per fish, holding its length, its age (with optional ageing error and bias), its weight, and whether it is mature | fish per year, ageing scheme (a random share or length-stratified), ageing and weighing error (CV), and seasonal design |
 
 Lengths are entered in centimetres in the app, whereas the exported length and biological samples record length in millimetres and weight in grams.
 
 Catch and effort are reported for every year, whereas CPUE, length samples, and biological samples cover only the most recent years of each fleet (for example, 5, 10, and 15 years for the three fleets in the reef example), as is typical of monitoring programmes that began after the fishery developed.
 
-**Two-stage length sampling.** Fish caught on the same trip or in the same haul tend to resemble one another, so a length sample carries less information than its number of fish suggests. Its effective sample size lies between the number of clusters and the number of fish measured, depending on growth and selectivity.
+**Two-stage length sampling.** Fish caught on the same trip or in the same haul tend to resemble one another, so a length sample carries less information than its number of fish suggests. Its effective sample size lies between the number of sampled trips and the number of fish measured, depending on growth and selectivity.
 
 **Seasonal sampling.** The stock itself is modelled annually, with fishing effort spread evenly through the year; only the sampling is seasonal. By default, the length and biological samples of each year are spread evenly over four seasons. The fish sampled in a season come from the catch taken during that season and are measured at their mid-season length, so fish in late-season samples are larger. Imbalanced designs, set in the Seasons tab of the Sampling step, affect the pooled annual length data as follows:
 

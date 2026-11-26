@@ -9,7 +9,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,6 +18,9 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item">
+  <a class="nav-link" href="../concept.html">Concept</a>
+</li>
+<li class="nav-item">
   <a class="nav-link" href="../articles/floss-00-how-it-works.html">How it works</a>
 </li>
 <li class="nav-item dropdown">
@@ -28,11 +31,17 @@
     <a class="dropdown-item" href="../articles/floss-03-teaching.html">Teaching scenarios</a>
     <a class="dropdown-item" href="../articles/floss-04-cpue-aggregation.html">Training example: summed effort hides a shark decline</a>
     <a class="dropdown-item" href="../articles/floss-05-methods.html">Appendix: methods and equations</a>
+    <a class="dropdown-item" href="../articles/floss-06-sex-structured.html">A sex-structured operating model with reference points</a>
+    <a class="dropdown-item" href="../articles/floss-07-om-flife-flref.html">Building an operating model with FLife and FLRef</a>
     <a class="dropdown-item" href="../articles/floss-01-reef-om.html">A reef operating model from saved specs</a>
+    <a class="dropdown-item" href="../articles/floss-08-growth-morphs.html">FLOSS 8: growth morphs, seasonal length sampling and tuning</a>
   </div>
 </li>
 <li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -102,7 +111,7 @@
         <dd>Effort trend for one fleet</dd>
       </dl><dl><dt>
           
-          <code><a href="reef_fishery.html">reef_fishery()</a></code> 
+          <code><a href="reef_fishery.html">reef_fishery()</a></code> <code><a href="reef_fishery.html">reef_management()</a></code> 
         </dt>
         <dd>The three-fleet reef fishery used in the examples</dd>
       </dl><dl><dt>
@@ -519,6 +528,143 @@
           <code><a href="as_flr.html">as_flr()</a></code> 
         </dt>
         <dd>FLR objects for JABBA3 and FLicc</dd>
+      </dl></div><div class="section level2">
+      <h2 id="sex-structured-models">Sex-structured models<a class="anchor" aria-label="anchor" href="#sex-structured-models"></a></h2>
+      
+      
+
+      
+    </div><div id="" class="section level2">
+      
+      
+      
+
+      <dl><dt>
+          
+          <code><a href="lh_sex.html">lh_sex()</a></code> 
+        </dt>
+        <dd>Life history by sex</dd>
+      </dl><dl><dt>
+          
+          <code><a href="lhpar_flicc_sex.html">lhpar_flicc_sex()</a></code> 
+        </dt>
+        <dd>Life history by sex for FLicc</dd>
+      </dl><dl><dt>
+          
+          <code><a href="amat_from_lm.html">amat_from_lm()</a></code> 
+        </dt>
+        <dd>Age at maturity from length at maturity</dd>
+      </dl><dl><dt>
+          
+          <code><a href="stock_sex.html">stock_sex()</a></code> 
+        </dt>
+        <dd>Sex-structured FLStock</dd>
+      </dl><dl><dt>
+          
+          <code><a href="sr_sex.html">sr_sex()</a></code> 
+        </dt>
+        <dd>Beverton-Holt stock-recruitment for a sex-structured stock</dd>
+      </dl><dl><dt>
+          
+          <code><a href="om_sex.html">om_sex()</a></code> 
+        </dt>
+        <dd>Build a sex-structured operating model</dd>
+      </dl><dl><dt>
+          
+          <code><a href="dimorph_om.html">dimorph_om</a></code> 
+        </dt>
+        <dd>Sex-structured operating model example (dimorphic stock)</dd>
+      </dl><dl><dt>
+          
+          <code><a href="eq_sex.html">eq_sex()</a></code> 
+        </dt>
+        <dd>Equilibrium of a sex-structured stock</dd>
+      </dl><dl><dt>
+          
+          <code><a href="refpts_sex.html">refpts_sex()</a></code> 
+        </dt>
+        <dd>Reference points of a sex-structured stock</dd>
+      </dl><dl><dt>
+          
+          <code><a href="refpts_fwd_sex.html">refpts_fwd_sex()</a></code> 
+        </dt>
+        <dd>MSY by deterministic projection (check of refpts_sex())</dd>
+      </dl><dl><dt>
+          
+          <code><a href="truth_sex.html">truth_sex()</a></code> 
+        </dt>
+        <dd>True status of a sex-structured operating model</dd>
+      </dl><dl><dt>
+          
+          <code><a href="lfd_sex.html">lfd_sex()</a></code> 
+        </dt>
+        <dd>Length frequencies by sex from a sex-structured operating model</dd>
+      </dl><dl><dt>
+          
+          <code><a href="plot_om_sex.html">plot_om_sex()</a></code> 
+        </dt>
+        <dd>Plot a sex-structured operating model</dd>
+      </dl><dl><dt>
+          
+          <code><a href="fapic_fudc.html">fapic_fudc()</a></code> 
+        </dt>
+        <dd>Apical F trajectories for a sex-structured operating model with fudc()</dd>
+      </dl></div><div class="section level2">
+      <h2 id="growth-type-groups">Growth-type groups<a class="anchor" aria-label="anchor" href="#growth-type-groups"></a></h2>
+      
+      
+
+      
+    </div><div id="" class="section level2">
+      
+      
+      
+
+      <dl><dt>
+          
+          <code><a href="gtg_settings.html">gtg_settings()</a></code> 
+        </dt>
+        <dd>Settings for growth-type groups in the operating model</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gtg_sex.html">gtg_sex()</a></code> 
+        </dt>
+        <dd>Growth morphs of a sex-structured stock</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gtg_brp.html">gtg_brp()</a></code> 
+        </dt>
+        <dd>Reference points with growth morphs from steepness and unfished recruitment</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gtg_lfq.html">gtg_lfq()</a></code> 
+        </dt>
+        <dd>True catch-at-length of a growth-morph operating model</dd>
+      </dl><dl><dt>
+          
+          <code><a href="eq_sex_gtg.html">eq_sex_gtg()</a></code> 
+        </dt>
+        <dd>Sex-structured equilibrium with growth morphs</dd>
+      </dl><dl><dt>
+          
+          <code><a href="refpts_sex_gtg.html">refpts_sex_gtg()</a></code> 
+        </dt>
+        <dd>Reference points of a sex-structured stock with growth morphs</dd>
+      </dl><dl><dt>
+          
+          <code><a href="alk_floss.html">alk_floss()</a></code> 
+        </dt>
+        <dd>Age-length keys by sex</dd>
+      </dl><dl><dt>
+          
+          <code><a href="plot_gtg.html">plot_gtg_growth()</a></code> <code><a href="plot_gtg.html">plot_gtg_selectivity()</a></code> <code><a href="plot_gtg.html">plot_gtg_lenage()</a></code> <code><a href="plot_gtg.html">plot_gtg_lfq()</a></code> <code><a href="plot_gtg.html">plot_gtg_spr()</a></code> 
+        </dt>
+        <dd>Plots of the growth-morph structure of an operating model</dd>
+      </dl><dl><dt>
+          
+          <code><a href="plot_gtg_linf.html">plot_gtg_linf()</a></code> 
+        </dt>
+        <dd>Plot the distribution of asymptotic length among growth morphs</dd>
       </dl></div><div class="section level2">
       <h2 id="colours">Colours<a class="anchor" aria-label="anchor" href="#colours"></a></h2>
       

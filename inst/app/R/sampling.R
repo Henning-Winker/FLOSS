@@ -66,7 +66,7 @@ sampling_ui <- function() {
         box(width = 12, title = "Survey index", plotOutput("sm_survey", height = 340)))),
       tabPanel("Length frequencies",
         box(width = 12, title = "Length sampling (two stages)",
-          p(class = "note", "Stage 1: clusters (trips or hauls) are sampled from the catch; fish in one cluster are alike. Stage 2: fish are measured from those clusters. Few clusters give noisy, lumpy length distributions even when many fish are measured."),
+          p(class = "note", "Stage 1: trips (or hauls) are sampled from the catch; fish from one trip are alike. Stage 2: fish are measured from those sampled trips. Few sampled trips give noisy, lumpy length distributions even when many fish are measured."),
           uiOutput("lf_rows"),
           fluidRow(column(4, numericInput("lf_bin", "Length bin (mm, 0 = automatic)", value = 0, min = 0, step = 5)))),
         box(width = 12, title = "Length samples",
@@ -227,7 +227,7 @@ sampling_server <- function(input, output, session, rv, r) {
         column(3, numericInput("sv_cv", "CV", value = 0.25, min = 0, step = 0.05)),
         column(3, sliderInput("sv_timing", "Timing (fraction of year)", min = 0, max = 0.9, value = 0, step = 0.1))),
       fluidRow(
-        column(3, numericInput("sv_ess_age", lab("Length samples: clusters", "ess_age"), value = 50, min = 1)),
+        column(3, numericInput("sv_ess_age", lab("Length samples: sampled trips", "ess_age"), value = 50, min = 1)),
         column(3, numericInput("sv_ess_len", lab("Fish measured", "ess_len"), value = 500, min = 1))),
       fluidRow(
         column(3, sliderInput("sv_rho", "Autocorrelation rho", min = 0, max = 0.95, value = 0, step = 0.05)),
@@ -300,7 +300,7 @@ sampling_server <- function(input, output, session, rv, r) {
   })
 
   output$lf_rows <- renderUI(fleet_rows(list(
-    list(id = "lf_ess_age", label = lab("Clusters per year", "ess_age"), value = function(i, p) p$ess_age[[i]],
+    list(id = "lf_ess_age", label = lab("Sampled trips per year", "ess_age"), value = function(i, p) p$ess_age[[i]],
          min = 1, max = 500, step = 1),
     list(id = "lf_ess_len", label = lab("Fish measured per year", "ess_len"), value = function(i, p) p$ess_len[[i]],
          min = 1, max = 10000, step = 50))))

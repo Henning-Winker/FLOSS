@@ -45,7 +45,7 @@ survey_settings <- function(years = NULL, timing = 0, cv = 0.25, rho = 0,
 #'   \eqn{\epsilon_y = \rho\,\epsilon_{y-1} + \sqrt{1-\rho^2}\,\delta_y}. Use
 #'   \eqn{\rho > 0} for non-random (clustered) sampling of the fleet.
 #' * **Length frequencies**: the two-stage FLRef protocol
-#'   ([FLRef::lfd.sim()]): `lfd_ess_age` clusters drawn from the fleet's
+#'   ([FLRef::lfd.sim()]): `lfd_ess_age` sampled trips (or hauls) drawn from the fleet's
 #'   catch-at-age, then `lfd_ess_len` fish measured through the gear's
 #'   length key.
 #' * **Biological samples**: `bio_n` fish per fleet and year with length
@@ -64,7 +64,7 @@ survey_settings <- function(years = NULL, timing = 0, cv = 0.25, rho = 0,
 #' @param cpue_beta proportionality exponent, \eqn{I = qB^\beta}: 1 =
 #'   proportional, < 1 hyperstable (e.g. range contraction), > 1
 #'   hyperdepletion.
-#' @param lfd_ess_age,lfd_ess_len stage-1 (clusters) and stage-2 (fish
+#' @param lfd_ess_age,lfd_ess_len stage-1 (sampled trips) and stage-2 (fish
 #'   measured) sample sizes.
 #' @param lfd_bin length bin (cm); `NULL` picks about Linf/40 per species.
 #' @param lfd_cv CV of length-at-age.
@@ -218,7 +218,7 @@ planted_artefacts <- function(oem, fishery = NULL, treatment = NULL) {
     if (sd$p_missing > 0)
       add("missing sampling years", f, sprintf("each year unsampled with probability %.2f", sd$p_missing))
     if (oem$lfd$ess_age[[f]] < 15)
-      add("very small length samples", f, sprintf("%d clusters", oem$lfd$ess_age[[f]]))
+      add("very small length samples", f, sprintf("%d sampled trips", oem$lfd$ess_age[[f]]))
   }
   if (!is.null(oem$survey$q_step))
     add("survey catchability step", "survey", sprintf("x %.2f from %d",

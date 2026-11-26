@@ -33,7 +33,7 @@ trap fishing and a day of linefishing catch differently;
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,9 @@ trap fishing and a day of linefishing catch differently;
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item">
+  <a class="nav-link" href="../concept.html">Concept</a>
+</li>
+<li class="nav-item">
   <a class="nav-link" href="../articles/floss-00-how-it-works.html">How it works</a>
 </li>
 <li class="nav-item dropdown">
@@ -52,11 +55,17 @@ trap fishing and a day of linefishing catch differently;
     <a class="dropdown-item" href="../articles/floss-03-teaching.html">Teaching scenarios</a>
     <a class="dropdown-item" href="../articles/floss-04-cpue-aggregation.html">Training example: summed effort hides a shark decline</a>
     <a class="dropdown-item" href="../articles/floss-05-methods.html">Appendix: methods and equations</a>
+    <a class="dropdown-item" href="../articles/floss-06-sex-structured.html">A sex-structured operating model with reference points</a>
+    <a class="dropdown-item" href="../articles/floss-07-om-flife-flref.html">Building an operating model with FLife and FLRef</a>
     <a class="dropdown-item" href="../articles/floss-01-reef-om.html">A reef operating model from saved specs</a>
+    <a class="dropdown-item" href="../articles/floss-08-growth-morphs.html">FLOSS 8: growth morphs, seasonal length sampling and tuning</a>
   </div>
 </li>
 <li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -138,19 +147,19 @@ and the true biomass.</p>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_fishery.html">simulate_fishery</a></span><span class="op">(</span>nsim <span class="op">=</span> <span class="fl">2</span>, iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu">nominal_cpue</span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">data</span>, by <span class="op">=</span> <span class="st">"aggregate"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                     species iter year     source  catch_t effort     cpue</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Carcharhinus melanopterus    1 1971 all fleets 26.34111    582 45.25963</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 Carcharhinus melanopterus    1 1972 all fleets 29.08215    516 56.36076</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 Carcharhinus melanopterus    1 1973 all fleets 33.97667    706 48.12560</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 Carcharhinus melanopterus    1 1974 all fleets 42.85550    797 53.77102</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 Carcharhinus melanopterus    1 1975 all fleets 48.48520   1054 46.00114</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 Carcharhinus melanopterus    1 1976 all fleets 50.29837    930 54.08426</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       index catch_true effort_true cpue_true index_true</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.9997929   26.38079    522.3684  50.50227   1.147047</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 1.2450185   27.87265    541.4572  51.47712   1.169188</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 1.0631026   35.56634    688.7058  51.64228   1.172939</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 1.1878109   39.43281    839.1149  46.99334   1.067349</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 1.0161728   50.33827    941.0162  53.49352   1.214986</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 1.1947305   49.83039    905.2078  55.04857   1.250306</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Carcharhinus melanopterus    1 1971 all fleets 44.52411    972 45.80670</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 Carcharhinus melanopterus    1 1972 all fleets 49.00522    862 56.85060</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 Carcharhinus melanopterus    1 1973 all fleets 57.05581   1179 48.39339</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 Carcharhinus melanopterus    1 1974 all fleets 71.68725   1332 53.81926</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 Carcharhinus melanopterus    1 1975 all fleets 80.73403   1761 45.84556</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 Carcharhinus melanopterus    1 1976 all fleets 83.32261   1553 53.65268</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      index catch_true effort_true cpue_true index_true</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 1.229229   44.59152    872.5736  51.10345   1.405610</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 1.525594   46.96802    904.4598  51.92937   1.428327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 1.298644   59.72505   1150.4266  51.91557   1.427947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 1.444248   65.96389   1401.6727  47.06084   1.294417</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 1.230272   83.82370   1571.8903  53.32668   1.466760</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 1.439777   82.53999   1512.0753  54.58722   1.501432</span>
 <span class="r-in"><span><span class="fu"><a href="plot_aggregate.html">plot_aggregate</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">data</span>, <span class="st">"Lutjanus bohar"</span>, what <span class="op">=</span> <span class="st">"cpue"</span>, by <span class="op">=</span> <span class="st">"fleet"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="catch_table-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>

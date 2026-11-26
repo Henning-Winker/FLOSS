@@ -100,7 +100,7 @@ identical.
 | Effort index | nominal effort x lognormal error | CV |
 | CPUE by fleet | vulnerable biomass^beta x efficiency (if creep is carried) x lognormal AR1 error | CV, rho, beta, catchability step |
 | Survey index | biomass at survey time x survey selectivity, AR1 error | timing, CV, rho, selectivity (relative to Linf), catchability step |
-| Length samples | two-stage sampling by season: clusters drawn from the season's catch-at-age, then fish measured through the gear's length key at the middle of the season | clusters (`ess_age`), fish measured (`ess_len`), length bin, seasonal design |
+| Length samples | two-stage sampling by season: sampled trips (or hauls) drawn from the season's catch-at-age, then fish measured through the gear's length key at the middle of the season | sampled trips (`ess_age`), fish measured (`ess_len`), length bin, seasonal design |
 | Biological samples | one row per fish and season: length (mm), age (with ageing error and bias), weight (g), maturity (0/1) | fish per year, ageing scheme (random or length-stratified), CVs, seasonal design |
 
 CPUE, length and biological samples cover the last years of each fleet
@@ -109,7 +109,7 @@ years.
 
 **Two-stage length sampling.** Fish in a trip or haul are alike, so a length
 sample carries less information than its number of fish suggests. The
-effective sample size lies between the number of clusters and the number
+effective sample size lies between the number of sampled trips and the number
 of fish measured, depending on growth and selectivity.
 
 **Seasonal sampling.** The stock is annual, with fishing effort spread

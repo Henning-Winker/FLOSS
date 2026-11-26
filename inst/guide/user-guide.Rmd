@@ -137,7 +137,7 @@ oem
 
 ::: {.info}
 **Why sampling settings matter.** The same stock looks different through
-different sampling: few clusters make length samples erratic, autocorrelated
+different sampling: few sampled trips make length samples erratic, autocorrelated
 CPUE errors make trends look more certain than they are, and the years
 sampled decide whether a change in the stock is visible at all.
 :::
@@ -150,7 +150,7 @@ Three choices matter most:
   \eqn{\epsilon_y = \rho\,\epsilon_{y-1} + \sqrt{1-\rho^2}\,\delta_y}. The
   linefish fleet uses \eqn{\rho = 0.6}.
 * **Two-stage length sampling** (`lfd_ess_age`, `lfd_ess_len`), the FLRef
-  protocol of `FLRef::lfd.sim()`: clusters (trips, hauls) are drawn from the
+  protocol of `FLRef::lfd.sim()`: sampled trips (or hauls) are drawn from the
   fleet's catch-at-age, then fish are measured through the gear's length
   key. The effective sample size lies between the two.
 * **Ageing scheme** of the biological samples (`bio_age_scheme`): a random

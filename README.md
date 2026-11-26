@@ -1,4 +1,4 @@
-# FLOSS <img src="https://img.shields.io/badge/status-v0.5.1%20prototype-orange" align="right"/>
+# FLOSS <img src="https://img.shields.io/badge/status-v0.6.1%20prototype-orange" align="right"/>
 
 **FL Operating model & Sampling Simulator**
 
@@ -19,6 +19,12 @@ It builds on [FLR](https://flr-project.org) (`FLCore`, `FLBRP`, `FLasher`,
 `FLife`) and [`FLRef`](https://github.com/flr/FLRef).
 
 ## Concept
+
+The [concept page](https://henning-winker.github.io/FLOSS/concept.html) walks
+through the layers (fishery, species biology, species x gear, operating
+model, treatments, sampling, size and age, truth) with figures from the reef
+example.
+
 
 ```
 1 FISHERY        ->  2 SPECIES           ->  3 OM                 ->  4 SAMPLING      ->  5 EXPORT

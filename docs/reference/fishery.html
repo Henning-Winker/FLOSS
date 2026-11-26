@@ -17,7 +17,7 @@ mortality but is not visible in the nominal effort index."><!-- mathjax --><scri
     
     <a class="navbar-brand me-2" href="../index.html">FLOSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,6 +26,9 @@ mortality but is not visible in the nominal effort index."><!-- mathjax --><scri
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item">
+  <a class="nav-link" href="../concept.html">Concept</a>
+</li>
+<li class="nav-item">
   <a class="nav-link" href="../articles/floss-00-how-it-works.html">How it works</a>
 </li>
 <li class="nav-item dropdown">
@@ -36,11 +39,17 @@ mortality but is not visible in the nominal effort index."><!-- mathjax --><scri
     <a class="dropdown-item" href="../articles/floss-03-teaching.html">Teaching scenarios</a>
     <a class="dropdown-item" href="../articles/floss-04-cpue-aggregation.html">Training example: summed effort hides a shark decline</a>
     <a class="dropdown-item" href="../articles/floss-05-methods.html">Appendix: methods and equations</a>
+    <a class="dropdown-item" href="../articles/floss-06-sex-structured.html">A sex-structured operating model with reference points</a>
+    <a class="dropdown-item" href="../articles/floss-07-om-flife-flref.html">Building an operating model with FLife and FLRef</a>
     <a class="dropdown-item" href="../articles/floss-01-reef-om.html">A reef operating model from saved specs</a>
+    <a class="dropdown-item" href="../articles/floss-08-growth-morphs.html">FLOSS 8: growth morphs, seasonal length sampling and tuning</a>
   </div>
 </li>
 <li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -81,7 +90,10 @@ mortality but is not visible in the nominal effort index.</p>
 <span>  creep <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  creep_start <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  name <span class="op">=</span> <span class="st">"fishery"</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">123</span></span>
+<span>  seed <span class="op">=</span> <span class="fl">123</span>,</span>
+<span>  Escale_cv <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  management <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  Escale <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">validate_fishery</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
@@ -123,6 +135,22 @@ species); scalar or one value per fleet.</p></dd>
 <dt>seed</dt>
 <dd><p>seed for the effort realisation; every species built with this
 fishery sees the same effort.</p></dd>
+
+
+<dt>Escale_cv</dt>
+<dd><p>lognormal SD (median 1) of a multiplier on the whole effort history of each iteration,
+common to all fleets (and so to all species built with this effort): spreads exploitation and depletion
+levels across iterations while keeping the shape of the history and the shares between fleets.</p></dd>
+
+
+<dt>management</dt>
+<dd><p>optional list of effort changes, each <code>list(fleet, mult, from)</code>: effort of <code>fleet</code> is
+multiplied by <code>mult</code> from year <code>from</code> on (steps multiply), e.g. a management change shared by all species.</p></dd>
+
+
+<dt>Escale</dt>
+<dd><p>overall effort multiplier (median of the effort scale), applied to every fleet and year:
+raises or lowers the exploitation level of all species without changing the shape of the history.</p></dd>
 
 
 <dt>x</dt>

@@ -30,7 +30,7 @@ floss_tips_list <- list(
   catch_bias = "Under-reporting: share of the true catch that is not reported.",
   cpue_rho = "Autocorrelation of CPUE errors. High values mimic non-random sampling, e.g. a fleet fishing the same grounds.",
   cpue_beta = "Proportionality: 1 = CPUE proportional to biomass; below 1 = hyperstable (CPUE stays up as the stock declines).",
-  ess_age = "Stage 1 of length sampling: number of independent clusters (trips, hauls) per year.",
+  ess_age = "Stage 1 of length sampling: number of sampled trips (or hauls) per year.",
   ess_len = "Stage 2 of length sampling: number of fish measured per year.",
   bio_n = "Fish per year with length, age, weight and maturity recorded.",
   age_scheme = "Random: a share of fish is aged. Length-stratified: at most n otoliths per length bin.",

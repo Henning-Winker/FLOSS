@@ -28,7 +28,7 @@ years (default 0, a step). Several shifts as a list of such lists.}
 (default) = no random variation.}
 
 \item{n_mult}{optional list of \code{from}, \code{mult} and optionally \code{over}: the
-annual sample size (clusters, fish measured, biological samples) is
+annual sample size (sampled trips, fish measured, biological samples) is
 multiplied by \code{mult} from \code{from} on (ramped over \code{over} years).}
 
 \item{p_missing}{probability that a year is not sampled at all.}
