@@ -37,6 +37,11 @@ with the species id so species differ but are reproducible.}
 \item{treatment}{optional \code{\link[=treatment]{treatment()}} (changes to effort, recruitment,
 selectivity, creep or M); random numbers are unchanged, so a treated and
 an untreated operating model differ only by the treatment.}
+
+\item{gtg}{optional \code{\link[=gtg_settings]{gtg_settings()}}: track growth-type groups (morphs that
+differ in Linf) through each cohort's fleet F history; length and age
+samples then come from the morphs in each fleet's catch. \code{NULL} (default)
+for no morphs.}
 }
 \value{
 an object of class \code{floss_om}: a list with \code{stock} (\code{FLStockR}),
@@ -52,7 +57,7 @@ Apical fishing mortality of fleet \eqn{f} is
 \eqn{\eta} from \code{\link[=effort_sim]{effort_sim()}} (shared by all species), and optional
 species-specific catchability noise \eqn{\delta} (\code{sigmaQ}). Fleet F-at-age
 is apical F times the fleet's selectivity-at-age; total F-at-age is the sum
-over fleets. The stock is projected with \code{\link[FLCore:ffwd]{ffwd()}} under Fbar
+over fleets. The stock is projected with \code{\link[=ffwd]{ffwd()}} under Fbar
 control and lognormal (optionally AR1) recruitment deviations. The first
 two years are dropped as burn-in, as in the reef example.
 }

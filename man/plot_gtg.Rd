@@ -30,7 +30,7 @@ plot_gtg_spr(om, iters = 1:3)
 \arguments{
 \item{om}{a \code{floss_om} built with \code{gtg}.}
 
-\item{iter}{iteration (\code{iters} for ribbons).}
+\item{iter, iters}{iteration; \code{iters} (several iterations) for the ribbons.}
 
 \item{year}{year (default last OM year).}
 

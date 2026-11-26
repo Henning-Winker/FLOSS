@@ -353,11 +353,11 @@ expand_years_sex <- function(stk, years) {
 om_sex <- function(stk, sr, fapic, years = as.numeric(dimnames(stk)$year),
                    nsim = NULL, deviances = NULL, sigR = 0.5, rho = 0, seed = 1, gtg = NULL) {
   if (is.null(nsim))
-    nsim <- max(if (is(fapic, "FLQuant")) dim(fapic)[6] else 1,
+    nsim <- max(if (methods::is(fapic, "FLQuant")) dim(fapic)[6] else 1,
                 if (!is.null(deviances)) dim(deviances)[6] else 1)
   # apical F as FLQuant year x iter
   fq <- FLQuant(NA_real_, dimnames = list(age = "all", year = years, iter = seq_len(nsim)), units = "f")
-  if (is(fapic, "FLQuant")) {
+  if (methods::is(fapic, "FLQuant")) {
     fv <- fapic[, ac(years)]
     if (dim(fv)[2] != length(years)) stop("fapic must cover all years.")
     fq[] <- if (dim(fv)[6] == 1) rep(c(fv), nsim) else c(fv[, , , , , seq_len(nsim)])

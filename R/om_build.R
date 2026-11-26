@@ -90,6 +90,10 @@ calibrate_msy <- function(sp, sels = NULL) {
 #' @param treatment optional [treatment()] (changes to effort, recruitment,
 #'   selectivity, creep or M); random numbers are unchanged, so a treated and
 #'   an untreated operating model differ only by the treatment.
+#' @param gtg optional [gtg_settings()]: track growth-type groups (morphs that
+#'   differ in Linf) through each cohort's fleet F history; length and age
+#'   samples then come from the morphs in each fleet's catch. `NULL` (default)
+#'   for no morphs.
 #' @return an object of class `floss_om`: a list with `stock` (`FLStockR`),
 #'   `sr` (`FLSR`), `brp` (calibrated equilibrium), `sel` (fleet
 #'   selectivities), `fapic` and `f_fleet` (`FLQuants` of apical F and

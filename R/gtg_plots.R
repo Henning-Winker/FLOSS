@@ -66,7 +66,7 @@ gtg_lfq <- function(om, oem = NULL, fleets = NULL, seasons = 12, iters = 1, year
 #'   compositions on top when `data` is given (both as proportions).
 #' * `plot_gtg_spr()`: true equilibrium SPR by year from the morphs, with SPR at MSY of the morph equilibrium.
 #' @param om a `floss_om` built with `gtg`.
-#' @param iter iteration (`iters` for ribbons).
+#' @param iter,iters iteration; `iters` (several iterations) for the ribbons.
 #' @param year year (default last OM year).
 #' @param years years to show (default the last four).
 #' @param data optional output of [sample_data()] or a data frame of length samples (`sample_lfd()`).
