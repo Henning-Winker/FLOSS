@@ -27,13 +27,35 @@ selectivity <- function(type = c("logistic", "normal", "dnormal"), L50 = NULL,
             class = "floss_sel")
 }
 
+#' Age at maturity from length at maturity
+#'
+#' Inverts the von Bertalanffy growth curve at the length at 50% maturity:
+#' \eqn{a_{mat} = t_0 - \log(1 - L_{m}/L_\infty)/k}. The operating model
+#' matures fish at age (FLife `a50`); using this age keeps maturity at age
+#' consistent with the length at maturity. Life-history databases such as
+#' FishLife predict `lm` and `tm` separately, and the two often disagree for a
+#' given `t0`.
+#'
+#' @param linf,k,t0 von Bertalanffy parameters (cm, per year, years).
+#' @param lm length at 50% maturity (cm), below `linf`.
+#' @return age at 50% maturity (years).
+#' @examples
+#' amat_from_lm(37.152, 0.7125, -0.1, 25.7714)   # whitespotted rabbitfish: 1.56
+#' @export
+amat_from_lm <- function(linf, k, t0, lm) {
+  if (any(lm >= linf)) stop("length at maturity must be below Linf")
+  t0 - log(1 - lm / linf) / k
+}
+
 #' Define a species
 #'
 #' @param species scientific name.
 #' @param common_name common name.
 #' @param lh named list or vector of life-history parameters: `linf`, `k`,
 #'   `t0` (von Bertalanffy, cm and years), `a`, `b` (W = aL^b, g and cm),
-#'   `lm` (length at 50% maturity, cm), `tm` (age at 50% maturity), `tmax`
+#'   `lm` (length at 50% maturity, cm), `tm` (age at 50% maturity; optional:
+#'   if missing or `NA` it is computed from `lm` with [amat_from_lm()], so that
+#'   the operating model, which matures fish at age, matures them at `lm`), `tmax`
 #'   (maximum age, also the plus group), `M` (natural mortality), `s`
 #'   (steepness), `sigR` (recruitment SD) and `rho` (recruitment
 #'   autocorrelation, used when `build_om(ar1 = TRUE)`).
@@ -48,6 +70,7 @@ selectivity <- function(type = c("logistic", "normal", "dnormal"), L50 = NULL,
 species <- function(species, common_name = "", lh, msy, sel, relq,
                     productivity = "", id = NULL) {
   lh <- as.list(lh)
+  if (is.null(lh$tm) || is.na(lh$tm)) lh$tm <- amat_from_lm(lh$linf, lh$k, lh$t0, lh$lm)
   need <- c("linf", "k", "t0", "a", "b", "lm", "tm", "tmax", "M", "s", "sigR")
   miss <- setdiff(need, names(lh))
   if (length(miss)) stop("missing life-history parameter(s): ", toString(miss))

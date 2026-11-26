@@ -16,7 +16,9 @@ fishery_ui <- function() {
           column(2, numericInput("fish_sigmaE", lab("Effort noise", "sigmaE"), value = 0.15,
                                  min = 0, max = 1, step = 0.05)),
           column(2, numericInput("fish_Escale", lab("Effort scale between iterations", "Escale_cv"), value = 0.25,
-                                 min = 0, max = 1, step = 0.05))),
+                                 min = 0, max = 1, step = 0.05)),
+          column(2, numericInput("fish_Elevel", lab("Overall effort level", "Escale"), value = 1.1,
+                                 min = 0.1, max = 5, step = 0.05))),
         conditionalPanel("input.fish_preset == 'custom'",
           div(class = "infobox", tags$strong("New fishery. "),
               "Start with no gears: type a gear name and press Add gear, then set its effort below. Add as many gears as you need. Each species gets a default selectivity for a new gear (S-shaped at the length at maturity), which you set in Species, Selectivity and Exploitation."),
@@ -46,6 +48,12 @@ fishery_ui <- function() {
 }
 
 fishery_server <- function(input, output, session, rv, r) {
+
+  # overall effort level follows the chosen fleet set (reef preset 1.1, others 1); the user can change it after
+  observeEvent(input$fish_preset, {
+    p <- if (identical(input$fish_preset, "custom")) list() else fishery_presets[[input$fish_preset]]
+    updateNumericInput(session, "fish_Elevel", value = p$Escale %||% 1)
+  }, ignoreInit = TRUE)
 
   output$guide_tips <- renderTable(guide_tips_table())
 

@@ -64,6 +64,8 @@ effort_sim <- function(fishery, nsim = 100, seed = fishery$seed) {
       list(E = E, eta = flq(rep(eta, nsim), years = yrs, nsim = nsim,
                             units = "relative"))
     })
+    m0 <- fishery$Escale %||% 1                          # overall effort level (no random draw)
+    if (m0 != 1) eff <- lapply(eff, function(e) { e$E[] <- c(e$E) * m0; e })
     cv <- fishery$Escale_cv %||% 0                       # drawn last: earlier draws unchanged
     if (cv > 0) {
       sc <- stats::rlnorm(nsim, 0, cv)

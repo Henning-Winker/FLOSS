@@ -49,6 +49,7 @@ creep_start:
   gillnet: 1969
   linefish: 1969
 seed: 123
+Escale: 1.1
 Escale_cv: 0.25
 management:
 - fleet: gillnet

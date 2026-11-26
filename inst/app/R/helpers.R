@@ -45,7 +45,7 @@ fishery_presets <- list(
     ess_age = c(traps = 30, gillnet = 30, linefish = 50),
     ess_len = c(traps = 300, gillnet = 300, linefish = 500),
     bio_n = c(traps = 100, gillnet = 100, linefish = 200),
-    management = FLOSS::reef_management()),
+    management = FLOSS::reef_management(), Escale = 1.1),
   one = list(
     label = "One gear: handline (effort = F/Fmsy)",
     fleets = "handline",
@@ -168,7 +168,7 @@ make_reactives <- function(input, rv) {
       fishery(fleets = fl, years = seq(y0, y1), trends = trends,
               sigmaE = input$fish_sigmaE %||% 0.15, creep = creep,
               creep_start = cstart, name = input$fish_preset %||% "reef",
-              seed = input$fish_seed %||% 123, Escale_cv = input$fish_Escale %||% 0.25,
+              seed = input$fish_seed %||% 123, Escale_cv = input$fish_Escale %||% 0.25, Escale = input$fish_Elevel %||% 1,
               management = Filter(function(m) m$fleet %in% fl && m$from > y0 && m$from <= y1, p$management)),
       error = function(e) structure(list(msg = conditionMessage(e)), class = "floss_error"))
   })

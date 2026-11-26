@@ -25,7 +25,9 @@ validate_species(x, fishery = NULL)
 
 \item{lh}{named list or vector of life-history parameters: \code{linf}, \code{k},
 \code{t0} (von Bertalanffy, cm and years), \code{a}, \code{b} (W = aL^b, g and cm),
-\code{lm} (length at 50\% maturity, cm), \code{tm} (age at 50\% maturity), \code{tmax}
+\code{lm} (length at 50\% maturity, cm), \code{tm} (age at 50\% maturity; optional:
+if missing or \code{NA} it is computed from \code{lm} with \code{\link[=amat_from_lm]{amat_from_lm()}}, so that
+the operating model, which matures fish at age, matures them at \code{lm}), \code{tmax}
 (maximum age, also the plus group), \code{M} (natural mortality), \code{s}
 (steepness), \code{sigR} (recruitment SD) and \code{rho} (recruitment
 autocorrelation, used when \code{build_om(ar1 = TRUE)}).}
